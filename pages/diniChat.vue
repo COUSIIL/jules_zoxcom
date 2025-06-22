@@ -1,0 +1,122 @@
+<template>
+    <div class="chat-container">
+      <div class="chat-box">
+        <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.role]">
+          {{ msg.content }}
+        </div>
+      </div>
+  
+      <div class="input-box">
+        <input v-model="userInput" @keyup.enter="sendMessage" placeholder="Écrivez un message..." />
+        <button @click="sendMessage">➤</button>
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  import { ref } from 'vue';
+  
+  export default {
+    setup() {
+      const messages = ref([
+        { role: 'bot', content: 'Bonjour ! Comment puis-je vous aider ?' }
+      ]);
+      const userInput = ref('');
+  
+      const sendMessage = async () => {
+        if (!userInput.value.trim()) return;
+  
+        messages.value.push({ role: 'user', content: userInput.value });
+  
+        try {
+          const response = await fetch('https://management.hoggari.com/backend/api.php?action=chatMistral', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: userInput.value })
+          });
+  
+          const data = await response.json();
+          const msgs = data.choices.length;
+          const msg = data.choices[msgs - 1].message.content;
+          messages.value.push({ role: 'bot', content: msg || 'Réponse indisponible.' });
+        } catch (error) {
+          messages.value.push({ role: 'bot', content: 'Erreur de connexion avec l’IA.' });
+        }
+  
+        userInput.value = ''; // Réinitialiser l'input après envoi
+      };
+  
+      return { messages, userInput, sendMessage };
+    }
+  };
+  </script>
+  
+  <style>
+  /* Style minimaliste du chat */
+  .chat-container {
+    max-width: 600px;
+    margin: auto;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #f8f8f8;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .message {
+    max-width: 80%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 8px;
+    line-height: 1.4;
+  }
+  
+  .bot {
+    align-self: flex-start;
+    background: #e0e0e0;
+  }
+  
+  .user {
+    align-self: flex-end;
+    background: #007aff;
+    color: white;
+  }
+  
+  .input-box {
+    display: flex;
+    gap: 5px;
+    padding: 10px;
+    background: white;
+    border-top: 1px solid #ddd;
+  }
+
+  .input-box button {
+    background: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  </style>
+  

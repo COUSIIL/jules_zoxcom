@@ -1,0 +1,6 @@
+<IfModule mod_headers.c>
+  # Autorise toutes les origines
+  Header set Access-Control-Allow-Origin "*"
+  # Optionnel : expose aussi le header Content-Type, si besoin
+  Header set Access-Control-Expose-Headers "Content-Type"
+</IfModule>
