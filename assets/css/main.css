@@ -74,4 +74,18 @@ html.dark {
   color: var(--color-whitly);
 }
 
+/* Refactored component classes using @apply */
+.btn1 {
+    @apply flex justify-around items-center w-[90%] cursor-pointer rounded-[6px] min-w-[100px] m-[10px] p-[5px] border border-[--color-rangy] shadow-[0px_2px_5px_var(--color-rangy)] bg-[--color-whity] dark:bg-[--color-darky];
+}
+.btn1 svg {
+    @apply min-w-[20px] mx-[5px] text-[--color-darkly] dark:text-[--color-whitly];
+}
 
+.btn2 {
+    @apply flex justify-around items-center w-[90%] min-w-[100px] max-w-[400px] m-[10px] p-[5px] cursor-pointer bg-[--color-whity] rounded-[6px] border border-[--color-rangy] dark:bg-[--color-darky];
+}
+
+.btn3 {
+    @apply flex justify-around items-center m-[10px] w-[90%] min-w-[100px] max-w-[400px] p-[5px] cursor-pointer border border-[--color-rangy] bg-[--color-whity] rounded-[6px] shadow-[0px_2px_5px_var(--color-hoggari)] text-[--color-darkly] dark:bg-[--color-darky] dark:text-[--color-whitly];
+}

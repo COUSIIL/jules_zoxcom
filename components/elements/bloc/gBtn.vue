@@ -1,15 +1,32 @@
 <template>
-  <button class="gBtn" :style="{ backgroundColor: color }" :id="value" type="button">
-    <div class="holder" v-if="text">{{ t(text) }}</div>
-    <div class="svg" :style="{color: color}" v-html="resizedImg" />
+  <button
+    class="m-[5px] flex h-8 cursor-pointer items-center justify-center overflow-visible rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+    :style="{ backgroundColor: color }"
+    :id="value"
+    type="button"
+  >
+    <div
+      v-if="text"
+      class="mx-0.5 flex h-7 items-center rounded-full bg-[--color-whitly] p-2.5 text-sm dark:bg-[--color-darkly]"
+    >
+      {{ t(text) }}
+    </div>
+    <div
+      class="pointer-events-none flex h-[30px] w-[30px] items-center justify-center rounded-full text-[--color-whitly]"
+      v-html="resizedImg"
+    />
   </button>
 </template>
 
 <script setup>
-
 const { t } = useLang()
 
-const props = defineProps({ svg: String, text: String, value: Number, color: String })
+const props = defineProps({
+  svg: String,
+  text: String,
+  value: Number,
+  color: String,
+})
 
 const newWidth = 24
 const newHeight = 24
@@ -20,51 +37,4 @@ const resizedImg = computed(() => {
     .replace(/width="[^"]+"/, `width="${newWidth}"`)
     .replace(/height="[^"]+"/, `height="${newHeight}"`)
 })
-
-
 </script>
-
-<style>
-
-.gBtn {
-  height: 32px;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: visible;
-  margin: 5px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.holder {
-  height: 28px;
-  padding: 10px;
-  margin-inline: 2px;
-  background-color: var(--color-whitly);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-}
-
-.dark .holder {
-  background-color: var(--color-darkly);
-}
-
-.gBtn .svg {
-  height: 30px;
-  width: 30px;
-  border-radius: 14px;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gBtn .svg svg {
-  color: var(--color-whitly);
-}
-
-
-</style>
