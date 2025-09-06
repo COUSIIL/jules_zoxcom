@@ -1,0 +1,25 @@
+# Utiliser PHP 8.1 via cPanel
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php81___lsphp .php .php8 .phtml
+</IfModule>
+
+# Activer mod_rewrite
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Rediriger tout sauf les fichiers et dossiers existants vers index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Redirection propre pour les erreurs 404 (utile avec les routes dynamiques comme [id].vue)
+ErrorDocument 404 /index.html
+
+# Optionnel : éviter les slashes ou www/https mal gérés (adaptable)
+# Rediriger vers HTTPS si nécessaire
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
