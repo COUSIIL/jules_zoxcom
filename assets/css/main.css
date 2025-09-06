@@ -12,8 +12,8 @@
   --color-whitly: #fefaff;
   --color-wagly: #f3edf7;
   --color-whiby: #e9f4f2;
-  --color-whity: #f8f9fa;
-  --color-darky: #121212;
+  --color-whity: #f8eeff;
+  --color-darky: #0e0812;
   --color-darkly: #2a222f;
   --color-darkow: #131212;
   --color-darkiw: #311a2f;
@@ -63,6 +63,10 @@ html {
   font-family: 'Funnel Display', IBM Plex Sans Arabic, sans-serif;
   background-color: var(--color-whity); /* Couleur de base */
   color: var(--color-darkly);
+}
+
+html, body {
+  user-select: text;
 }
 
 html.dark {

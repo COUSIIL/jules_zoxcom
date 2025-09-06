@@ -23,6 +23,7 @@
     align-items: center; /* Centrage vertical */
     justify-content: center; /* Centrage horizontal */
     min-width: 14px;
+    max-width: 14px;
     height: 14px;
     margin: 10px;
     cursor: pointer;
@@ -38,6 +39,7 @@
     align-items: center; /* Centrage vertical */
     justify-content: center; /* Centrage horizontal */
     min-width: 12px;
+    max-width: 12px;
     height: 12px;
     margin: 11px;
     cursor: pointer;

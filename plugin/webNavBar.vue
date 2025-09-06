@@ -3,7 +3,7 @@
   <Nav :user="user" :isMounted="isMounted" :isDark="isDark" :isDeasy="isDeasy" :isAuthenticated="isAuthenticated" :logoDark="logoDark" :logoWhite="logoWhite" :varqWhite="varqWhite" :varqDark="varqDark" :isVisible="isVisible" @darkMode="toggleDarkMode" @sideBar="viewMenu" @viewMenu="toggleDarkMode" @handleLogout="handleLogout"/>
 
 
-  <SideBar @viewMenu="viewMenu" @handleLogout="handleLogout" :isVisible="isVisible" @close="isVisible = false"/>
+  <SideBar v-if="isAuthenticated" @viewMenu="viewMenu" @handleLogout="handleLogout" :isVisible="isVisible" @close="isVisible = false"/>
 
 
   
@@ -33,14 +33,20 @@ const varqDark = ref("/diniWhite.svg");
 
 const handleLogout = () => {
   localStorage.setItem('auth', null);
+  localStorage.setItem('user', null);
   window.location.href = '/connexion' // Rediriger vers la page de connexion après déconnexion
 }
 
+
 onMounted(() => {
-  if(JSON.parse(localStorage.getItem('auth'))) {
+  if(localStorage.getItem('auth')) {
     const authData = JSON.parse(localStorage.getItem('auth'));
-    user.value = authData.user;
-    isAuthenticated.value = true;
+    if(authData) {
+      user.value = authData.username;
+      isAuthenticated.value = true;
+    }
+    
+    
   }
     // Vérifie si le thème est enregistré dans le localStorage
     if (localStorage.getItem('darkMode')) {
@@ -425,9 +431,5 @@ box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 .dark .moreD{
 background-color: var(--color-darkly);
 }
-
-
-
-
 
 </style>

@@ -1,71 +1,123 @@
 <template>
-  <div v-if="showDropdown" class="backClaque" @click="showDropdown = false">
+    <div v-if="showDropdown" class="backClaque" @click="showDropdown = false"></div>
 
-  </div>
-    <div class="floating-input3">
-        <div class="dropdown1" :style="{ backgroundColor: color }">
-          <div class="selected1" @click="toggleDropdown">
-          {{ selectedLabel || t('select') }}
-          </div>
+    <div class="floating-input3" :class="props.class">
+      <div class="dropdown1" :style="{ backgroundColor: color }">
+        <div class="selected1" @click="toggleDropdown" :class="{ disabled: props.disabled }">
+          <img v-if="!selectedImage && props.modelImage" :src="`/${props.modelImage}`" alt="icon" />
+          <div
+            v-else-if="selectedImage && isSvgString(selectedImage)" 
+            v-html="selectedImage">
+          </div> 
+          <img v-else-if="selectedImage" :src="`/${selectedImage}`" alt="icon" />
+          <p v-if="!selectedLabel && props.modelValue">{{ modelValue || t('select') }}</p>
+          <p v-else-if="selectedLabel">{{ selectedLabel || t('select') }}</p>
+          <p style="width: 20px;">
 
-          <ul v-if="showDropdown" class="dropdown-list1">
-            <li
-              v-for="(option, index) in options"
-              :key="option.value"
-              class="dropdown-item1"
-              @click="selectOption(option)"
-            >
-              <span class="option-label">
-
-                <img v-if="option.img" class="img-circle" :src="option.img" :alt="option.label">
-
-                <div
-                  v-if="typeof option.value === 'string' && option.value.startsWith('#')"
-                  class="color-circle"
-                  :style="{ backgroundColor: option.value }"
-                ></div>
-                <div v-if="typeof option.value === 'number'">
-                  {{ option.value }}
-                </div>
-                {{ option.label }}
-              </span>
-            </li>
-          </ul>
+          </p>
         </div>
-        <label class="floated">
-            <div class="iconSelect" v-html="resizedImg">
 
-            </div>
-            {{ t(placeHolder) }}
-            <div v-if="required" style="margin-inline: 2px;">
-                <DotLottieVue
-                style="height: 16px; width: 16px"
-                src="/animations/important.lottie"
-                autoplay
-                loop
-                />
-            </div>
-        </label>
+        <span class="lock-icon" @click="emit('toggleLock')">
+          <div v-if="props.disabled" v-html="resizeSvg(icons['lock'], 18, 18)">
+
+          </div>
+          <div v-else v-html="resizeSvg(icons['unLock'], 18, 18)">
+
+          </div>
+        </span>
+
+        <ul v-if="showDropdown" class="dropdown-list1">
+          <li
+            v-for="option in props.options"
+            class="dropdown-item1"
+            @click="() => selectOption(option)"
+          >
+            <span class="option-label">
+
+              <img v-if="option.img && !isSvgString(option.img)" :src="`/${option.img}`" alt="icon" />
+              
+              <div v-else-if="option.img" class="img-circle" v-html="option.img">
+
+              </div>
+
+              <div
+                v-if="typeof option.value === 'string' && option.value.startsWith('#')"
+                class="color-circle"
+                :style="{ backgroundColor: option.value }"
+              ></div>
+
+              <div v-if="typeof option.value === 'number'">
+                {{ option.value }}
+              </div>
+
+              {{ option.label }}
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <label class="floated">
+        <div class="iconSelect" v-html="resizedImg"></div>
+        {{ t(placeHolder) }}
+        <div v-if="required" style="margin-inline: 2px;">
+          <DotLottieVue
+            style="height: 16px; width: 16px"
+            src="/animations/important.lottie"
+            autoplay
+            loop
+          />
+        </div>
+      </label>
     </div>
-
 </template>
 
 <script setup>
+import { computed, ref, watch } from 'vue'
+import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
+import icons from '~/public/icons.json'
+
 const { t } = useLang()
 
-import {DotLottieVue} from '@lottiefiles/dotlottie-vue'
-
 const props = defineProps({
-    modelValue: String,
-    options: Array,
-    placeHolder: String,
-    img: String,
-    required: Boolean,
-    color: String,
-    label: String,
-    disabled: Boolean,
-    class: String
+  modelValue: [String, Number],
+  modelImage: String,
+  options: {default: [], value: Array},
+  placeHolder: String,
+  img: String,
+  required: Boolean,
+  color: String,
+  label: String,
+  disabled: Boolean,
+  class: String
 })
+
+  const resizeSvg = (svg, width, height) => {
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`)
+  }
+
+const emit = defineEmits(['update:modelValue', 'update:modelLabel', 'toggleLock'])
+
+const showDropdown = ref(false)
+const inputValue = ref(props.modelValue || '')
+
+watch(() => props.modelValue, newVal => {
+  inputValue.value = newVal ?? ''
+})
+
+function isSvgString(content) {
+  return typeof content === 'string' && content.trim().startsWith('<svg');
+}
+
+
+const selectedLabel = computed(() =>
+  props.options.find(opt => opt.value === inputValue.value)?.label || ''
+)
+
+const selectedImage = computed(() =>
+  props.options.find(opt => opt.value === inputValue.value)?.img || ''
+)
 
 const newWidth = 20
 const newHeight = 20
@@ -77,30 +129,21 @@ const resizedImg = computed(() => {
     .replace(/height="[^"]+"/, `height="${newHeight}"`)
 })
 
-const emit = defineEmits(['update:modelValue'])
-
-const showDropdown = ref(false)
-const inputValue = ref(props.modelValue || '')
-
-const selectedLabel = computed(() =>
-  props.options.find(opt => opt.value === inputValue.value)?.label || ''
-)
-
-watch(() => props.modelValue, newVal => {
-  inputValue.value = newVal || ''
-})
-
 function toggleDropdown() {
-  showDropdown.value = !showDropdown.value
+  if (!props.disabled) showDropdown.value = !showDropdown.value
 }
 
-function selectOption(val) {
-  inputValue.value = val.value
-  emit('update:modelValue', inputValue.value )
-  emit('update:modelLabel', val.label)
+function selectOption(option) {
+
+  inputValue.value = option['value']
+
+  
+  emit('update:modelValue', inputValue.value)
+  emit('update:modelLabel', option['label'])
+  emit('update:modelImage', option['img'])
   showDropdown.value = false
+  props.options = []
 }
-
 </script>
 
 <style scoped>
@@ -122,6 +165,9 @@ function selectOption(val) {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.dark .img-circle {
+  background-color: var(--color-darkow);
 }
 
 .color-circle {
@@ -149,10 +195,9 @@ function selectOption(val) {
 .dropdown1 {
   position: relative;
   border-radius: 22px;
-  padding: 2px;
   cursor: pointer;
   width: 100%;
-  min-width: 150px;
+  min-width: 100px;
   max-width: 250px;
 }
 
@@ -161,15 +206,29 @@ function selectOption(val) {
   font-size: 16px;
   height: 40px;
   border-radius: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   outline: none;
   background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
   border: 2px solid var(--color-zioly2);
   font-size: 14px;
   align-content: center;
+  padding-inline: 5px;
+}
+.selected1.disabled {
+  background-color: #f3f3f3;
+  cursor: not-allowed;
+  color: #666;
 }
 .dark .selected1 {
   background: linear-gradient(to right, var(--color-darky), var(--color-darkiw));
   border-radius: 24px;
+}
+
+.selected1 img {
+  width: 20px;
+  height: 20px;
 }
 
 .dropdown-list1 {
@@ -213,9 +272,11 @@ function selectOption(val) {
 
 .floating-input3 {
   position: relative;
-
+  width: 100%;
   margin-inline: 5px;
   margin-block: 10px;
+  min-width: 100px;
+  max-width: 250px;
 }
 
 
@@ -244,6 +305,23 @@ function selectOption(val) {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.floating-input3 input.locked {
+  background-color: #f3f3f3;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.floating-input3 .lock-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  
+  color: var(--color-zioly2);
+  cursor: pointer;
+  z-index: 2;
 }
 
 

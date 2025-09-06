@@ -2,11 +2,12 @@
 
   <LoaderBlack v-if="isSaving" width="100px" />
   <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
+  <Confirm :isVisible="toConfirm" @confirm="save" @cancel="toConfirm = false" />
 
     <div class="boxAddDelivery">
         <div class="contentBox">
           <div class="contentForm">
-            <Selector :options="deliveryList" :placeHolder="t('method')" :img="icons['delivery']" @update:modelLabel="selectedDelivery" :required="true"/>
+            <Selector :options="deliveryListed" :placeHolder="t('method')" :img="icons['delivery']" @update:modelLabel="selectedDeliveryName" @update:modelValue="selectedDeliveryValue" :required="true"/>
             <Inputer :placeHolder="t('delivery name')" type="text" :img="icons['label']" v-model="deliveryName" :required="true" style="max-width: 250px;" />
             <Selector :options="wilaya" :placeHolder="t('drop-off area')" :img="icons['drop']" @update:modelLabel="selectedDropArea" :required="true" />
           </div>
@@ -30,7 +31,7 @@
               justify-content:center; 
               align-items: center;">
               <Gbtn :text="t('cancel')" @click="cancel" color="var(--color-rady)" :svg="icons['x']"/>
-              <Gbtn :text="t('save')" @click="save" color="var(--color-greny)" :svg="icons['check']"/>
+              <Gbtn :text="t('save')" @click="toConfirm = true" color="var(--color-greny)" :svg="icons['check']"/>
               
             </div>
             
@@ -61,6 +62,7 @@ import Lister from '../elements/bloc/list.vue';
 import Selector from '../elements/bloc/select.vue';
 import Gbtn from '../elements/bloc/gBtn.vue';
 import Message from '../elements/bloc/message.vue';
+import Confirm from '../elements/bloc/confirm.vue';
 import CallToAction from '../elements/bloc/callToActionBtn.vue';
 import CancelBtn from '../elements/bloc/cancelBtn.vue';
 import Explorer from '../elements/explorer.vue';
@@ -83,12 +85,15 @@ var dropArea = ref('')
 
 var selectedDeliveryId = ref()
 
-var returnFree = ref(false)
-var includeFees = ref(false)
+const toConfirm = ref(false)
+const returnFree = ref(false)
+const includeFees = ref(false)
 
-var isSaving = ref(false)
-var isMessage = ref(false)
-var message = ref('')
+const isSaving = ref(false)
+const isMessage = ref(false)
+const message = ref('')
+
+var wilayas = ref()
 
 const wilaya = ref([
             {value: 1, label: 'Adrar', homePrice: 1600, deskPrice: 800},
@@ -151,6 +156,8 @@ const wilaya = ref([
             {value: 58, label: 'El Meniaa', homePrice: 1200, deskPrice: 800},
         ])
 
+
+
 const emit = defineEmits(['cancel', 'save'])
     
 
@@ -160,59 +167,210 @@ function cancel() {
 }
 
 const save = async () => {
+  toConfirm.value = false
   isSaving.value = true
-  if(!selectedDeliveryId.value) {
-    message.value = "pleas chose method"
+
+  // 1. Validations
+  if (!selectedDeliveryId.value) {
+    message.value = "please choose method"
     isMessage.value = true
     isSaving.value = false
     return
   }
-  if(!deliveryName.value) {
-    message.value = "pleas enter delivery name"
+  if (!deliveryName.value) {
+    message.value = "please enter delivery name"
     isMessage.value = true
     isSaving.value = false
     return
   }
-  if(!dropArea.value) {
-    message.value = "pleas chose wilaya drop area"
+  if (!dropArea.value) {
+    message.value = "please choose wilaya drop area"
     isMessage.value = true
     isSaving.value = false
     return
   }
+
+  // 2. Prépare les wilayas via ton setter (remplit wilayas.value avec un tableau d'objets purs)
+  await setDelivery(deliveryName.value)
+
+  
+
+  // 3. Construit le payload avec les bonnes sources
+  const pureWilayas = JSON.stringify(wilayas.value)
+  const pureContent = JSON.stringify(deliveryList.value)
+
   const payload = {
-    method: deliveryList.value.find(d => d.label === deliveryName.value)?.value || 'custom',
-    delivery_name: deliveryName.value,
-    drop_area_name: dropArea.value,
-    drop_area_id: wilaya.value.find(w => w.label === dropArea.value)?.value || null,
-    return_free: returnFree.value,
-    include_fees: includeFees.value,
-  };
-
-  const response = await fetch('https://management.hoggari.com/backend/api.php?action=addDeliveryMethod', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if(!response.ok) {
-    message.value = "error in response"
-    isMessage.value = true
-    isSaving.value = false
+    method:           selectedDeliveryId.value,
+    delivery_name:    deliveryName.value,
+    drop_area_name:   dropArea.value,
+    // Assure-toi d'utiliser la bonne liste statique ici (wilayaOptions ou wilaya)
+    drop_area_id:     wilaya.value.find(w => w.label === dropArea.value)?.value ?? null,
+    return_free:      returnFree.value ? 1 : 0,
+    include_fees:     includeFees.value ? 1 : 0,
+    delivery_info:    pureWilayas,    // doit être un Array d'objets JSON-serializables
+    delivery_content: pureContent
   }
 
-  const result = await response.json();
-  if (result.success) {
+
+  // 4. Envoi
+  try {
+    const response = await fetch(
+    'https://management.hoggari.com/backend/api.php?action=addDeliveryMethod',
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      }
+    )
+
+    if (!response.ok) {
+      message.value   = "error in response"
+      isMessage.value = true
+      isSaving.value  = false
+      return   // <<-- Interrompt ici pour ne pas continuer
+    }
+
+    // 5. Traitement de la réponse
+    const result = await response.json()
+    message.value   = result.message
+    isMessage.value = true
+    isSaving.value  = false
+
+    if (result.success) {
+      message.value   = result.message
+      isMessage.value = true
+      isSaving.value  = false
+      emit('save')
+    }
+  } catch (e) {
+    message.value   = e
+    isMessage.value = true
+    isSaving.value  = false
+  }
+
+}
+
+/*home_price: null,
+  desk_price: null,
+  desk_active: true,
+  home_active: true,
+  wilaya_active: true*/
+
+
+
+const setDelivery = async(name) => {
+  wilayas.value = await getWilaya(name)
+  console.log('wilayas: ', wilayas.value)
+  if(name != 'custom') {
+      for (let i = 0; i < wilayas.value.length; i++) {
+        wilayas.value[i] = {
+            ...wilayas.value[i], // garder les données existantes
+            home_price: null,
+            desk_price: null,
+            desk_active: true,
+            home_active: true,
+            wilaya_active: true,
+            delivery_home: name,
+            delivery_desk: name,
+        }
+      }
+  }
+
+}
+
+
+const getWilaya = async(method) => {
+  const name = method
     
-    message.value = result.message
-    isMessage.value = true
-    emit('cancel')
-    isSaving.value = false
-  } else {
-    message.value = result.message
-    isMessage.value = true
-    isSaving.value = false
-  }
-};
+    if(method == 'custom') {
+        method = 'Custom'
+        return wilaya.value.map(w => ({
+          wilaya_id: w.value,
+          wilaya_name: w.label,
+          home_price: w.homePrice,
+          desk_price: w.deskPrice,
+          desk_active: true,
+          home_active: true,
+          wilaya_active: true,
+          delivery_home: name,
+          delivery_desk: name
+        }))
+    } else if(method == 'ups') {
+      method = 'Ups'
+    } else if(method == 'anderson') {
+      method = 'Anderson'
+    } else if(method == 'yalidine') {
+      method = 'Yalidine'
+    } else if(method == 'guepex') {
+      method = 'Guepex'
+    }
+
+    var context = ''
+    try {
+      var response
+      response = await fetch(`https://management.hoggari.com/backend/api.php?action=get${method}Wilaya`, {
+      method: 'GET',
+      });
+      
+
+      if (!response.ok) {
+        isMessage.value = true
+        message.value = t('error in request get wilaya')
+        isSaving.value = false
+        return false
+      }
+
+      context = await response.json()
+
+      const raw = Array.isArray(context)
+        ? context
+        : context?.data?.data ?? context?.data ?? []
+
+      if (!Array.isArray(raw)) {
+        isMessage.value = true
+        message.value = t('invalide format')
+        isSaving.value = false
+        return []
+      }
+
+      // Traitement par méthode
+      if (['ups', 'anderson'].includes(method)) {
+        return raw.map(w => ({
+          wilaya_id: w.wilaya_id,
+          wilaya_name: w.wilaya_name,
+          home_price: null,
+          desk_price: null,
+          desk_active: true,
+          home_active: true,
+          wilaya_active: true,
+          delivery_home: name,
+          delivery_desk: name
+        }))
+      }
+
+      if (['yalidine', 'guepex'].includes(method)) {
+        return raw.map(w => ({
+          wilaya_id: w.id,
+          wilaya_name: w.name,
+          home_price: null,
+          desk_price: null,
+          desk_active: true,
+          home_active: true,
+          wilaya_active: w.is_delivrable === '1',
+          delivery_home: name,
+          delivery_desk: name
+        }))
+      }
+      return raw
+        
+
+        
+    } catch (e) {
+        isMessage.value = true
+        message.value = t(context)
+        isSaving.value = false
+    }
+}
 
 
 const testDelivery = async(method) => {
@@ -244,9 +402,30 @@ const testDelivery = async(method) => {
   }
 }
 
-const selectedDelivery = (value) => {
-  selectedDeliveryId.value = value
+const selectedDeliveryName = (value) => {
   deliveryName.value = value
+
+  if(value === 'ups') {
+    deliveryList.value = {label: 'ups', value: 'ups', img: 'ups.svg'}
+
+  } else if (value === 'anderson') {
+    deliveryList.value = {label: 'anderson', value: 'anderson', img: 'anderson.png'}
+
+  } else if (value === 'yalidine') {
+    deliveryList.value = {label: 'yalidine', value: 'yalidine', img: 'yalidine.png'}
+
+  } else if (value === 'guepex') {
+    deliveryList.value = {label: 'guepex', value: 'guepex', img: 'guepex.png'}
+
+  } else if (value === 'custom') {
+    deliveryList.value = {label: 'custom', value: 'custom', img: 'z.svg'}
+
+  }
+  
+}
+
+const selectedDeliveryValue = (value) => {
+  selectedDeliveryId.value = value
 }
 
 const selectedDropArea = (value) => {
@@ -266,10 +445,9 @@ onMounted(async () => {
         : null;
     })
   );
-  
 
-  deliveryList.value = results.filter(Boolean); // Retire les `null`
-  deliveryList.value.push({label: 'custom', value: 'custom', img: 'z.svg'})
+  deliveryListed.value = results.filter(Boolean); // Retire les `null`
+  deliveryListed.value.push({label: 'custom', value: 'testCustom', img: 'z.svg'})
 });
 
 

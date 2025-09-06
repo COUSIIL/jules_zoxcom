@@ -34,11 +34,7 @@ const clicked = () => {
   color: var(--color-darky);
   font-size: 16px;
   cursor: pointer;
-  box-shadow: 0 4px 8px #00000050;
 
-}
-.dark .router_link {
-  box-shadow: 0 4px 8px #000000b0;
 }
 
 .iconCTA {

@@ -1,6 +1,6 @@
 <?php
-$api_key = "90Usav5qPMjcjD6MOifOi9M2GUbnLebC";  // Remplacez par votre clé API
 $url = "https://api.mistral.ai/v1/chat/completions";
+$apiKey = getenv("API_MISTRAL"); 
 
 $value = json_decode(file_get_contents('php://input'), true);
 

@@ -1,5 +1,4 @@
 <?php
-
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -8,54 +7,78 @@ require __DIR__ . '/../../vendor/autoload.php';
 header('Content-Type: application/json');
 
 $mail = new PHPMailer(true);
-$mail->CharSet = 'UTF-8'; // 🔥 Important pour bien afficher les accents
+$mail->CharSet = 'UTF-8';
 
-
-$name = $_POST['name'] ?? 'Nom inconnu';
-$phone = $_POST['phone'] ?? 'Inconnu';
+// Récupération des données POST
+$name         = $_POST['name']         ?? 'Nom inconnu';
+$phone        = $_POST['phone']        ?? 'Inconnu';
 $deliveryZone = $_POST['deliveryZone'] ?? 'Inconnue';
-$totalPrice = $_POST['totalPrice'] ?? 0;
-$id = $_POST['orderID'] ?? 0;
+$totalPrice   = $_POST['totalPrice']   ?? 0;
+$id           = $_POST['orderID']      ?? 0;
 
-
+// Date courante
+$date = date("Y-m-d H:i:s");
 
 try {
     $mail->isSMTP();
-    $mail->Host = 'management.hoggari.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'no-reply@management.hoggari.com';
-    $mail->Password = 'Jhmkhkm1999'; // 🔒 Remplace ici par le vrai mot de passe sécurisé
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // meilleure constante que 'ssl'
-    $mail->Port = 465;
+    $mail->Host       = 'management.hoggari.com';
+    $mail->SMTPAuth   = true;
+    $mail->Username   = 'no-reply@management.hoggari.com';
+    $mail->Password   = 'Jhmkhkm1999';
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Port       = 465;
 
     $mail->setFrom('no-reply@management.hoggari.com', 'Hoggari.com');
-    $mail->addAddress('hoggari.mail@gmail.com'); // À changer si besoin
-
+    $mail->addAddress('commandes.dnz@gmail.com');
     $mail->isHTML(true);
-    $mail->Subject = "Nouvelle commande";
+    $mail->Subject = "Nouvelle commande : $phone";
 
-    // Simule des données — à remplacer par les vraies variables (par ex. $_POST['name'])
-
-
-    // Construction du mail
-    $body = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>';
-    $body .= "<h2>Commande enregistrée avec succès !</h2>";
-    $body .= "<p><strong>Nom :</strong> " . htmlspecialchars($name) . "</p>";
-    $body .= "<p><strong>Numéro de téléphone :</strong> " . htmlspecialchars($phone) . "</p>";
-    $body .= "<p><strong>Wilaya :</strong> " . htmlspecialchars($deliveryZone) . "</p>";
-    $body .= "<p><strong>Montant total :</strong> " . htmlspecialchars($totalPrice) . " DA</p>";
+    // === Construction du corps HTML comme ton template WP ===
+    $body  = '<html><body>';
+    $body .= '<table style="
+        width:100%; max-width:600px; margin:0 auto;
+        background:#fff; padding:20px; border-radius:10px;
+        border:1px solid #ccc; font-family:Arial,sans-serif;
+        text-align:left;
+    ">';
+    $body .= '<tr style="background:#ff5800; color:#fff;">
+                <td colspan="2" style="text-align:center; padding:10px 0;">
+                  <h2>Nouvelle Commande</h2>
+                </td>
+              </tr>';
+    $body .= "<tr><td colspan=\"2\" style=\"text-align:center; padding:5px 0;\">$date</td></tr>";
+    $body .= '<tr style="background:#ffd5a9;">
+                <td style="padding:10px;"><strong>Nom :</strong></td>
+                <td style="padding:10px; color:#555;">'.htmlspecialchars($name).'</td>
+              </tr>';
+    $body .= '<tr>
+                <td style="padding:10px;"><strong>Téléphone :</strong></td>
+                <td style="padding:10px; color:#555;">'.htmlspecialchars($phone).'</td>
+              </tr>';
+    $body .= '<tr style="background:#ffd5a9;">
+                <td style="padding:10px;"><strong>Wilaya :</strong></td>
+                <td style="padding:10px; color:#555;">'.htmlspecialchars($deliveryZone).'</td>
+              </tr>';
+    $body .= '<tr>
+                <td style="padding:10px;"><strong>Total :</strong></td>
+                <td style="padding:10px; color:#555;">'.number_format($totalPrice, 2).' DA</td>
+              </tr>';
+    $body .= '</table>';
     $body .= '</body></html>';
+    // ==========================================================
 
     $mail->Body = $body;
-
     $mail->send();
 
     echo json_encode([
-        "success" => true, 
-        "message" => "Order submited and saved",
-        "data" => $id
+        "success" => true,
+        "message" => "Order submitted and email sent",
+        "data"    => $id
     ]);
 
 } catch (Exception $e) {
-    echo json_encode(["success" => false, "message" => "Erreur lors de l'envoi : {$mail->ErrorInfo}"]);
+    echo json_encode([
+        "success" => false,
+        "message" => "Erreur lors de l'envoi : {$mail->ErrorInfo}"
+    ]);
 }

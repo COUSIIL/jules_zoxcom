@@ -1,7 +1,11 @@
 <template>
+  <Confirm :isVisible="showConfirm" @confirm="deleteAll" @cancel="showConfirm = false"/>
+  <Message :isVisible="isMessage" :message="message" @ok="isMessage = false" />
+
   <div v-if="show" class="backCalque">
 
   </div>
+
   <div v-if="show && ready" class="modalExp" @contextmenu.prevent>
     
     <div v-if="isLargeScreen" style="width: 100%;">
@@ -33,8 +37,6 @@
 
         <Gbtn :text="t('delete')" @click="showConfirm = true" color="#ff5555" :svg="icons['deleteImg']"/>
         <Gbtn :text="t('download')" @click="downloadImagesSelected" :svg="icons['download']" color="var(--color-greny)"/>
-        <Confirm :isVisible="showConfirm" @confirm="deleteAll" @cancel="showConfirm = false"/>
-        <Message :isVisible="isMessage" :message="message" @ok="isMessage = false" />
 
 
       </div>
@@ -105,9 +107,9 @@
       
 
 
-      <div style="width: 100%; display: flex; align-items: center;">
+      <div>
         <InputBtn
-          placeHolder="add folder"
+          :placeHolder="t('add folder')"
           :img="icons['folderImg']"
           :required="false"
           v-model="newFolderName"
@@ -116,10 +118,11 @@
           @clicked="addFolderTo(currentParentId, newFolderName)"
         />
 
-        <Gbtn :text="t('delete')" @click="showConfirm = true" color="#ff5555" :svg="icons['deleteImg']"/>
-        <Gbtn :text="t('download')" @click="downloadImagesSelected" :svg="icons['download']" color="var(--color-greny)"/>
-        <Confirm :isVisible="showConfirm" @confirm="deleteAll" @cancel="showConfirm = false"/>
-        <Message :isVisible="isMessage" :message="message" @ok="isMessage = false" />
+        <div style="width: 100%; display: flex; align-items: center;">
+          <Gbtn :text="t('delete')" @click="showConfirm = true" color="#ff5555" :svg="icons['deleteImg']"/>
+          <Gbtn :text="t('download')" @click="downloadImagesSelected" :svg="icons['download']" color="var(--color-greny)"/>
+        </div>
+        
 
       </div>
       
@@ -555,7 +558,12 @@ const renameFolder = async (id, name) => {
 
   if (textResponse.success) {
     
-    await getFolders(id)
+
+    await getFolders(parseInt(id))
+    console.log('id: ',id)
+    console.log('allFolders.value: ',allFolders.value)
+    
+    
     
   } else {
     isMessage.value = true
@@ -619,7 +627,7 @@ const getFolders = async (id) => {
       children: []
     }))
     currentParentId.value = id
-    resetFolders(id)
+    resetFolders(parseInt(id))
     isAdding.value = false;
   } else {
     
@@ -648,7 +656,12 @@ const getImages = async () => {
 
   if (textResponse.success) {
     allImages.value = textResponse.data
-    resetImages(currentParentId.value)
+    if(currentParentId.value) {
+      resetImages(currentParentId.value)
+    } else {
+      resetImages(0)
+    }
+    
     isAdding.value = false;
     
   } else {

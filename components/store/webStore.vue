@@ -11,7 +11,7 @@
         </div>
       </div>
 
-      <!--Linker :link="'/editeur'" text="Manage" :svg="manageSvg" /-->
+      <Linker :link="`/store/${title}`" text="Manage" :svg="icons['settings']" />
         
     </div>
 
@@ -88,10 +88,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import icons from '~/public/icons.json'
 
 import Linker from '../elements/bloc/classBtn.vue'
 
-const title = ref('');
+const {t} = useLang()
+
+
+
+const title = ref('dinarz');
 const description = ref('');
 const faviconUrl = ref('');
 const loading = ref(true);
@@ -198,7 +203,7 @@ onMounted(() => {
   
 <style scoped>
   .storeMenu {
-    width: calc(100% - 20px);
+    width: 90%;
     margin: 10px;
     border-radius: 8px;
     padding-block: 10px;

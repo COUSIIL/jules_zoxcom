@@ -1,134 +1,255 @@
 <template>
-    <div class="login-container">
-      <div class="login-box">
-        <h2>Connexion</h2>
-        <form @submit.prevent="handleLogin">
-          <input 
-            type="text" 
-            v-model="username" 
-            placeholder="Nom d'utilisateur" 
-            required 
+  <div class="login-container">
+    <div class="login-box">
+      <h2>{{ t('connexion') }}</h2>
+
+      <form @submit.prevent="handleLogin">
+        <!-- Champ username sécurisé -->
+        <input 
+          type="text" 
+          v-model.trim="username" 
+          :placeholder="t('user name')" 
+          required
+          maxlength="50"
+          autocomplete="username"
+        />
+
+        <!-- Champ mot de passe avec toggle -->
+        <div class="password-wrapper">
+          <input
+            :type="showPassword ? 'text' : 'password'"
+            v-model.trim="password"
+            :placeholder="t('password')"
+            required
+            minlength="6"
+            autocomplete="current-password"
           />
-          <input 
-            type="password" 
-            v-model="password" 
-            placeholder="Mot de passe" 
-            required 
-          />
-          <button type="submit">Se connecter</button>
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-        </form>
-      </div>
+          <button 
+            type="button" 
+            class="toggle-password" 
+            @click="showPassword = !showPassword"
+            :aria-label="showPassword ? 'Hide password' : 'Show password'"
+            v-html="showPassword ? resizeSvg(icons['hide'], 18, 18) : resizeSvg(icons['view'], 18, 18)"
+          >
+          </button>
+        </div>
+
+        <button type="submit" :disabled="loading">
+          {{ loading ? t('loading...') : t('log in') }}
+        </button>
+
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+      </form>
     </div>
-  </template>
+  </div>
+</template>
   
-  <script setup>
-    import { ref } from 'vue'
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-    const username = ref('')
-    const password = ref('')
-    const errorMessage = ref('')
+const siteKey = '6LeAL7QrAAAAABSuiOr3Thi0S_c13dxTzt0R6FKT'
+useHead({
+  script: [
+    {
+      src: `https://www.google.com/recaptcha/api.js?render=${siteKey}`,
+      async: true,
+      defer: true,
+    },
+  ],
+})
 
-    const handleLogin = async () => {
-    errorMessage.value = ''
+import icons from '~/public/icons.json'
 
-    try {
-        const response = await fetch('https://management.hoggari.com/backend/api.php?action=connexion', {
+const { t } = useLang()
+
+const username = ref('')
+const password = ref('')
+const errorMessage = ref('')
+const loading = ref(false)
+const showPassword = ref(false)
+
+const router = useRouter()
+
+onMounted(() => {
+  testLogin()
+})
+
+var resizeSvg = (svg, width, height) => {
+  return svg
+  .replace(/width="[^"]+"/, `width="${width}"`)
+  .replace(/height="[^"]+"/, `height="${height}"`)
+}
+
+const testLogin = async () => {
+  const stored = localStorage.getItem('auth')
+  if (stored) {
+    const data = JSON.parse(stored)
+    if (data && data.user) {
+      console.log('data.user: ', data.user, ' ', 'data: ', data)
+      router.push({ path: '/team/' + data.user}).then(() => {
+        router.go(0) // recharge la page
+      })
+    }
+  }
+
+
+}
+
+const handleLogin = async () => {
+  errorMessage.value = ''
+  loading.value = true
+
+  // 🛡️ Vérifications côté client
+  if (!username.value || !password.value) {
+    errorMessage.value = t('pleas fill all the inputs')
+    loading.value = false
+    return
+  }
+
+  try {
+    // ⚡ Récupérer le token reCAPTCHA v3
+    const token = await new Promise((resolve, reject) => {
+      if (!window.grecaptcha) return reject('reCAPTCHA not charged')
+      grecaptcha.ready(() => {
+        grecaptcha.execute(siteKey, { action: 'login' }).then(resolve).catch(reject)
+      })
+    })
+
+    // 🚀 Envoyer la requête avec le token
+    const response = await fetch(
+      'https://management.hoggari.com/backend/api.php?action=connexion',
+      {
         method: 'POST',
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-            username: username.value,
-            password: password.value
-        })
-        })
+          username: username.value,
+          password: password.value,
+          recaptcha: token,
+        }),
+      }
+    )
 
-        if (!response.ok) {
-            errorMessage.value = 'Error in response';
-            return;
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-        // ✅ Enregistrer l'utilisateur dans le state global
-        localStorage.setItem('auth', JSON.stringify(data.data));
-        errorMessage.value = data.message;
-
-
-        window.location.href = '/' // Rediriger vers la page de connexion après déconnexion
-
-        } else {
-            console.log('data.message: ', data.message);
-            errorMessage.value = data.message;
-        }
-    } catch (error) {
-        errorMessage.value = 'Erreur lors de la connexion';
-    }
+    if (!response.ok) {
+      errorMessage.value = 'error server'
+      return
     }
 
+    const data = await response.json()
+    
+    const token2 = data.data['token']
 
-  </script>
+    if (data.success) {
+      const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=checkConnexion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: token2 }),
+      })
+
+      if (!response2.ok) throw new Error('Invalid response')
+
+      const result = await response2.json()
+      const data2 = { ...result.data, token: token2 }
+
+      localStorage.setItem('auth', JSON.stringify(data2))
+
+      router.push({ path: '/team/' + result.data.username }).then(() => {
+        router.go(0) // recharge la page
+      })
+      
+    } else {
+      errorMessage.value = data.message || 'identitie not correct'
+    }
+  } catch (error) {
+    errorMessage.value = 'error connexion'
+  } finally {
+    loading.value = false
+  }
+}
+</script>
   
-  <style scoped>
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  
-  .login-box {
-    background: var(--color-whitly);
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 360px;
-  }
-  .dark .login-box {
-    background: var(--color-darkly);
-  }
-  
-  h2 {
-    margin-bottom: 1.5rem;
-    font-size: 24px;
-  }
-  
-  input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--color-whity);
-  }
-  .dark input {
-    border: 1px solid var(--color-darky);
-  }
-  
-  input:focus {
-    border-color: #6a5acd;
-    outline: none;
-  }
-  
-  button {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 16px;
-    border-radius: 8px;
-    background-color: #6a5acd;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  button:hover {
-    background-color: #5a4abc;
-  }
-  
-  .error {
-    color: red;
-    margin-top: 10px;
-  }
-  </style>
-  
+<style scoped>
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-box {
+  background: var(--color-whitly);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 360px;
+}
+.dark .login-box {
+  background: var(--color-darkly);
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  font-size: 24px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-whity);
+}
+.dark input {
+  border: 1px solid var(--color-darky);
+}
+
+input:focus {
+  border-color: #6a5acd;
+  outline: none;
+}
+
+/* Wrapper pour mot de passe + bouton toggle */
+.password-wrapper {
+  position: relative;
+}
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: calc(50% - 5px);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  background-color: #6a5acd;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+button[type="submit"]:hover:not([disabled]) {
+  background-color: #5a4abc;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+</style>

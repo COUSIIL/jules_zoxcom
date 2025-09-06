@@ -25,26 +25,27 @@
   
       const sendMessage = async () => {
         if (!userInput.value.trim()) return;
-  
+
         messages.value.push({ role: 'user', content: userInput.value });
-  
+
         try {
-          const response = await fetch('https://management.hoggari.com/backend/api.php?action=chatMistral', {
+          const response = await fetch('https://management.hoggari.com/backend/api.php?action=chatGemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message: userInput.value })
           });
-  
+
           const data = await response.json();
-          const msgs = data.choices.length;
-          const msg = data.choices[msgs - 1].message.content;
-          messages.value.push({ role: 'bot', content: msg || 'Réponse indisponible.' });
+          const reply = data.reply || 'Réponse indisponible.';
+          messages.value.push({ role: 'bot', content: reply });
+
         } catch (error) {
           messages.value.push({ role: 'bot', content: 'Erreur de connexion avec l’IA.' });
         }
-  
-        userInput.value = ''; // Réinitialiser l'input après envoi
+
+        userInput.value = '';
       };
+
   
       return { messages, userInput, sendMessage };
     }

@@ -9,6 +9,12 @@ if (!file_exists($configPath)) {
 }
 require_once $configPath;
 
+$alter_query = "ALTER TABLE folder MODIFY name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
+if (!$mysqli->query($alter_query)) {
+    echo json_encode(['success' => false, 'message' => "Error altering table: " . $mysqli->error]);
+    exit;
+}
+
 // Récupérer les données JSON
 $data = json_decode(file_get_contents('php://input'), true);
 

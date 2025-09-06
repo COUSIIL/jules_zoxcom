@@ -2,43 +2,56 @@
 
     <div style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
         <div class="boxDelivery" v-if="isCreating === false">
-            <p>
-                {{ t('delivery') }}
-            </p>
+            <div class="DeliveryContent">
+                <div v-html="resizedImg">
+
+                </div>
+                
+                {{ deliveryList.length }}
+                
+                {{ t('delivery method') }}
+            </div>
             <CallToAction :text="t('add delivery')" :svg="icons['add']" @clicked="isCreating = !isCreating"/>
         </div>
 
-        <AddDelivery v-else @cancel="isCreating = false" @save="isCreating = false"/>
+        <AddDelivery v-else @cancel="isCreating = false" @save="isSaving = !isSaving"/>
         
     </div>
+
+    <DeliveryList @deliveryList="setDelivery" :update="isSaving"/>
 
 
 </template>
 
 <script setup>
 
-import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
-import Editor from '../components/editor.vue';
-import Radio from '../components/elements/bloc/radio.vue';
-import Inputer from '../components/elements/bloc/input.vue';
-import InputBtn from '../components/elements/bloc/inputBtn.vue';
-import Lister from '../components/elements/bloc/list.vue';
-import Selector from '../components/elements/bloc/select.vue';
-import Gbtn from '../components/elements/bloc/gBtn.vue';
-import Message from '../components/elements/bloc/message.vue';
 import CallToAction from '../components/elements/bloc/callToActionBtn.vue';
-import CancelBtn from '../components/elements/bloc/cancelBtn.vue';
-import Explorer from '../components/elements/explorer.vue';
-import EditCat from '../components/elements/editCategory.vue';
 import AddDelivery from '../components/elements/addDelivery.vue';
+import DeliveryList from '../components/elements/deliveryList.vue';
 
 import icons from '~/public/icons.json'
-
-import { DotLottieVue } from '@lottiefiles/dotlottie-vue'
 
 const { t } = useLang()
 
 var isCreating = ref(false)
+var isSaving = ref(false)
+
+var deliveryList = ref([])
+
+const newWidth = 20
+const newHeight = 20
+
+const resizedImg = computed(() => {
+  if (!icons['delivery']) return ''
+  return icons['delivery']
+    .replace(/width="[^"]+"/, `width="${newWidth}"`)
+    .replace(/height="[^"]+"/, `height="${newHeight}"`)
+})
+
+const setDelivery = (val) => {
+    if(val) deliveryList.value = val; else deliveryList.value = []
+    
+}
 
 
 </script>
@@ -63,8 +76,12 @@ var isCreating = ref(false)
     background-color: var(--color-darkly);
 }
 
-.boxDelivery p {
+.DeliveryContent {
+    display: flex;
+    align-items: center;
+    justify-content: start;
     margin-inline: 10px;
+    gap: 5px;
 }
 
 </style>

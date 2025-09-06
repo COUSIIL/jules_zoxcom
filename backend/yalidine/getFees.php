@@ -1,17 +1,43 @@
 <?php
 
-// Charger les données JSON envoyées
-$value = json_decode(file_get_contents('php://input'), true);
+header('Content-Type: application/json');
+
+// 📌 Récupération des données envoyées
+$value = [];
+
+// Si c'est un POST avec JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $raw = file_get_contents('php://input');
+    if (!empty($raw)) {
+        $value = json_decode($raw, true);
+    }
+}
+
+// Si rien en POST JSON, on regarde GET
+if (empty($value) && isset($_GET['wilaya_id'])) {
+    $value = [
+        'wilaya_id' => $_GET['wilaya_id']
+    ];
+}
 
 // Vérifie que les données ont bien été reçues
-if (empty($value) || !isset($value['wilaya_id'])) {
+if (empty($value)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'no data',
+    ]);
+    exit;
+}
+
+if (!isset($value['wilaya_id'])) {
     echo json_encode([
         'success' => false,
         'message' => 'no wilaya selected',
     ]);
     exit;
 }
-// Inclure le fichier de configuration de la base de données
+
+// 📌 Inclure la config
 $ups = $_SERVER['DOCUMENT_ROOT'] . '/backend/config/yalConfig.php';
 
 if (file_exists($ups)) {
@@ -21,7 +47,7 @@ if (file_exists($ups)) {
         'success' => false,
         'message' => 'Fichier de configuration non trouvé.',
     ]);
-    die;
+    exit;
 }
 
 // Vérifie si les identifiants API sont présents
@@ -30,25 +56,22 @@ if (empty($dataUps) || !isset($dataUps[0]['api_id']) || !isset($dataUps[0]['api_
         'success' => false,
         'message' => 'Clés API manquantes dans yalConfig.',
     ]);
-    die;
+    exit;
 }
 
-// Récupération des clés depuis upsConfig
+// 📌 Récupération des clés
 $api_id = $dataUps[0]['api_id'];
 $api_token = $dataUps[0]['api_token'];
 
-// URL de l’API
+// URL de l’API Yalidine
 $url = "https://api.yalidine.app/v1/fees/?from_wilaya_id=42&to_wilaya_id={$value['wilaya_id']}";
 
-
-// Initialisation de la requête cURL
+// 📌 cURL
 $curl = curl_init();
 
 curl_setopt_array($curl, array(
     CURLOPT_URL => $url,
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => '',
-    CURLOPT_MAXREDIRS => 10,
     CURLOPT_TIMEOUT => 0,
     CURLOPT_FOLLOWLOCATION => true,
     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
@@ -68,15 +91,14 @@ if (!$response_json) {
         'success' => false,
         'message' => 'Erreur lors de la récupération des fees.',
     ]);
-    die;
+    exit;
 }
 
 // Convertit la réponse JSON en tableau PHP
 $response_array = json_decode($response_json, true);
 
-// Retourne les wilayas
+// Retourne les données
 echo json_encode([
     'success' => true,
     'data' => $response_array
 ]);
-?>

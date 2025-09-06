@@ -1,11 +1,17 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-
 
 header("Content-Type: application/json; charset=UTF-8");
+
+// 1) Fonction pour récupérer l'IP
+
+function getUserIp(): string {
+    if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        return $_SERVER['HTTP_X_REAL_IP'];
+    }
+
+    return $_SERVER['REMOTE_ADDR'];
+}
+$ip = getUserIp();
 
 // Inclure le fichier de configuration de la base de données
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
@@ -59,9 +65,13 @@ $createTables = [
         order_id int NOT NULL,
         product_id INT NOT NULL,
         color VARCHAR(255) NOT NULL,
+        color_name VARCHAR(255) NOT NULL,
         size VARCHAR(255) NOT NULL,
         qty INT NOT NULL,
+        total DECIMAL(10,2) NOT NULL,
+        promo DECIMAL(10,2) NOT NULL,
         ids INT(11),
+        indx INT(11),
         FOREIGN KEY (product_id) REFERENCES order_items(id) ON DELETE CASCADE
     )",
     "CREATE TABLE IF NOT EXISTS customers (
@@ -100,7 +110,64 @@ foreach ($createTables as $query) {
     }
 }
 
+$alters = [
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS indx INT(11) AFTER ids"
+];
+
+foreach ($alters as $sql) {
+    if (! $mysqli->query($sql)) {
+        // Si ta version de MySQL ne supporte pas IF NOT EXISTS, ou si 
+        // la colonne existe déjà, tu peux vérifier le code d’erreur 1060
+        if ($mysqli->errno === 1060) {
+            continue;
+        }
+        response(false, "Migration failed: " . $mysqli->error, 500);
+    }
+}
+
+// 3) Création de la table banned_ips (si nécessaire)
+$tableSQL = <<<SQL
+CREATE TABLE IF NOT EXISTS banned_ips (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ip_address VARCHAR(45) NOT NULL UNIQUE,
+    reason TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+SQL;
+if ($mysqli->query($tableSQL) === false) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Create table banned_ips error: ' . $mysqli->error
+    ]);
+    exit;
+}
+
 $data = json_decode(file_get_contents("php://input"), true);
+
+if ($stmt = $mysqli->prepare("SELECT 1 FROM banned_ips WHERE ip_address = ? LIMIT 1")) {
+    $stmt->bind_param("s", $ip);
+    $stmt->execute();
+    $stmt->store_result();
+    if ($stmt->num_rows > 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'you have been suspended for suspicious raison, if you think it\'s wrong please call us'
+        ]);
+        exit;
+    }
+    $stmt->close();
+} else {
+    // erreur de préparation
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Erreur interne: ' . $mysqli->error]);
+    exit;
+}
+
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     
@@ -123,16 +190,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $note = $data["note"] ?? "";
     $totalPrice = $data["total"] ?? 0;
     $status = "waiting"; // Statut par défaut
-
     $productsPrice = 0;
 
 
     foreach ($data["selectedProd"] as $product) {
-            
         foreach ($product['selected'] as $detail) {
-            $productsPrice += $product["price"] * $detail["qty"];
+            $promo = floatval($detail["promo"]);
+            $qty   = intval($detail["qty"]);
+            $price = floatval($product["price"]); // ou $detail["price"] si dispo
+
+            if ($promo > 0) {
+                $productsPrice += $promo * $qty;
+            } else {
+                $productsPrice += $price * $qty;
+            }
         }
-        
     }
     
         
@@ -296,16 +368,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
         // Insérer la commande
-        $stmt = $mysqli->prepare("INSERT INTO orders (name, phone, total_qty, country, method, delivery_zone, delivery_value, type, s_zone, m_zone, discount_code, discount_value, note, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssissssisssssds", $name, $phone, $totalQty, $country, $method, $deliveryZone, $deliveryValue, $type, $sZone, $mZone, $discountCode, $discountValue, $note, $totalPrice, $status);
-        $stmt->execute();
+            $stmt = $mysqli->prepare(
+            "INSERT INTO orders 
+            (name, phone, total_qty, country, method, delivery_zone, delivery_value,
+            type, s_zone, m_zone, discount_code, discount_value,
+            note, total_price, status, ip_adresse)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        if (! $stmt) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Prepare failed: ' . $mysqli->error]);
+            exit;
+        }
+        $stmt->bind_param(
+            "ssissssisssssdss",
+            $name, $phone, $totalQty, $country, $method, 
+            $deliveryZone, $deliveryValue, $type, $sZone, $mZone,
+            $discountCode, $discountValue, $note, $totalPrice, $status, $ip
+        );
+        if (! $stmt->execute()) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Execute failed: ' . $stmt->error]);
+            exit;
+        }
         $orderId = $stmt->insert_id;
         $stmt->close();
 
         // Insérer les produits commandés
         if (!empty($data["selectedProd"])) {
             $stmtItem = $mysqli->prepare("INSERT INTO order_items (order_id, product_name, price, image, qty, ref, product_id, model_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmtProduct = $mysqli->prepare("INSERT INTO product_items (order_id, product_id, color, size, qty, ids) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmtProduct = $mysqli->prepare("INSERT INTO product_items (order_id, product_id, color, color_name, size, qty, total, promo, ids, indx) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             foreach ($data["selectedProd"] as $product) {
                 $productName = $product["name"];
@@ -326,9 +418,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     
                     $model_size = $model['size'];
                     $model_color = $model['color'];
+                    $model_color_name = $model['colorName'];
                     $model_qty = $model['qty'];
-                    $id = $model['index'];
-                    $stmtProduct->bind_param("iissii", $orderId, $orderItemId, $model_color, $model_size, $model_qty, $id);
+                    $model_total = $model['total'];
+                    $model_promo = $model['promo'];
+                    $id = $model['id'];
+                    $indx = $model['indx'];
+                    $stmtProduct->bind_param("iisssiddii", $orderId, $orderItemId, $model_color, $model_color_name, $model_size, $model_qty, $model_total, $model_promo,  $id, $indx);
                     $stmtProduct->execute();
                 }
             }
@@ -340,7 +436,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Valider la transaction
         $mysqli->commit();
 
-        try{
+        try {
             $sendData = http_build_query([
                 'name' => $name,
                 'phone' => $phone,
@@ -348,29 +444,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 'totalPrice' => $totalPrice,
                 'orderID' => $orderId
             ]);
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'POST',
-                    'header' => "Content-type: application/x-www-form-urlencoded",
-                    'content' => $sendData,
-                    'timeout' => 5 // ou 10 secondes selon besoin
-                ]
-            ]);
-            
-            
+        
             $curl = curl_init();
             curl_setopt_array($curl, [
                 CURLOPT_URL => "https://management.hoggari.com/backend/email/sendOrder.php",
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10,
-                CURLOPT_SSL_VERIFYPEER => false, // facultatif selon certificat
+                CURLOPT_SSL_VERIFYPEER => false, // désactiver en dev
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $sendData,
+                CURLOPT_HTTPHEADER => [
+                    "Content-Type: application/x-www-form-urlencoded"
+                ]
             ]);
-            
+        
             $response = curl_exec($curl);
             $curl_error = curl_error($curl);
             curl_close($curl);
-            
+        
             if ($response === false) {
                 echo json_encode([
                     "success" => false,
@@ -379,11 +470,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ]);
                 exit;
             }
-
-
-            echo $response;
+        
+            echo json_encode([
+                "success" => true,
+                "message" => "order saved",
+                "data" => $ip
+            ]);
             exit;
-            
+        
         } catch (Exception $e) {
             echo json_encode([
                 "success" => false,

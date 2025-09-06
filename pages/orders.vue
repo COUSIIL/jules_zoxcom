@@ -16,6 +16,8 @@
     @cancel="confirmation(false)"
   />
 
+  <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
+
   <nav v-if="showDeliver" class="overlay">
     <Deliver v-if="!isShipping" :isVisible="showDeliver"
     :_name="nameDeliver"
@@ -382,6 +384,14 @@
           
         </div>
         <div class="moreDirect" v-if="droped[index]">
+          <div class="ip-container">
+            <h5 class="ip-label">
+              IP: <span class="ip-value">{{ orderIp[index] }}</span>
+            </h5>
+            <button class="copy-btn" @click="copyIp(orderIp[index])" title="Copier">
+              <div v-html="icons['copy']"></div>
+            </button>
+          </div>
           <div class="moreOrder" :style="{width: '100%', display: 'flex'}">
             <div class="childElement2">
               
@@ -391,6 +401,8 @@
             <h5>
               {{ orderDay[index] }}
             </h5>
+
+            
           </div>
             
             
@@ -685,22 +697,25 @@
               </h4>
 
               <h5 v-for="(id, i) in orderProduct[index]" :key="i">
-                <div>
-                  {{ orderProduct[index][i].qty }}x {{ orderProduct[index][i].name }} {{ orderProduct[index][i].price }}
+                <div v-if="id.promo && id.promo > 0">
+                  {{ id.qty }}x {{ id.name }} {{ id.promo }}
                 </div>
-                <div style="display: flex; justify-content: center; align-items: center;" v-if="orderProduct[index][i].items[0]">
+                <div v-else>
+                  {{ id.qty }}x {{ id.name }} {{ id.price }}
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center;" v-if="id.items[i]">
                   <div class="boxItems">
-                    <div style="margin-inline: 5px; width: 20px; height: 20px;" :style="{background: orderProduct[index][i].items[0].color}">
+                    <div style="margin-inline: 5px; width: 20px; height: 20px;" :style="{background: id.items[i].color}">
 
                     </div>
 
                     <div style="margin-inline: 5px;">
-                      {{orderProduct[index][i].items[0].color}}
+                      {{id.items[i].color_name}}
                     </div>
                     
                   </div>
                   <div class="boxItems">
-                    {{orderProduct[index][i].items[0].size}}
+                    {{id.items[i].size}}
                   </div>
                   
                 </div>
@@ -817,12 +832,18 @@ import Search from '../components/search.vue';
 import Confirm from '../components/confirm.vue';
 import Deliver from '../components/deliver.vue';
 
+import Message from '../components/elements/bloc/message.vue';
+
+import icons from '~/public/icons.json'
+
 export default {
-  components: { Loader, Search, Confirm, Deliver },
+  components: { Loader, Search, Confirm, Deliver, Message },
 data() {
 return {
+  icons: [],
   orders: [], // Tableau pour stocker les commandes
   orderDay: [],
+  orderIp: [],
   orderID: [],
   orderName: [],
   remarque: [],
@@ -844,6 +865,8 @@ return {
   select: [],
   selectOption: [],
   resulted: [],
+  isMessage: false,
+  message: '',
   selected: false,
   log: 'initialising...',
   isListed: false,
@@ -932,13 +955,16 @@ return {
   ],
 };
 },
-mounted() {
+async mounted() {
 //76
 // Récupérer les données au montage du composant
-this.fetchOrders();
-this.getUps();
-//this.getYal();
-this.getGpx();
+  this.fetchOrders();
+  //this.getUps();
+  //this.getYal();
+  //this.getGpx();
+
+  const res = await fetch('/icons.json')
+  this.icons = await res.json()
 
 
 },
@@ -948,6 +974,18 @@ filteredStatus() {
 }
 },
 methods: {
+
+async copyIp (ip) {
+  try {
+    await navigator.clipboard.writeText(ip)
+    this.isMessage = true
+    this.message = "IP copied : " + ip
+  } catch (err) {
+    this.isMessage = true
+    this.message = "error on trying to copy"
+  }
+},
+
 formattedDate(day) {
   const numericYear = parseInt(new Date(day).toLocaleDateString('fr-FR', { year: 'numeric' }), 10);
   const numericMonth = parseInt(new Date(day).toLocaleDateString('fr-FR', { month: '2-digit' }), 10);
@@ -998,7 +1036,6 @@ async deliverOrder(index) {
       });
 
       data = await response.json();
-      console.log('wilaya: ', data);
     } catch (error) {
         console.log('responce: ', error);
     }
@@ -1008,7 +1045,6 @@ async deliverOrder(index) {
     try {
 
       var wilayaId = 0;
-      console.log('wilaya: ', this.orderWilaya[index]);
       const tolerance = 2; // Ajuste selon le niveau de tolérance souhaité
 
       for (let i = 0; i < data.length; i++) {
@@ -1016,7 +1052,6 @@ async deliverOrder(index) {
 
           if (distance <= tolerance) {
               wilayaId = data[i].wilaya_id;
-              console.log('✅ Correspondance trouvée avec tolérance:', data[i].wilaya_name, '->', this.orderWilaya[index]);
               break; 
           }
       }
@@ -1069,6 +1104,82 @@ async deliverOrder(index) {
     
     
     //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
+  } else if(this.orderMethod[index] === 'anderson') {
+    try {
+      const response = await fetch('https://management.hoggari.com/backend/api.php?action=getAndersonWilaya', {
+        method: 'GET',
+      });
+
+      data = await response.json();
+    } catch (error) {
+        console.log('responce: ', error);
+    }
+
+    
+
+    try {
+
+      var wilayaId = 0;
+      const tolerance = 2; // Ajuste selon le niveau de tolérance souhaité
+
+      for (let i = 0; i < data.length; i++) {
+          const distance = this.levenshteinDistance(data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
+
+          if (distance <= tolerance) {
+              wilayaId = data[i].wilaya_id;
+              console.log('✅ Correspondance trouvée avec tolérance:', data[i].wilaya_name, '->', this.orderWilaya[index]);
+              break; 
+          }
+      }
+
+      if(wilayaId != 0) {
+        const setToUps = {
+          reference: `DNZ-${this.orderID[index]}`,
+          nom_client: this.orderName[index],
+          telephone: this.orderPhone[index],
+          telephone_2: '',
+          adresse: this.orderMZone[index],
+          code_postal: '',
+          commune: this.orderSZone[index],
+          code_wilaya: wilayaId.toString(),  // ✅ Correction ici
+          montant: this.total[index].toString(),  // ✅ Forcer string si nécessaire
+          remarque: this.remarque[index],
+          produit: this.orderProduct[index][0].name,  // ✅ Correction ici
+          stock: '',
+          quantite: '',
+          produit_a_recupere: '',
+          boutique: '',
+          type: 1,
+          stop_desk: '',
+          weight: '',
+        };
+
+        
+
+        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addAndersonOrder', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json', // ✅ Important !
+              },
+              body: JSON.stringify(setToUps), // ✅ Convertir en JSON ici
+        });
+
+        const data2 = await response2.json();
+        if (data2.success) {
+            console.log('wilaya: ', data2);
+        } else {
+              console.error(`Error: ${data2.message}`);
+        }
+      } else {
+        console.error('no wilaya found');
+      }
+
+    } catch (error) {
+        console.log('responce: ', error);
+    }
+    
+    
+    //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
   } else if (this.orderMethod[index] === 'yalidine') {
     var center = 0;
     const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getYalidineCenter', {
@@ -1081,30 +1192,30 @@ async deliverOrder(index) {
           if (this.orderWilaya[index] == data2.data.data[i].wilaya_name) {
               wilayaId = data2.data.data[i].wilaya_id;
               center = data2.data.data[i].center_id;
-              console.log('wilayaId: ', wilayaId)
-              console.log('data2.data.data[i]: ', data2.data.data[i])
               break; 
           }
       }
 
       if(center != 0) {
+        const { firstname, familyname } = this.splitName(this.orderName[index])
+
         const parcels = [{
           order_id: `CofP-${this.orderID[index]}`,
           from_wilaya_name: "Tipaza",
-          firstname: this.orderName[index],
-          familyname: "",
+          firstname: firstname,
+          familyname: familyname,
           contact_phone: this.orderPhone[index],
           address: this.orderMZone[index],
           to_commune_name: this.orderSZone[index],
           to_wilaya_name: this.orderWilaya[index],
-          product_list: this.orderProduct[index][0].name,
+          product_list: product_name,
           price: this.total[index],
           do_insurance: false,
           declared_value: this.total[index],
           height: 10,
-          width: 20,
-          length: 30,
-          weight: 6,
+          width: 10,
+          length: 10,
+          weight: 1,
           freeshipping: false,
           is_stopdesk: type,
           stopdesk_id: center,
@@ -1144,8 +1255,6 @@ async deliverOrder(index) {
     const tolerance = 2;
     const data1 = await response2.json();
     if (data1.success) {
-      console.log('data1.data.data: ', data1.data.data);
-      console.log('orderSZone[index]: ', this.orderSZone[index]);
       for (let i = 0; i < data1.data.data.length; i++) {
         const distance = this.levenshteinDistance(data1.data.data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
         
@@ -1154,7 +1263,6 @@ async deliverOrder(index) {
           if (distance <= tolerance && distance2 <= tolerance) {
               wilayaId = data1.data.data[i].wilaya_id;
               center = data1.data.data[i].center_id;
-              console.log('center: ', center);
               break; 
           }
         
@@ -1165,23 +1273,24 @@ async deliverOrder(index) {
         center = null
         console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
       }
-      var total = this.total[index] - parseFloat(this.orderDeliveryValue[index]);
+      const { firstname, familyname } = this.splitName(this.orderName[index])
+
         const parcels = [{
           order_id: `CofP-${this.orderID[index]}`,
           from_wilaya_name: "Tipaza",
-          firstname: this.orderName[index],
-          familyname: this.orderName[index],
+          firstname: firstname,
+          familyname: familyname,
           contact_phone: this.orderPhone[index],
           address: this.orderMZone[index],
           to_commune_name: this.orderSZone[index],
           to_wilaya_name: this.orderWilaya[index],
-          product_list: this.orderProduct[index][0].name,
+          product_list: product_name,
           price: this.total[index],
           do_insurance: false,
           declared_value: this.total[index],
-          height: 5,
-          width: 5,
-          length: 5,
+          height: 10,
+          width: 10,
+          length: 10,
           weight: 1,
           freeshipping: false,
           is_stopdesk: type,
@@ -1190,7 +1299,6 @@ async deliverOrder(index) {
           product_to_collect: null
         }];
         
-        console.log('parcels: ', parcels);
         const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addGuepexOrder', {
           method: 'POST',
           headers: {
@@ -1215,6 +1323,26 @@ async deliverOrder(index) {
 
   
 
+},
+
+splitName(fullName) {
+  if (!fullName || typeof fullName !== 'string') return { firstname: '', familyname: '' }
+
+  // Supprimer les caractères spéciaux et doubles espaces
+  fullName = fullName.trim().replace(/\s+/g, ' ').replace(/[^\w\s\u0600-\u06FF]/g, '')
+
+  const parts = fullName.split(' ')
+
+  if (parts.length === 1) {
+    return { firstname: parts[0], familyname: '' }
+  }
+
+  // Heuristique simple : le prénom vient généralement en premier
+  // Pour les noms arabes, on suppose aussi Prénom Nom (comme en français/anglais)
+  const firstname = parts.slice(0, 1).join(' ')
+  const familyname = parts.slice(1).join(' ')
+
+  return { firstname, familyname }
 },
 
 
@@ -1298,7 +1426,8 @@ selectAll() {
 },
 
 resetOrders() {
-  this.orderDay = [];
+    this.orderDay = [];
+    this.orderIp = [];
     this.orderID = [];  // Ajoute l'élément à orderID
     this.orderPhone = []; 
     this.orderPhone2 = []; 
@@ -1437,7 +1566,7 @@ setDeliver(id, status, value, index) {
   if(value === 'shipping') {
     this.nameDeliver.push(this.orderName[index]);
     this.phoneDeliver.push(this.orderPhone[index]);
-    if(this.orderMethod[index] === 'ups') {
+    if(this.orderMethod[index] === 'ups' || this.orderMethod[index] === 'anderson') {
       this.totalDeliver.push(this.total[index]);
     } else {
       this.totalDeliver.push((this.total[index] - parseFloat(this.orderDeliveryValue[index])));
@@ -1455,17 +1584,18 @@ setOrders(i) {
   const formattedDay = this.formattedDate(this.resulted[i].create);
   
   this.orderDay.push(formattedDay.Time);
+  this.orderIp.push(this.resulted[i].ip);
   this.orderID.push(this.resulted[i].id); //Ajoute l'élément à orderID
   this.orderPhone.push(this.resulted[i].phone); 
   this.orderPhone2.push(''); 
   this.orderName.push(this.resulted[i].name); 
   this.remarque.push(''); 
   var products = [];
-  console.log('this.resulted[i].items: ', this.resulted[i]);
   for(var ii = 0; ii < this.resulted[i].items.length; ii++) {
     products.push({
       'name': this.resulted[i].items[ii].productName,
       'price': this.resulted[i].items[ii].price,
+      'promo': this.resulted[i].items[ii].promo,
       'qty': this.resulted[i].items[ii].qty,
       'ref': this.resulted[i].items[ii].ref,
       'items': this.resulted[i].items[ii].items,
@@ -1693,7 +1823,6 @@ filter(value) {
 search(value) {
   let floated = value.match(/[\d.]+/g)?.join('') || ''; 
   //let floated = parseFloat(numbers);
-  console.log(floated);
   if (value.startsWith("order-")) {
     let number = parseFloat(value.replace("order-", ""));
     
@@ -1762,10 +1891,8 @@ const response = await fetch('https://management.hoggari.com/backend/api.php?act
       } else {
         
         this.log = result.message;
-        
-
+      
         this.resulted = result.data;
-        console.log('this.resulted: ', this.resulted);
         this.reverseOrder();
         
         
@@ -2010,6 +2137,40 @@ try {
 </script>
 
 <style>
+
+.ip-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-whity);
+  background-color: var(--color-whizy);
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+.dark .ip-container {
+  border: 1px solid var(--color-darkly);
+  background-color: var(--color-darkow);
+}
+
+.ip-label {
+  margin: 0;
+  font-weight: 500;
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  transition: transform 0.2s;
+}
+.copy-btn:hover {
+  transform: scale(1.2);
+}
 
 .boxItems{
 display: flex; 

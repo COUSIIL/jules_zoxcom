@@ -36,6 +36,16 @@ foreach ($tables as $key => $query) {
 
 $data2 = json_decode(file_get_contents('php://input'), true);
 
+if (!$data2 || !isset($data2['phone'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid or missing phone number in request.'
+    ]);
+    $mysqli->close();
+    exit;
+}
+
+
 // Organisation des données pour éviter les boucles imbriquées
 $groupedModels = [];
 foreach ($data['details'] as $model) {

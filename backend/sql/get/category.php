@@ -28,6 +28,33 @@ if ($mysqli->query($tableQuery) === false) {
     exit(json_encode(['success'=>false,'message'=>'Error creating table: '.$mysqli->error]));
 }
 
+/* --- SÉCURISATION DES COLONNES --- */
+$alterQueries = [
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `id`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `created_at`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `name` VARCHAR(255) NOT NULL AFTER `updated_at`",
+    // ⚠️ pas de UNIQUE ici (il est déjà dans le CREATE TABLE)
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `slug` VARCHAR(255) NOT NULL AFTER `name`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `level` ENUM('meta','branch','leaf') NOT NULL DEFAULT 'leaf' AFTER `slug`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `description` TEXT NULL AFTER `level`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `parent_id` INT NULL AFTER `description`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `image` TEXT NULL AFTER `parent_id`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `sustainable` TINYINT(1) NOT NULL DEFAULT 0 AFTER `image`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `facets` JSON NULL AFTER `sustainable`",
+    "ALTER TABLE category ADD COLUMN IF NOT EXISTS `meta_title` VARCHAR(255) NULL AFTER `facets`",
+];
+
+foreach ($alterQueries as $sql) {
+    if (! $mysqli->query($sql)) {
+        // Si ta version de MySQL ne supporte pas IF NOT EXISTS, ou si 
+        // la colonne existe déjà, tu peux vérifier le code d’erreur 1060
+        if ($mysqli->errno === 1060) {
+            continue;
+        }
+        echo json_encode(['success'=>false,'message'=>"Migration failed: " . $mysqli->error, 500]);
+    }
+}
+
 // Lecture de l'action et des paramètres
 $id     = isset($_GET['id']) && is_numeric($_GET['id']) ? intval($_GET['id']) : null;
 $input  = json_decode(file_get_contents('php://input'), true);
@@ -53,7 +80,7 @@ if ($id !== null) {
     $res = $mysqli->query("SELECT * FROM category ORDER BY parent_id ASC, name ASC");
     $cats = [];
     while ($row = $res->fetch_assoc()) {
-        $row['facets'] = json_decode($row['facets'], true);
+        $row['facets'] = $row['facets'] ? json_decode($row['facets'], true) : [];
         $cats[] = $row;
     }
     echo json_encode(['success'=>true, 'categories'=>$cats]);

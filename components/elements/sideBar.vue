@@ -1,15 +1,24 @@
 <template>
-      <div class="simpleBack" v-if="prop.isVisible" @click="viewMenu">
+  <div class="simpleBack" v-if="prop.isVisible" @click="viewMenu">
     
   </div>
 
-  <menu :class="[isLargeScreen ? 'menuSideBar' : 'menuSideBar2', { open: isHovered || prop.isVisible }]" 
+  <div :class="[isLargeScreen ? 'menuSideBar' : 'menuSideBar2', { open: isHovered || prop.isVisible }]" 
   @mouseover="handleHover(true)"
   @mouseleave="handleHover(false)">
 
+    <div style="font-size: 14px; font-weight: bold;">
+      v1 {{ t('valid until: ') }} 	23/03/2026
+    </div>
+
     <FlagBtn/>
 
+
+    
+
     <ul>
+      
+      
       <li @click="close">
         
         <NuxtLink class="title" to="/" exact-active-class="selected">
@@ -23,15 +32,28 @@
           
         </NuxtLink>
       </li>
+
       <li @click="close">
         
-        <NuxtLink class="title" to="/addOrders" exact-active-class="selected">
-          
-          <div class="iconi" v-html="icons['addOrder']">
+        <NuxtLink class="title" to="/shops" exact-active-class="selected">
+          <div class="iconi" v-html="icons['store']">
 
           </div>
           <h3>
-            {{ t('add orders') }}
+            {{ t('store') }}
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
+        <NuxtLink class="title" to="/team" exact-active-class="selected">
+          
+          <div class="iconi" v-html="icons['team']">
+
+          </div>
+          <h3>
+            {{ t('team') }}
           
           </h3>
         </NuxtLink>
@@ -65,6 +87,20 @@
 
       <li @click="close">
         
+        <NuxtLink class="title" to="/categories" exact-active-class="selected">
+          
+          <div class="iconi" v-html="icons['category']">
+
+          </div>
+          <h3>
+            {{ t('categories') }}
+          
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
         <NuxtLink class="title" to="/discount" exact-active-class="selected">
           
           <div class="iconi" v-html="icons['discount']">
@@ -72,6 +108,19 @@
           </div>
           <h3>
             {{ t('discounts') }}
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
+        <NuxtLink class="title" to="/customers" exact-active-class="selected">
+          
+          <div class="iconi" v-html="icons['customer']">
+
+          </div>
+          <h3>
+            {{ t('customers') }}
           </h3>
           </NuxtLink>
       </li>
@@ -97,6 +146,42 @@
           </div>
           <h3>
             {{ t('modules') }}
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
+        <NuxtLink class="title" to="/ban" exact-active-class="selected">
+          <div class="iconi" v-html="icons['unautorized']">
+
+          </div>
+          <h3>
+            {{ t('black list') }}
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
+        <NuxtLink class="title" to="/bank" exact-active-class="selected">
+          <div class="iconi" v-html="icons['bank']">
+
+          </div>
+          <h3>
+            {{ t('banks') }}
+          </h3>
+          </NuxtLink>
+      </li>
+
+      <li @click="close">
+        
+        <NuxtLink class="title" to="/transaction" exact-active-class="selected">
+          <div class="iconi" v-html="icons['transfer']">
+
+          </div>
+          <h3>
+            {{ t('transaction') }}
           </h3>
           </NuxtLink>
       </li>
@@ -130,7 +215,11 @@
       
     </ul>
 
-  </menu>
+    <div style="height: 50px;">
+
+    </div>
+
+  </div>
 </template>
 
 <script setup>
@@ -213,6 +302,7 @@ z-index: 100; /* Place le menu au premier plan */
 
 .menuSideBar {
   width: 250px;
+  height: 100%;
   position: fixed;
   top: 50px;
   right: 0;
@@ -221,6 +311,20 @@ z-index: 100; /* Place le menu au premier plan */
   z-index: 5000;
   background: var(--color-whitly);
   box-shadow: 0px 8px 6px var(--color-tioly);
+  overflow-y: auto;  /* active le scroll vertical */
+  scrollbar-width: thin; /* style scrollbar (Firefox) */
+}
+
+/* Optionnel : style scrollbar pour Chrome/Safari/Edge */
+.menuSideBar::-webkit-scrollbar {
+  width: 6px;
+}
+.menuSideBar::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+.menuSideBar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .menuSideBar.hovered,
@@ -284,6 +388,7 @@ z-index: 100; /* Place le menu au premier plan */
 
 .menuSideBar2 {
   width: 200px;
+  height: 100%;
   position: fixed;
   top: 50px;
   right: 0;
@@ -292,6 +397,20 @@ z-index: 100; /* Place le menu au premier plan */
   z-index: 5000;
   background: var(--color-whitly);
   box-shadow: 0px 8px 6px var(--color-tioly);
+  overflow-y: auto;  /* active le scroll vertical */
+  scrollbar-width: thin; /* style scrollbar (Firefox) */
+}
+
+/* Optionnel : style scrollbar pour Chrome/Safari/Edge */
+.menuSideBar2::-webkit-scrollbar {
+  width: 6px;
+}
+.menuSideBar2::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+.menuSideBar2::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .menuSideBar2.open {
@@ -332,7 +451,6 @@ z-index: 100; /* Place le menu au premier plan */
 
 .menuSideBar2 li .selected{
   height: 35px;
-  padding: 5px;
   margin: 5px;
   display: flex;
   justify-content: space-between;
@@ -343,7 +461,6 @@ z-index: 100; /* Place le menu au premier plan */
 
 .dark .menuSideBar2 li .selected{
   height: 35px;
-  padding: 5px;
   margin: 5px;
   display: flex;
   justify-content: space-between;
@@ -351,5 +468,7 @@ z-index: 100; /* Place le menu au premier plan */
   border-radius: 8px;
   background-color: var(--color-darky);
 }
+
+
 
 </style>

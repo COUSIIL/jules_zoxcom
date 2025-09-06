@@ -14,6 +14,25 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
+$alters = [
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS indx INT(11) AFTER ids"
+];
+
+foreach ($alters as $sql) {
+    if (! $mysqli->query($sql)) {
+        // Si ta version de MySQL ne supporte pas IF NOT EXISTS, ou si 
+        // la colonne existe déjà, tu peux vérifier le code d’erreur 1060
+        if ($mysqli->errno === 1060) {
+            continue;
+        }
+        response(false, "Migration failed: " . $mysqli->error, 500);
+    }
+}
+
 // Requêtes pour obtenir les données des tables
 $tables = [
     'orders' => "SELECT * FROM orders",
@@ -39,8 +58,13 @@ $productItems = [];
 foreach ($data['product'] as $model) {
     $productItems[$model['order_id']][] = [
         'color' => $model['color'],
+        'color_name' => $model['color_name'],
         'size' => $model['size'],
         'qty' => $model['qty'],
+        'total' => $model['total'],
+        'promo' => $model['promo'],
+        'id' => $model['ids'],
+        'indx' => $model['indx']
     ];
 }
 
@@ -79,6 +103,7 @@ foreach ($data['orders'] as $orderData) {
         'note' => $orderData['note'],
         'total' => $orderData['total_price'],
         'status' => $orderData['status'],
+        'ip' => $orderData['ip_adresse'] ?? '',
         'create' => $orderData['created_at'],
     ];
 }

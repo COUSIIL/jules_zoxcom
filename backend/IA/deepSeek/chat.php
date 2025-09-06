@@ -1,6 +1,6 @@
 <?php
 $api_url = "https://api.deepseek.com/chat/completions";
-$api_key = "sk-6c595ce777834b18bd06b7dc3498fe37"; // Remplacez par votre clé API
+$apiKey = getenv("API_DEEP_SEEK"); 
 
 $data = [
     "model" => "deepseek-chat",

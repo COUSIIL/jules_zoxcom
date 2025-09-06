@@ -26,6 +26,96 @@ function addDeliveryMethod() {
     return json_decode($output, true);
 }
 
+function banIP() {
+    ob_start();
+    include '../backend/sql/post/banIp.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function selectStoreDelivery() {
+    ob_start();
+    include '../backend/sql/post/storeDelivery.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getStoreDelivery() {
+    ob_start();
+    include '../backend/sql/get/storeDelivery.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function ipList() {
+    ob_start();
+    include '../backend/sql/get/ipList.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getBanks() {
+    ob_start();
+    include '../backend/sql/get/banks.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function checkIP() {
+    ob_start();
+    include '../backend/sql/get/checkIp.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function deleteIP() {
+    ob_start();
+    include '../backend/sql/delete/ip.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function deleteCategory() {
+    ob_start();
+    include '../backend/sql/delete/category.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function viewPage() {
+    ob_start();
+    include '../backend/sql/post/viewPage.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+function productClick() {
+    ob_start();
+    include '../backend/sql/post/productClick.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getViewPage() {
+    ob_start();
+    include '../backend/sql/get/viewPage.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getProductClick() {
+    ob_start();
+    include '../backend/sql/get/productClick.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getDeliveryMethod() {
+    ob_start();
+    include '../backend/sql/get/deliveryMethod.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 function uploadImageCat() {
     ob_start();
     include '../backend/upload/image.php';
@@ -117,6 +207,13 @@ function moveImage() {
     return json_decode($output, true);
 }
 
+function updateActiveDelivery() {
+    ob_start();
+    include '../backend/sql/update/deliveryActive.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 function updateImageName() {
     ob_start();
     include '../backend/sql/update/imageName.php';
@@ -134,6 +231,13 @@ function postProducts() {
 function postDiscount() {
     ob_start();
     include '../backend/sql/post/discount.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function addUser() {
+    ob_start();
+    include '../backend/sql/post/addUser.php';
     $output = ob_get_clean();
     return json_decode($output, true);
 }
@@ -187,6 +291,13 @@ function connexion() {
     return json_decode($output, true);
 }
 
+function checkConnexion() {
+    ob_start();
+    include '../backend/sql/connexion/checkConnexion.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 function getProducts() {
     ob_start();
     include '../backend/sql/get/products.php';
@@ -215,6 +326,20 @@ function updateOrderValue() {
     return json_decode($output, true);
 }
 
+function updateUserProfile() {
+    ob_start();
+    include '../backend/sql/update/profileImage.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function updateUserInfo() {
+    ob_start();
+    include '../backend/sql/update/userInfo.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 
 function chatDeepSeek() {
     ob_start();
@@ -237,6 +362,13 @@ function chatMistral() {
     return json_decode($output, true);
 }
 
+function chatGemini() {
+    ob_start();
+    include '../backend/IA/gemini/chat.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 function deleteOrder() {
     ob_start();
     include '../backend/sql/delete/order.php';
@@ -247,6 +379,20 @@ function deleteOrder() {
 function deleteDiscount() {
     ob_start();
     include '../backend/sql/delete/discount.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function deleteCustomer() {
+    ob_start();
+    include '../backend/sql/delete/customer.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function deleteDeliveryMethod() {
+    ob_start();
+    include '../backend/sql/delete/deliveryMethod.php';
     $output = ob_get_clean();
     return json_decode($output, true);
 }
@@ -282,6 +428,20 @@ function deleteFolders() {
 function getCustomer() {
     ob_start();
     include '../backend/sql/get/customers.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getUsers() {
+    ob_start();
+    include '../backend/sql/get/users.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function getAllCustomers() {
+    ob_start();
+    include '../backend/sql/get/allCustomers.php';
     $output = ob_get_clean();
     return json_decode($output, true);
 }
@@ -509,6 +669,66 @@ if (isset($_GET['action'])) {
     $action = $_GET['action'];
     
     switch($action) {
+        case 'getBanks':
+            $response = getBanks();
+            break;
+        case 'deleteCategory':
+            $response = deleteCategory();
+            break;
+        case 'updateProfileImage':
+            $response = updateUserProfile();
+            break;
+        case 'updateUserInfo':
+            $response = updateUserInfo();
+            break;
+        case 'checkConnexion':
+            $response = checkConnexion();
+            break;
+        case 'getUsers':
+            $response = getUsers();
+            break;
+        case 'addUser':
+            $response = addUser();
+            break;
+        case 'getStoreDelivery':
+            $response = getStoreDelivery();
+            break;
+        case 'selectStoreDelivery':
+            $response = selectStoreDelivery();
+            break;
+        case 'ipList':
+            $response = ipList();
+            break;
+        case 'checkIp':
+            $response = checkIP();
+            break;
+        case 'deleteIp':
+            $response = deleteIP();
+            break;
+        case 'banIp':
+            $response = banIP();
+            break;
+        case 'viewPage':
+            $response = viewPage();
+            break;
+        case 'getViewPage':
+            $response = getViewPage();
+            break;
+        case 'productClick':
+            $response = productClick();
+            break;
+        case 'getProductClick':
+            $response = getProductClick();
+            break;
+        case 'deleteDeliveryMethod':
+            $response = deleteDeliveryMethod();
+            break;
+        case 'updateActiveDelivery':
+            $response = updateActiveDelivery();
+            break;
+        case 'getDeliveryMethod':
+            $response = getDeliveryMethod();
+            break;
         case 'addDeliveryMethod':
             $response = addDeliveryMethod();
             break;
@@ -651,11 +871,17 @@ if (isset($_GET['action'])) {
             $response = getGuepexCenter();
             break;
 
-        case 'getCustomer':
+        case 'getCustomers':
             $response = getCustomer();
+            break;
+        case 'getAllCustomers':
+            $response = getAllCustomers();
             break;
         case 'deleteDiscount':
             $response = deleteDiscount();
+            break;
+        case 'deleteCustomer':
+            $response = deleteCustomer();
             break;
         case 'deleteOrder':
             $response = deleteOrder();
@@ -665,6 +891,9 @@ if (isset($_GET['action'])) {
             break;
         case 'chatMistral':
             $response = chatMistral();
+            break;
+        case 'chatGemini':
+            $response = chatGemini();
             break;
         case 'chatGPT':
             $response = chatGPT();

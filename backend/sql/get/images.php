@@ -23,13 +23,20 @@ if ($table_check_result->num_rows == 0) {
     $create_table_query = "CREATE TABLE images (
             id INT AUTO_INCREMENT PRIMARY KEY,
             folder_id INT NOT NULL,
-            name VARCHAR(255) NOT NULL,
+            name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
             path TEXT NOT NULL,
             uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )";
 
     if (!$mysqli->query($create_table_query)) {
         echo json_encode(['success' => false, 'message' => "Error creating table: " . $mysqli->error]);
+        exit;
+    }
+} else {
+    // Si la table existe, on s’assure que la colonne est bien en utf8mb4
+    $alter_query = "ALTER TABLE images MODIFY name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
+    if (!$mysqli->query($alter_query)) {
+        echo json_encode(['success' => false, 'message' => "Error altering table: " . $mysqli->error]);
         exit;
     }
 }

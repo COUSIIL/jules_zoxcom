@@ -11,7 +11,7 @@
       ></div>
     </div>
     <div @click="emitToggle" class="image-box">
-      <span v-html="img"></span>
+      <span v-html="resizeSvg(icons['folder'], 28, 28)"></span>
 
       
     </div>
@@ -30,13 +30,15 @@
 </template>
 
 <script setup>
+
+import icons from '~/public/icons.json'
+
 const props = defineProps({
   folder: {
     type: Object,
     required: true,
     default: () => ({ name: 'Unnamed Folder', markedForDelete: false }),
   },
-  img: String,
 })
 
 const emit = defineEmits(['clicked', 'rename', 'toggle-delete'])
@@ -54,6 +56,12 @@ const emitToggleDelete = () => {
     id: props.folder.id,
     marked: !props.folder.markedForDelete,
   })
+}
+
+var resizeSvg = (svg, width, height) => {
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`)
 }
 </script>
 
@@ -146,7 +154,7 @@ const emitToggleDelete = () => {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: 12px;
+  font-size: 10px;
   outline: none;
   flex: 1;
   text-align: center;

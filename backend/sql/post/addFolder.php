@@ -15,10 +15,10 @@ $table_check_query = "SHOW TABLES LIKE 'folder'";
 $table_check_result = $mysqli->query($table_check_query);
 
 if ($table_check_result->num_rows == 0) {
-    // Création de la table folder
+    // Création de la table folder avec utf8mb4 directement
     $create_table_query = "CREATE TABLE folder (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
+        name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
         parent_id INT DEFAULT NULL,
         size BIGINT DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -29,7 +29,16 @@ if ($table_check_result->num_rows == 0) {
         echo json_encode(['success' => false, 'message' => "Error creating table: " . $mysqli->error]);
         exit;
     }
+} else {
+    // Si la table existe, on s’assure que la colonne est bien en utf8mb4
+    $alter_query = "ALTER TABLE folder MODIFY name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci";
+    if (!$mysqli->query($alter_query)) {
+        echo json_encode(['success' => false, 'message' => "Error altering table: " . $mysqli->error]);
+        exit;
+    }
 }
+
+
 
 // Récupérer les données
 $data = json_decode(file_get_contents('php://input'), true);

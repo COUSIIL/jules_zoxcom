@@ -1,10 +1,35 @@
 <?php
 
-// Charger les données JSON envoyées
-$value = json_decode(file_get_contents('php://input'), true);
+header('Content-Type: application/json');
+
+// 📌 Récupération des données envoyées
+$value = [];
+
+// Si c'est un POST avec JSON
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $raw = file_get_contents('php://input');
+    if (!empty($raw)) {
+        $value = json_decode($raw, true);
+    }
+}
+
+// Si rien en POST JSON, on regarde GET
+if (empty($value) && isset($_GET['wilaya_id'])) {
+    $value = [
+        'wilaya_id' => $_GET['wilaya_id']
+    ];
+}
 
 // Vérifie que les données ont bien été reçues
-if (empty($value) || !isset($value['wilaya_id'])) {
+if (empty($value)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'no data',
+    ]);
+    exit;
+}
+
+if (!isset($value['wilaya_id'])) {
     echo json_encode([
         'success' => false,
         'message' => 'no wilaya selected',

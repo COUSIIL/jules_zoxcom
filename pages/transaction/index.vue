@@ -101,7 +101,8 @@
   import Addtransaction from '../components/elements/addTransaction.vue';
   import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
   import Message from '../components/elements/bloc/message.vue';
-  import GraphLine from '../components/elements/graphLine.vue';
+  import GraphLine from '~/components/elements/graphLine.vue'
+
   
 
   import icons from '~/public/icons.json'

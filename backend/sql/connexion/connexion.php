@@ -1,111 +1,160 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
+$input = json_decode(file_get_contents("php://input"), true);
 
-// Inclure le fichier de configuration de la base de données
-$configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
+$secret = "6LeAL7QrAAAAABBJHVja_OyzbcOYq2ZDJVdcMAZl";
+$recaptcha = $input['recaptcha'] ?? null;
 
-if (!file_exists($configPath)) {
+if (!$recaptcha) {
+    echo json_encode(["success" => false, "message" => "reCAPTCHA manquant"]);
+    exit;
+}
+
+$ch = curl_init("https://www.google.com/recaptcha/api/siteverify");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, [
+    'secret' => $secret,
+    'response' => $recaptcha
+]);
+$response = curl_exec($ch);
+if (curl_errno($ch)) {
     echo json_encode([
-        'success' => false,
-        'message' => 'Configuration file not found.',
+        "success" => false,
+        "message" => "Erreur cURL",
+        "error" => curl_error($ch)
+    ]);
+    exit;
+}
+curl_close($ch);
+
+$captchaSuccess = json_decode($response, true);
+
+if ($captchaSuccess && !$captchaSuccess['success']) {
+    echo json_encode([
+        "success" => false,
+        "message" => $captchaSuccess ?? "error reCAPTCHA",
     ]);
     exit;
 }
 
+// reCAPTCHA v3 donne aussi un score (0.0 = bot, 1.0 = humain)
+if ($captchaSuccess['score'] < 0.5) {
+    echo json_encode(["success" => false, "message" => "Score reCAPTCHA trop bas"]);
+    exit;
+}
+
+// 📌 Inclure la config DB
+$configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
+if (!file_exists($configPath)) {
+    echo json_encode(['success' => false, 'message' => 'Configuration file not found.']);
+    exit;
+}
 require_once $configPath;
 
-// ✅ Crée la table et insère l'utilisateur admin par défaut
-$hashedPassword0 = password_hash('admin', PASSWORD_DEFAULT);
-$date = date('Y-m-d H:i:s');
-$token = hash('sha256', $date);
-
-$queryCreate = "
-    CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(255) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
-        token VARCHAR(255) NOT NULL
-    );
-";
-
-$queryInsert = "
-    INSERT INTO users (username, password, token)
-    SELECT 'admin', '$hashedPassword0', '$token'
-    WHERE NOT EXISTS (
-        SELECT 1 FROM users WHERE username = 'admin'
-    );
-";
-
-// ✅ Exécuter les requêtes séparément
-if (!$mysqli->query($queryCreate)) {
-    echo json_encode([
-        'success' => false,
-        'message' => "Error creating table: " . $mysqli->error,
-    ]);
-    die;
+// 📌 Créer la table si elle n'existe pas
+$createTable = "
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    ip_adresse VARCHAR(45),
+    name VARCHAR(255),
+    family_name VARCHAR(255),
+    role VARCHAR(50),
+    profile_image VARCHAR(255) DEFAULT NULL,
+    token VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    description VARCHAR(255) DEFAULT '',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
+if (!$mysqli->query($createTable)) {
+    echo json_encode(['success' => false, 'message' => 'Error creating table: ' . $mysqli->error]);
+    exit;
 }
 
-if (!$mysqli->query($queryInsert)) {
-    echo json_encode([
-        'success' => false,
-        'message' => "Error inserting data: " . $mysqli->error,
-    ]);
-    die;
-}
-
-// ✅ Récupérer les données JSON envoyées
-$input = json_decode(file_get_contents('php://input'), true);
+// 📌 Lire les données envoyées
 
 if (!isset($input['username']) || !isset($input['password'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => "Error: All values are required.",
-    ]);
-    die;
+    echo json_encode(['success' => false, 'message' => 'Username/email and password are required.']);
+    exit;
 }
 
-$username = $input['username'];
-$password = $input['password'];
-
-if (empty($username) || empty($password)) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Username or password required'
-    ]);
-    die;
+$usernameOrEmail = trim($input['username']);
+$password = trim($input['password']);
+if (empty($usernameOrEmail) || empty($password)) {
+    echo json_encode(['success' => false, 'message' => 'Empty username/email or password.']);
+    exit;
 }
 
-// 🔎 Requête SQL pour vérifier les identifiants
-$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ?");
-$stmt->bind_param('s', $username);
+// 📌 Vérifier si la table contient déjà un utilisateur
+$checkUsers = $mysqli->query("SELECT COUNT(*) as total FROM users");
+$totalUsers = $checkUsers->fetch_assoc()['total'];
+
+$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+$hashedPassword2 = hash('sha256', $password);
+$token = hash('sha256', time() . $usernameOrEmail);
+
+if ($totalUsers == 0) {
+    // 📌 Pas d'utilisateur → création automatique
+    $stmt = $mysqli->prepare("INSERT INTO users (username, email, password, token) VALUES (?, ?, ?, ?)");
+    // Si l'entrée contient un @ → on considère que c'est l'email
+    if (filter_var($usernameOrEmail, FILTER_VALIDATE_EMAIL)) {
+        $stmt->bind_param("ssss", $usernameOrEmail, $usernameOrEmail, $hashedPassword, $token);
+    } else {
+        // Pas d'email → email vide
+        $emptyEmail = '';
+        $stmt->bind_param("ssss", $usernameOrEmail, $emptyEmail, $hashedPassword, $token);
+    }
+    if ($stmt->execute()) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'First user created successfully and logged in.',
+            'data' => ['token' => $token, 'user' => $usernameOrEmail]
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error creating first user: ' . $mysqli->error]);
+    }
+    exit;
+}
+
+// 📌 Connexion avec username OU email
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE username = ? OR email = ?");
+$stmt->bind_param("ss", $usernameOrEmail, $usernameOrEmail);
 $stmt->execute();
-$result = $stmt->get_result()->fetch_assoc();
+$user = $stmt->get_result()->fetch_assoc();
 
-if ($result) {
-
-    // ✅ Vérification avec password_verify()
-    if (password_verify($password, $result['password'])) {
+if ($user) {
+    if (password_verify($password, $user['password'])) {
 
         echo json_encode([
             'success' => true,
             'message' => 'Connexion successful',
             'data' => [
-                'token' => $result['token'],
-                'user' => $result['username']
+                'token' => $user['token'],
+                'user' => $user['username'], 
+                'profile_image' => $user['profile_image']
             ]
         ]);
-        die;
-    } else {
+        exit;
+    }
+    if ($user['password'] === $hashedPassword) {
         echo json_encode([
-            'success' => false,
-            'message' => 'Wrong password'
+            'success' => true,
+            'message' => 'Connexion successful',
+            'data' => ['token' => $user['token'], 'user' => $user['username']]
         ]);
-        die;
+    } else if ($user['password'] === $hashedPassword2) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Connexion successful',
+            'data' => ['token' => $user['token'], 'user' => $user['username'], 'profile_image' => $user['profile_image']]
+        ]);
+        
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Wrong password']);
     }
 } else {
-    echo json_encode([
-        'success' => false,
-        'message' => 'User not found'
-    ]);
-    die;
+    echo json_encode(['success' => false, 'message' => 'User not found']);
 }
+?>

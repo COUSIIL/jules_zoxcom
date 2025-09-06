@@ -391,7 +391,7 @@ async function getCategory() {
     result.value = await response.json();
     if (result.value.success) {
       for(var i =0; i < result.value.categories.length; i++) {
-        categoryList.value.push({'label': result.value.categories[i].name, 'image': result.value.categories[i].image, 'value': parseInt(result.value.categories[i].id), 'level': result.value.categories[i].level})
+        categoryList.value.push({'label': result.value.categories[i].name, 'image': result.value.categories[i].image, 'value': parseInt(result.value.categories[i].id), 'level': result.value.categories[i].level, 'parent_id': parseInt(result.value.categories[i].parent_id)})
       }
     } else {
       isMessage.value = true

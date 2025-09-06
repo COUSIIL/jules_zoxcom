@@ -1,9 +1,5 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 
 try {
 
@@ -96,6 +92,8 @@ $alters = [
   "ALTER TABLE product_models     ADD COLUMN IF NOT EXISTS volume    DECIMAL(10,2) NOT NULL DEFAULT 1.00 AFTER weight",
   "ALTER TABLE product_models     ADD COLUMN IF NOT EXISTS promo    DECIMAL(10,2) NULL AFTER sell_price",
   "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NOT NULL AFTER color",
+  "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS catalog_index TINYINT(1) NULL AFTER quantity",
+  "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS catalog_image VARCHAR(255) NOT NULL AFTER catalog_index"
 ];
 
 foreach ($alters as $sql) {
@@ -132,18 +130,20 @@ $colors       = isset($data['colors']) ? json_encode($data['colors'], JSON_UNESC
 $sizes        = isset($data['sizes'])  ? json_encode($data['sizes'],  JSON_UNESCAPED_UNICODE) : null;
 $ytbActive    = !empty($data['ytbActive'])   ? 1 : 0;
 $cataActive   = !empty($data['cataActive'])  ? 1 : 0;
+$id = isset($data['id']) ? intval($data['id']) : -1;
+
 
 //response(false, $data['name']);
 
 
 // Validation de l'image
-if ($image && !in_array(strtolower(pathinfo($image, PATHINFO_EXTENSION)), ['webp', 'png', 'jpg', 'jpeg'])) {
+if ($image && !in_array(strtolower(pathinfo($image, PATHINFO_EXTENSION)), ['webp', 'png', 'jpg', 'jpeg', 'avif'])) {
     response(false, "Invalid image format. Allowed formats: webp, png, jpg, jpeg.");
 }
 
 // Vérification si le produit existe
-$check_query = $mysqli->prepare("SELECT id FROM products WHERE name = ?");
-$check_query->bind_param("s", $name);
+$check_query = $mysqli->prepare("SELECT id FROM products WHERE id = ?");
+$check_query->bind_param("i", $id);
 $check_query->execute();
 $product_result = $check_query->get_result();
 $check_query->close();
@@ -152,9 +152,9 @@ if ($product_result->num_rows > 0) {
     // Mise à jour du produit existant
     $product_id = $product_result->fetch_assoc()['id'];
     $update_query = $mysqli->prepare(
-        "UPDATE products SET image = ?, youtube_link = ?, label = ?, category = ?, is_description = ?, description = ?, isActive = ?, slug = ?, colors = ?, sizes = ?, ytb_active = ?, cata_active = ? WHERE id = ?"
+        "UPDATE products SET name = ?, image = ?, youtube_link = ?, label = ?, category = ?, is_description = ?, description = ?, isActive = ?, slug = ?, colors = ?, sizes = ?, ytb_active = ?, cata_active = ? WHERE id = ?"
     );
-    $update_query->bind_param("ssssssssssiii", $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive, $product_id);
+    $update_query->bind_param("sssssssssssiii", $name, $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive, $product_id);
     executeQuery($update_query, "Error updating product.", "1", $product_id);
     updateModels($models, $product_id, $mysqli);
     
@@ -240,23 +240,25 @@ function insertDetails($details, $model_id, $mysqli)
     if (!empty($details)) {
         
         $stmt = $mysqli->prepare(
-            "INSERT INTO model_details (model_id, color, color_name, size, quantity) 
-            VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO model_details (model_id, color, color_name, size, quantity, catalog_index, catalog_image) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
         
         foreach ($details as $detail) {
             if (
-                isset($detail['color'], $detail['size'], $detail['qty'], $detail['colorName'])
+                isset($detail['color'], $detail['size'], $detail['qty'], $detail['colorName'], $detail['catalog_index'], $detail['catalog_image'])
                       
             ) {
                 
                 $stmt->bind_param(
-                    "isssi",  // Types attendus : string, string, double, double, integer, string, string, string, string, string, integer
+                    "isssiis",  // Types attendus : string, string, double, double, integer, string, string, string, string, string, integer
                     $model_id,
                     $detail['color'],
                     $detail['colorName'],
                     $detail['size'],
-                    $detail['qty']
+                    $detail['qty'],
+                    $detail['catalog_index'],
+                    $detail['catalog_image']
                     
                 );
                 
@@ -298,19 +300,21 @@ function updateDetails($details, $model_id, $mysqli)
         $deleteStmt->close();
 
         foreach ($details as $detail) {
-            if (isset($detail['color'], $detail['size'], $detail['qty'], $detail['colorName'])) {
+            if (isset($detail['color'], $detail['size'], $detail['qty'], $detail['colorName'], $detail['catalog_index'], $detail['catalog_image'])) {
                 // 🔄 Insérer les nouvelles valeurs après la suppression
                 $stmt = $mysqli->prepare(
-                    "INSERT INTO model_details (model_id, color, color_name, size, quantity) 
-                    VALUES (?, ?, ?, ?, ?)"
+                    "INSERT INTO model_details (model_id, color, color_name, size, quantity, catalog_index, catalog_image) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?)"
                 );
                 $stmt->bind_param(
-                    "isssi",
+                    "isssiis",
                     $model_id,
                     $detail['color'],
                     $detail['colorName'],
                     $detail['size'],
-                    $detail['qty']
+                    $detail['qty'],
+                    $detail['catalog_index'],
+                    $detail['catalog_image']
                 );
 
                 if (!$stmt->execute()) {
@@ -337,54 +341,67 @@ function insertModels($models, $product_id, $mysqli)
     }
 
     if (!empty($models)) {
-        
         $stmt = $mysqli->prepare(
-            "INSERT INTO product_models (product_id, name, ref, buy_price, sell_price, promo, quantity, active_color, active_size, image_url, sku, infinit_stock, isActive, breakable, weight, volume) 
+            "INSERT INTO product_models 
+            (product_id, name, ref, buy_price, sell_price, promo, quantity, active_color, active_size, image_url, sku, infinit_stock, isActive, breakable, weight, volume) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-
-        
-        foreach ($models as $model) {
-            
-                
-                $stmt->bind_param(
-                    "issdddissssssidd",  // Types attendus : string, string, double, double, integer, string, string, string, string, string, integer
-                    $product_id,
-                    $model['name'],
-                    $model['ref'],
-                    $model['buy'],
-                    $model['sell'],
-                    $model['promo'],
-                    $model['qty'],
-                    $model['activeColor'],   // Utilisation de la valeur convertie
-                    $model['activeSize'],   // Utilisation de la valeur convertie
-                    $model['imageUrls'],
-                    $model['sku'],  // Assurez-vous que cette valeur est bien une chaîne ou une URL
-                    $model['infinit_stock'],
-                    $model['isActive'],
-                    $model['breakable'],
-                    $model['weight'],
-                    $model['volume']
-                );
-
-                if (!$stmt->execute()) {
-                    response(false, "erreur 1");
-                    
-                }else {
-                    // Récupérer l'ID du produit ajouté
-                    $model_id = $mysqli->insert_id;
-                    insertDetails($model['details'], $model_id, $mysqli);
-                }
-
-            
+        if (!$stmt) {
+            response(false, "Prepare failed: " . $mysqli->error);
+            return;
         }
-        
+
+        foreach ($models as $model) {
+            // Valeurs par défaut pour éviter les NULL
+            $name          = $model['name'] ?? '';
+            $ref           = $model['ref'] ?? '';
+            $buy           = $model['buy'] ?? 0;
+            $sell          = $model['sell'] ?? 0;
+            $promo         = $model['promo'] ?? 0;
+            $qty           = $model['qty'] ?? 0;
+            $activeColor   = $model['activeColor'] ?? '';
+            $activeSize    = $model['activeSize'] ?? '';
+            $imageUrls     = $model['imageUrls'] ?? '';
+            $sku           = $model['sku'] ?? '';
+            $infinit_stock = $model['infinit_stock'] ?? 0;
+            $isActive      = $model['isActive'] ?? 1;
+            $breakable     = $model['breakable'] ?? 0; // ⚡ plus jamais null
+            $weight        = $model['weight'] ?? 0;
+            $volume        = $model['volume'] ?? 0;
+
+            // Types : i=int, d=double, s=string
+            $stmt->bind_param(
+                "issdddissssiiidd",
+                $product_id,
+                $name,
+                $ref,
+                $buy,
+                $sell,
+                $promo,
+                $qty,
+                $activeColor,
+                $activeSize,
+                $imageUrls,
+                $sku,
+                $infinit_stock,
+                $isActive,
+                $breakable,
+                $weight,
+                $volume
+            );
+
+            if (!$stmt->execute()) {
+                response(false, "MySQL Error: " . $stmt->error);
+            } else {
+                $model_id = $mysqli->insert_id;
+                insertDetails($model['details'] ?? [], $model_id, $mysqli);
+            }
+        }
+
         $stmt->close();
-        
-
-
     }
 }
+
 
 function updateModels($models, $product_id, $mysqli)
 {

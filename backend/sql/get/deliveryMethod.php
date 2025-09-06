@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../../backend/config/dbConfig.php';
 
 // ⚠️ Nom de la table : change si nécessaire
-$table = 'delivery_method';
+$table = 'deliver_method';
 
 // Vérifie si la table existe
 $checkTable = $mysqli->query("SHOW TABLES LIKE '$table'");
