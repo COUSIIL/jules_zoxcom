@@ -111,71 +111,7 @@ line-height: 1.2em; /* Ajuste l'espacement des lignes */
 }
 
 
-.btn2{
-display: flex;
-justify-content: space-around;
-align-items: center;
-width: 90%;
-min-width: 100px;
-max-width: 400px;
-margin: 10px;
-padding: 5px;
-cursor: pointer;
-background-color: var(--color-whity);
-border-radius: 6px;
-border: 1px solid var(--color-rangy);
-}
-.dark .btn2{
-background-color: var(--color-darky);
-}
-
-.btn3{
-display: flex;
-justify-content: space-around;
-align-items: center;
-margin: 10px;
-width: 90%;
-min-width: 100px;
-max-width: 400px;
-padding: 5px;
-cursor: pointer;
-border: 1px solid var(--color-rangy);
-background-color: var(--color-whity);
-border-radius: 6px;
-box-shadow: 0px 2px 5px var(--color-hoggari);
-color: var(--color-darkly);
-}
-.dark .btn3{
-background-color: var(--color-darky);
-color: var(--color-whitly);
-}
-
-.btn1{
-display: flex;
-justify-content: space-around;
-align-items: center;
-width: 90%;
-cursor: pointer;
-border-radius: 6px;
-min-width: 100px;
-margin: 10px;
-padding: 5px;
-border: 1px solid var(--color-rangy);
-box-shadow: 0px 2px 5px var(--color-rangy);
-background-color: var(--color-whity);
-}
-.dark .btn1{
-background-color: var(--color-darky);
-}
-
-.btn1 svg{
-min-width: 20px;
-margin-inline: 5px;
-color: var(--color-darkly);
-}
-.dark .btn1 svg{
-color: var(--color-whitly);
-}
+/* .btn1, .btn2, .btn3 have been moved to assets/css/main.css and refactored with @apply */
 
 .input{
 display: flex;
