@@ -36,16 +36,20 @@
   </nav>
 
   
+
     <div class="flex items-center justify-center w-full mt-2.5">
+
       <Search v-model:searcher="searchValue" @search-submitted="search"></Search>
     </div>
 
     
     
+
     <div class="flex items-center justify-between w-full h-16 max-w-3xl my-5 min-w-52">
       <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="toFilters">
         {{ t('filter') }}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
+
           <path d="M3 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M3 17H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M18 17L21 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -57,18 +61,20 @@
 
 
 
+
       <div class="flex items-center justify-between w-1/2 h-8 m-4 rounded-md shadow-md min-w-36 max-w-72 bg-whitly dark:bg-darkly">
         <div class="relative inline-block text-left">
           <!-- Bouton pour ouvrir le menu -->
           <button @click="toggleMultyDropdown" class="flex items-center justify-between h-8 p-2 m-2.5 cursor-pointer min-w-24 text-darkly dark:bg-darkly dark:text-whitly">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="min-w-[25px] text-darkly dark:text-whitly">
+
                 <path d="M16.9767 19.5C19.4017 17.8876 21 15.1305 21 12C21 7.02944 16.9706 3 12 3C11.3126 3 10.6432 3.07706 10 3.22302M16.9767 19.5V16M16.9767 19.5H20.5M7 4.51555C4.58803 6.13007 3 8.87958 3 12C3 16.9706 7.02944 21 12 21C12.6874 21 13.3568 20.9229 14 20.777M7 4.51555V8M7 4.51555H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             {{ t('actes') }}
-            
           </button>
 
           <!-- Liste Dropdown -->
+
           <div 
             v-if="isOpen3" 
             class="absolute z-50 mt-2 border rounded-lg shadow-lg w-52 bg-whitly dark:bg-darkly"
@@ -80,14 +86,17 @@
               @click="updateSelectedOrder('status', status.value)"
               class="flex items-center w-48 px-4 py-1 m-1.25 text-left hover:bg-gorry"
             >
+
               <span v-if="status.svg" v-html="status.svg" class="w-6 h-6 mr-2"></span>
               <span>{{ status.name }}</span>
             </button>
           </div>
         </div>
+
         
 
         <button class="flex flex-col items-center justify-center w-full h-12 p-0.5 m-1.25 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap min-w-6" @click="handleConfirm()">
+
           <svg class="text-rady" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
             <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -95,6 +104,7 @@
             <path d="M14.5 16.5L14.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
         </svg>
         </button>
+
 
           <div :class="selected ? 'flex items-center justify-center min-w-[12px] h-[12px] m-[11px] cursor-pointer bg-rady rounded-full' : 'flex items-center justify-center min-w-[14px] h-[14px] m-2.5 cursor-pointer border-2 border-darkly rounded-full dark:border-whitly'" @click="selectAll">
           
@@ -104,6 +114,7 @@
       </div>
     </div>
     <div v-if="toFilter" class="flex flex-wrap items-center justify-between h-auto gap-1.25">
+
       <div class="inline-block text-left">
         <!-- Bouton pour ouvrir le menu -->
         <button @click="toggleDropdown2" class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly">
@@ -125,7 +136,9 @@
             v-for="(status, index2) in allStatus" 
             :key="status.name"
             @click="filterByStatus(status.value)"
+
             class="flex items-center w-48 px-4 py-1 m-1.25 text-left hover:bg-gorry"
+
           >
             <span v-if="status.svg" v-html="status.svg" class="w-6 h-6 mr-2"></span>
             <span>{{ status.value }}</span>
@@ -169,12 +182,14 @@
       </svg>
       </button>
     </div>
+
     <div class="flex flex-col items-center justify-center w-full" v-if="isListed" v-for="(id, index) in orderID" :key="id">
       <div class="flex flex-col items-center justify-center w-full" v-if="isUpdating[index]">
         <Loader class="w-12 h-12"/>
       </div>
       <div class="flex flex-col items-center justify-center w-full" v-else>
         <div class="flex items-center justify-between w-full h-16 max-w-3xl p-1 mt-0 rounded-t-md shadow-md bg-whitly dark:bg-darkly" v-if="!droped[index]">
+
           <button :class="
           orderStatut[index] === 'waiting' ? 
             'numberBtn bg-rangy' : 
@@ -811,7 +826,7 @@
   
 
     </div>
-    
+    </template>
   </div>
   <p class="h-20">
     
@@ -822,89 +837,86 @@
 
             
 </template>
-
-<script>
-
+<script setup>
+import { ref, onMounted, computed } from 'vue';
 import Loader from '../components/loader.vue';
 import Search from '../components/search.vue';
 import Confirm from '../components/confirm.vue';
 import Deliver from '../components/deliver.vue';
-
 import Message from '../components/elements/bloc/message.vue';
+import { useLang } from '~/composables/useLang';
+import iconsData from '~/public/icons.json';
 
-import icons from '~/public/icons.json'
+const { t } = useLang();
+const icons = ref(iconsData);
+const orders = ref([]);
+const orderDay = ref([]);
+const orderIp = ref([]);
+const orderID = ref([]);
+const orderName = ref([]);
+const remarque = ref([]);
+const orderProduct = ref([]);
+const orderWilaya = ref([]);
+const orderPhone = ref([]);
+const orderPhone2 = ref([]);
+const orderStatut = ref([]);
+const orderSZone = ref([]);
+const orderMZone = ref([]);
+const orderDeliveryValue = ref([]);
+const orderType = ref([]);
+const orderMethod = ref([]);
+const orderMInit = ref([]);
+const orderDelPrice = ref([]);
+const total = ref([]);
+const dis = ref([]);
+const note = ref([]);
+const droped = ref([]);
+const select = ref([]);
+const selectOption = ref([]);
+const resulted = ref([]);
+const isMessage = ref(false);
+const message = ref('');
+const selected = ref(false);
+const log = ref('initialising...');
+const isListed = ref(false);
+const isMounted = ref(false);
+const loading = ref(false);
+const error = ref(null);
+const data = ref(null);
+const isVisible = ref(false);
+const searchValue = ref("");
+const toFilter = ref(false);
+const orLog = ref('');
+const deLog = ref('');
+const isUpdating = ref([]);
+const idList = ref([]);
+const indexList = ref([]);
+const status = ref('');
+const isOpen = ref([]);
+const isOpen2 = ref(false);
+const isOpen3 = ref(false);
+const isOpen2Status = ref('Status');
+const showConfirm = ref(false);
+const showDeliver = ref(false);
+const isShipping = ref(false);
+const isNoting = ref([]);
+const currentNote = ref([]);
+const nameDeliver = ref([]);
+const phoneDeliver = ref([]);
+const totalDeliver = ref([]);
+const indexDeliver = ref([]);
+const modItem = ref([]);
+const isEdit = ref([]);
+const wichDel = ref({});
+const deliveryList = ref([]);
+const deleveryMethod = ref([]);
+const upsDel = ref([]);
+const upsWork = ref(false);
+const yalWork = ref(false);
+const gpxWork = ref(false);
+const beta = ref(true);
 
-export default {
-  components: { Loader, Search, Confirm, Deliver, Message },
-data() {
-return {
-  icons: [],
-  orders: [], // Tableau pour stocker les commandes
-  orderDay: [],
-  orderIp: [],
-  orderID: [],
-  orderName: [],
-  remarque: [],
-  orderProduct: [],
-  orderWilaya: [],
-  orderPhone: [],
-  orderPhone2: [],
-  orderStatut: [],
-  orderSZone: [],
-  orderMZone: [],
-  orderType: [],
-  orderMethod: [],
-  orderMInit: [],
-  orderDelPrice: [],
-  total: [],
-  dis: [],
-  note: [],
-  droped: [],
-  select: [],
-  selectOption: [],
-  resulted: [],
-  isMessage: false,
-  message: '',
-  selected: false,
-  log: 'initialising...',
-  isListed: false,
-  isMounted: false,
-  loading: false,
-  error: null,
-  data: null,
-  isVisible: false,
-  searchValue: "",
-  toFilter: false,
-  orLog: '',
-  deLog: '',
-  isUpdating: [],
-  idList: [],
-  indexList: [],
-  status: '',
-  isOpen: [],
-  isOpen2: false,
-  isOpen3: false,
-  isOpen2Status: 'Status',
-  showConfirm: false,
-  showDeliver: false,
-  isShipping: false,
-  isNoting: [],
-  currentNote: [],
-  nameDeliver: [],
-  phoneDeliver: [],
-  totalDeliver: [],
-  indexDeliver: [],
-  modItem: [],
-  isEdit: [],
-  wichDel: {},
-  deliveryList: [],
-  deleveryMethod : [],
-  upsDel: [],
-  upsWork: false,
-  yalWork: false,
-  gpxWork: false,
-  beta: true,
-  allStatus: [
+const allStatus = ref([
     {name: 'All', value: 'all', 
     svg: ``},
     {name: 'wait', value: 'pending', 
@@ -950,56 +962,42 @@ return {
             <path d="M17 3.33782C15.5291 2.48697 13.8214 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 11.3151 21.9311 10.6462 21.8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             <path d="M8 12.5C8 12.5 9.5 12.5 11.5 16C11.5 16 17.0588 6.83333 22 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>`},
-  ],
-};
-},
-async mounted() {
-//76
-// Récupérer les données au montage du composant
-  this.fetchOrders();
-  //this.getUps();
-  //this.getYal();
-  //this.getGpx();
+]);
 
-  const res = await fetch('/icons.json')
-  this.icons = await res.json()
+const filteredStatus = computed(() => {
+  return allStatus.value.filter(status => status.name !== 'All');
+});
 
+onMounted(async () => {
+  await fetchOrders();
+});
 
-},
-computed: {
-filteredStatus() {
-  return this.allStatus.filter(status => status.name !== 'All');
-}
-},
-methods: {
-
-async copyIp (ip) {
+const copyIp = async (ip) => {
   try {
-    await navigator.clipboard.writeText(ip)
-    this.isMessage = true
-    this.message = "IP copied : " + ip
+    await navigator.clipboard.writeText(ip);
+    isMessage.value = true;
+    message.value = "IP copied : " + ip;
   } catch (err) {
-    this.isMessage = true
-    this.message = "error on trying to copy"
+    isMessage.value = true;
+    message.value = "error on trying to copy";
   }
-},
+};
 
-formattedDate(day) {
-  const numericYear = parseInt(new Date(day).toLocaleDateString('fr-FR', { year: 'numeric' }), 10);
-  const numericMonth = parseInt(new Date(day).toLocaleDateString('fr-FR', { month: '2-digit' }), 10);
-  const numericDay = parseInt(new Date(day).toLocaleDateString('fr-FR', { day: '2-digit' }), 10);
-  const numericHour = parseInt(new Date(day).toLocaleTimeString('fr-FR', { hour: '2-digit', hour12: false }), 10);
-  const numericMinute = parseInt(new Date(day).toLocaleTimeString('fr-FR', { minute: '2-digit' }), 10);
+const formattedDate = (day) => {
+  const date = new Date(day);
+  const numericYear = date.getFullYear();
+  const numericMonth = date.getMonth() + 1;
+  const numericDay = date.getDate();
+  const numericHour = date.getHours();
+  const numericMinute = date.getMinutes();
 
-  // Multiplier toutes les valeurs
-  const numericTime = numericYear * numericMonth * numericDay * numericHour * numericMinute;
-  const Time = `${numericDay}-${numericMonth}-${numericYear} ${numericHour}:${numericMinute}`;
+  const numericTime = numericYear * 100000000 + numericMonth * 1000000 + numericDay * 10000 + numericHour * 100 + numericMinute;
+  const Time = `${numericDay.toString().padStart(2, '0')}-${numericMonth.toString().padStart(2, '0')}-${numericYear} ${numericHour.toString().padStart(2, '0')}:${numericMinute.toString().padStart(2, '0')}`;
 
-  return {numericTime, Time};
-},
+  return { numericTime, Time };
+};
 
-
-levenshteinDistance(a, b) {
+const levenshteinDistance = (a, b) => {
     const matrix = Array.from({ length: a.length + 1 }, (_, i) =>
         Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
     );
@@ -1013,60 +1011,52 @@ levenshteinDistance(a, b) {
     }
 
     return matrix[a.length][b.length];
-},
+};
 
+const deliverOrder = async (index) => {
+  let data;
+  let type;
+  if (orderType.value[index] == 'Stop Desk') {
+    type = true;
+  } else {
+    type = false;
+  }
+  const product_list_str = orderProduct.value[index].map(p => `${p.name} - ${p.qty}`).join(', ');
+  let wilayaId = 0;
 
-
-async deliverOrder(index) {
-  var data;
-
-  var type;
-    if(this.orderType[index] == 'Stop Desk') {
-      type = true;
-    } else {
-      type = false;
-    }
-    console.log('this.orderType : ', type );
-  if(this.orderMethod[index] === 'ups') {
+  if (orderMethod.value[index] === 'ups') {
     try {
       const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUpsWilaya', {
         method: 'GET',
       });
-
       data = await response.json();
     } catch (error) {
-        console.log('responce: ', error);
+      console.log('responce: ', error);
     }
 
-    
-
     try {
-
-      var wilayaId = 0;
-      const tolerance = 2; // Ajuste selon le niveau de tolérance souhaité
-
+      const tolerance = 2;
       for (let i = 0; i < data.length; i++) {
-          const distance = this.levenshteinDistance(data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
-
-          if (distance <= tolerance) {
-              wilayaId = data[i].wilaya_id;
-              break; 
-          }
+        const distance = levenshteinDistance(data[i].wilaya_name.toLowerCase(), orderWilaya.value[index].toLowerCase());
+        if (distance <= tolerance) {
+          wilayaId = data[i].wilaya_id;
+          break;
+        }
       }
 
-      if(wilayaId != 0) {
+      if (wilayaId != 0) {
         const setToUps = {
-          reference: `DNZ-${this.orderID[index]}`,
-          nom_client: this.orderName[index],
-          telephone: this.orderPhone[index],
+          reference: `DNZ-${orderID.value[index]}`,
+          nom_client: orderName.value[index],
+          telephone: orderPhone.value[index],
           telephone_2: '',
-          adresse: this.orderMZone[index],
+          adresse: orderMZone.value[index],
           code_postal: '',
-          commune: this.orderSZone[index],
-          code_wilaya: wilayaId.toString(),  // ✅ Correction ici
-          montant: this.total[index].toString(),  // ✅ Forcer string si nécessaire
-          remarque: this.remarque[index],
-          produit: this.orderProduct[index][0].name,  // ✅ Correction ici
+          commune: orderSZone.value[index],
+          code_wilaya: wilayaId.toString(),
+          montant: total.value[index].toString(),
+          remarque: remarque.value[index],
+          produit: product_list_str,
           stock: '',
           quantite: '',
           produit_a_recupere: '',
@@ -1075,74 +1065,58 @@ async deliverOrder(index) {
           stop_desk: '',
           weight: '',
         };
-
-        
-
         const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addUpsOrder', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json', // ✅ Important !
-              },
-              body: JSON.stringify(setToUps), // ✅ Convertir en JSON ici
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(setToUps),
         });
-
         const data2 = await response2.json();
         if (data2.success) {
-            console.log('wilaya: ', data2);
+          console.log('wilaya: ', data2);
         } else {
-              console.error(`Error: ${data2.message}`);
+          console.error(`Error: ${data2.message}`);
         }
       } else {
         console.error('no wilaya found');
       }
-
     } catch (error) {
-        console.log('responce: ', error);
+      console.log('responce: ', error);
     }
-    
-    
-    //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
-  } else if(this.orderMethod[index] === 'anderson') {
+  } else if (orderMethod.value[index] === 'anderson') {
     try {
       const response = await fetch('https://management.hoggari.com/backend/api.php?action=getAndersonWilaya', {
         method: 'GET',
       });
-
       data = await response.json();
     } catch (error) {
-        console.log('responce: ', error);
+      console.log('responce: ', error);
     }
 
-    
-
     try {
-
-      var wilayaId = 0;
-      const tolerance = 2; // Ajuste selon le niveau de tolérance souhaité
-
+      const tolerance = 2;
       for (let i = 0; i < data.length; i++) {
-          const distance = this.levenshteinDistance(data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
-
-          if (distance <= tolerance) {
-              wilayaId = data[i].wilaya_id;
-              console.log('✅ Correspondance trouvée avec tolérance:', data[i].wilaya_name, '->', this.orderWilaya[index]);
-              break; 
-          }
+        const distance = levenshteinDistance(data[i].wilaya_name.toLowerCase(), orderWilaya.value[index].toLowerCase());
+        if (distance <= tolerance) {
+          wilayaId = data[i].wilaya_id;
+          break;
+        }
       }
 
-      if(wilayaId != 0) {
+      if (wilayaId != 0) {
         const setToUps = {
-          reference: `DNZ-${this.orderID[index]}`,
-          nom_client: this.orderName[index],
-          telephone: this.orderPhone[index],
+          reference: `DNZ-${orderID.value[index]}`,
+          nom_client: orderName.value[index],
+          telephone: orderPhone.value[index],
           telephone_2: '',
-          adresse: this.orderMZone[index],
+          adresse: orderMZone.value[index],
           code_postal: '',
-          commune: this.orderSZone[index],
-          code_wilaya: wilayaId.toString(),  // ✅ Correction ici
-          montant: this.total[index].toString(),  // ✅ Forcer string si nécessaire
-          remarque: this.remarque[index],
-          produit: this.orderProduct[index][0].name,  // ✅ Correction ici
+          commune: orderSZone.value[index],
+          code_wilaya: wilayaId.toString(),
+          montant: total.value[index].toString(),
+          remarque: remarque.value[index],
+          produit: product_list_str,
           stock: '',
           quantite: '',
           produit_a_recupere: '',
@@ -1151,65 +1125,58 @@ async deliverOrder(index) {
           stop_desk: '',
           weight: '',
         };
-
-        
-
         const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addAndersonOrder', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json', // ✅ Important !
-              },
-              body: JSON.stringify(setToUps), // ✅ Convertir en JSON ici
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(setToUps),
         });
-
         const data2 = await response2.json();
         if (data2.success) {
-            console.log('wilaya: ', data2);
+          console.log('wilaya: ', data2);
         } else {
-              console.error(`Error: ${data2.message}`);
+          console.error(`Error: ${data2.message}`);
         }
       } else {
         console.error('no wilaya found');
       }
-
     } catch (error) {
-        console.log('responce: ', error);
+      console.log('responce: ', error);
     }
-    
-    
-    //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
-  } else if (this.orderMethod[index] === 'yalidine') {
-    var center = 0;
+  } else if (orderMethod.value[index] === 'yalidine') {
+    let center = 0;
     const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getYalidineCenter', {
       method: 'GET',
     });
-    console.log('response2: ', response2);
     const data2 = await response2.json();
     if (data2.success) {
       for (let i = 0; i < data2.data.data.length; i++) {
-          if (this.orderWilaya[index] == data2.data.data[i].wilaya_name) {
-              wilayaId = data2.data.data[i].wilaya_id;
-              center = data2.data.data[i].center_id;
-              break; 
-          }
+        if (orderWilaya.value[index] == data2.data.data[i].wilaya_name) {
+          wilayaId = data2.data.data[i].wilaya_id;
+          center = data2.data.data[i].center_id;
+          break;
+        }
       }
 
-      if(center != 0) {
-        const { firstname, familyname } = this.splitName(this.orderName[index])
-
+      if (center != 0) {
+        const {
+          firstname,
+          familyname
+        } = splitName(orderName.value[index]);
         const parcels = [{
-          order_id: `CofP-${this.orderID[index]}`,
+          order_id: `CofP-${orderID.value[index]}`,
           from_wilaya_name: "Tipaza",
           firstname: firstname,
           familyname: familyname,
-          contact_phone: this.orderPhone[index],
-          address: this.orderMZone[index],
-          to_commune_name: this.orderSZone[index],
-          to_wilaya_name: this.orderWilaya[index],
-          product_list: product_name,
-          price: this.total[index],
+          contact_phone: orderPhone.value[index],
+          address: orderMZone.value[index],
+          to_commune_name: orderSZone.value[index],
+          to_wilaya_name: orderWilaya.value[index],
+          product_list: product_list_str,
+          price: total.value[index],
           do_insurance: false,
-          declared_value: this.total[index],
+          declared_value: total.value[index],
           height: 10,
           width: 10,
           length: 10,
@@ -1220,33 +1187,29 @@ async deliverOrder(index) {
           has_exchange: false,
           product_to_collect: null
         }];
-        
-        
-        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addYalidineOrder', {
+        const response3 = await fetch('https://management.hoggari.com/backend/api.php?action=addYalidineOrder', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ parcels }), // ✅ ici on met le tableau dans un objet
+          body: JSON.stringify({
+            parcels
+          }),
         });
-        const data2 = await response2.json();
-        if (data2.success) {
-          console.log('wilaya: ', data2);
+        const data3 = await response3.json();
+        if (data3.success) {
+          console.log('wilaya: ', data3);
         } else {
-          console.error(`Error: ${data2.message}`);
+          console.error(`Error: ${data3.message}`);
         }
       } else {
-        console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
+        console.error("Error: No center found", wilayaId, " ", orderWilaya.value[index]);
       }
-
-      
     } else {
       console.error(`Error: ${data2.message}`);
     }
-
-
-  } else if(this.orderMethod[index] === 'guepex') {
-    var center = 0;
+  } else if (orderMethod.value[index] === 'guepex') {
+    let center = 0;
     const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getGuepexCenter', {
       method: 'GET',
     });
@@ -1254,847 +1217,647 @@ async deliverOrder(index) {
     const data1 = await response2.json();
     if (data1.success) {
       for (let i = 0; i < data1.data.data.length; i++) {
-        const distance = this.levenshteinDistance(data1.data.data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
-        
-        const distance2 = this.levenshteinDistance(data1.data.data[i].commune_name.toLowerCase(), this.orderSZone[index].toLowerCase());
-
-          if (distance <= tolerance && distance2 <= tolerance) {
-              wilayaId = data1.data.data[i].wilaya_id;
-              center = data1.data.data[i].center_id;
-              break; 
-          }
-        
-      }
-      if(center == 0) {
-        
-      } else {
-        center = null
-        console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
-      }
-      const { firstname, familyname } = this.splitName(this.orderName[index])
-
-        const parcels = [{
-          order_id: `CofP-${this.orderID[index]}`,
-          from_wilaya_name: "Tipaza",
-          firstname: firstname,
-          familyname: familyname,
-          contact_phone: this.orderPhone[index],
-          address: this.orderMZone[index],
-          to_commune_name: this.orderSZone[index],
-          to_wilaya_name: this.orderWilaya[index],
-          product_list: product_name,
-          price: this.total[index],
-          do_insurance: false,
-          declared_value: this.total[index],
-          height: 10,
-          width: 10,
-          length: 10,
-          weight: 1,
-          freeshipping: false,
-          is_stopdesk: type,
-          stopdesk_id: center,
-          has_exchange: false,
-          product_to_collect: null
-        }];
-        
-        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=addGuepexOrder', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ parcels }), // ✅ ici on met le tableau dans un objet
-        });
-        const data2 = await response2.json();
-        if (data2.success) {
-          console.log('wilaya: ', data2);
-        } else {
-          console.error(`Error: ${data2.message}`);
+        const distance = levenshteinDistance(data1.data.data[i].wilaya_name.toLowerCase(), orderWilaya.value[index].toLowerCase());
+        const distance2 = levenshteinDistance(data1.data.data[i].commune_name.toLowerCase(), orderSZone.value[index].toLowerCase());
+        if (distance <= tolerance && distance2 <= tolerance) {
+          wilayaId = data1.data.data[i].wilaya_id;
+          center = data1.data.data[i].center_id;
+          break;
         }
-
-      
+      }
+      if (center == 0) {
+        center = null;
+      }
+      const {
+        firstname,
+        familyname
+      } = splitName(orderName.value[index]);
+      const parcels = [{
+        order_id: `CofP-${orderID.value[index]}`,
+        from_wilaya_name: "Tipaza",
+        firstname: firstname,
+        familyname: familyname,
+        contact_phone: orderPhone.value[index],
+        address: orderMZone.value[index],
+        to_commune_name: orderSZone.value[index],
+        to_wilaya_name: orderWilaya.value[index],
+        product_list: product_list_str,
+        price: total.value[index],
+        do_insurance: false,
+        declared_value: total.value[index],
+        height: 10,
+        width: 10,
+        length: 10,
+        weight: 1,
+        freeshipping: false,
+        is_stopdesk: type,
+        stopdesk_id: center,
+        has_exchange: false,
+        product_to_collect: null
+      }];
+      const response3 = await fetch('https://management.hoggari.com/backend/api.php?action=addGuepexOrder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parcels
+        }),
+      });
+      const data3 = await response3.json();
+      if (data3.success) {
+        console.log('wilaya: ', data3);
+      } else {
+        console.error(`Error: ${data3.message}`);
+      }
     } else {
-      console.error(`Error: ${data2.message}`);
+      console.error(`Error: ${data1.message}`);
     }
-
-
   }
+};
 
-  
-
-},
-
-splitName(fullName) {
+const splitName = (fullName) => {
   if (!fullName || typeof fullName !== 'string') return { firstname: '', familyname: '' }
-
-  // Supprimer les caractères spéciaux et doubles espaces
   fullName = fullName.trim().replace(/\s+/g, ' ').replace(/[^\w\s\u0600-\u06FF]/g, '')
-
   const parts = fullName.split(' ')
-
   if (parts.length === 1) {
     return { firstname: parts[0], familyname: '' }
   }
-
-  // Heuristique simple : le prénom vient généralement en premier
-  // Pour les noms arabes, on suppose aussi Prénom Nom (comme en français/anglais)
   const firstname = parts.slice(0, 1).join(' ')
   const familyname = parts.slice(1).join(' ')
-
   return { firstname, familyname }
-},
+};
 
+const drop = (id) => {
+  droped.value[id] = !droped.value[id];
+};
 
-drop(id) {
-  this.droped[id] = !this.droped[id];
-},
-
-selecting(id) {
-  this.select[id] = !this.select[id];
-  const idIndex = this.idList.indexOf(this.orderID[id]);
+const selecting = (id) => {
+  select.value[id] = !select.value[id];
+  const idIndex = idList.value.indexOf(orderID.value[id]);
   if (idIndex !== -1) {
-    this.idList.splice(idIndex, 1); // Supprimer l'élément de idList
-    this.indexList.splice(idIndex, 1);
-
-    this.nameDeliver.splice(idIndex, 1);
-    this.phoneDeliver.splice(idIndex, 1);
-    this.totalDeliver.splice(idIndex, 1);
-    this.indexDeliver.splice(idIndex, 1);
+    idList.value.splice(idIndex, 1);
+    indexList.value.splice(idIndex, 1);
+    nameDeliver.value.splice(idIndex, 1);
+    phoneDeliver.value.splice(idIndex, 1);
+    totalDeliver.value.splice(idIndex, 1);
+    indexDeliver.value.splice(idIndex, 1);
   } else {
-    this.idList.push(this.orderID[id]);
-    this.indexList.push(id);
-
-    this.nameDeliver.push(this.orderName[id]);
-    this.phoneDeliver.push(this.orderPhone[id]);
-    this.totalDeliver.push(this.total[id] - parseFloat(this.deliveryValue[id]));
-    this.indexDeliver.push(id);
+    idList.value.push(orderID.value[id]);
+    indexList.value.push(id);
+    nameDeliver.value.push(orderName.value[id]);
+    phoneDeliver.value.push(orderPhone.value[id]);
+    totalDeliver.value.push(total.value[id] - parseFloat(orderDeliveryValue.value[id] || 0));
+    indexDeliver.value.push(id);
   }
-},
+};
 
-toFilters() {
-  this.toFilter = !this.toFilter;
-},
+const toFilters = () => {
+  toFilter.value = !toFilter.value;
+};
 
+const toggleDropdown = (index) => {
+  isOpen.value[index] = !isOpen.value[index];
+};
 
-toggleDropdown(index) {
-  this.isOpen[index] = !this.isOpen[index];
-},
-toggleDropdown2() {
-  this.isOpen2 = !this.isOpen2;
-},
-toggleMultyDropdown() {
-  this.isOpen3 = !this.isOpen3;
-},
+const toggleDropdown2 = () => {
+  isOpen2.value = !isOpen2.value;
+};
 
+const toggleMultyDropdown = () => {
+  isOpen3.value = !isOpen3.value;
+};
 
-selectAll() {
-  if (this.selected === false) {
-    this.selected = true;
-    for (let i = 0; i < this.select.length; i++) {
-      this.idList.push(this.orderID[i]);
-      this.indexList.push(i);
+const selectAll = () => {
+  selected.value = !selected.value;
 
-      this.nameDeliver.push(this.orderName[i]);
-      this.phoneDeliver.push(this.orderPhone[i]);
-      this.totalDeliver.push(this.total[i] - parseFloat(this.deliveryValue[i]));
-      this.indexDeliver.push(i);
+  if (selected.value) {
+    // Select all
+    idList.value = [];
+    indexList.value = [];
+    nameDeliver.value = [];
+    phoneDeliver.value = [];
+    totalDeliver.value = [];
+    indexDeliver.value = [];
 
-      setTimeout(() => {
-        
-        this.select[i] = true;
-      }, Math.random() * 200); // Délai aléatoire entre 0 et 200ms
+    for (let i = 0; i < orderID.value.length; i++) {
+      idList.value.push(orderID.value[i]);
+      indexList.value.push(i);
+      nameDeliver.value.push(orderName.value[i]);
+      phoneDeliver.value.push(orderPhone.value[i]);
+      totalDeliver.value.push(total.value[i] - parseFloat(orderDeliveryValue.value[i] || 0));
+      indexDeliver.value.push(i);
+      select.value[i] = true;
     }
   } else {
-    this.selected = false;
-    for (let i = 0; i < this.select.length; i++) {
-      const idIndex = this.idList.indexOf(this.orderID[i]); // Trouver l'index dans idList
-        if (idIndex !== -1) {
-          this.idList.splice(idIndex, 1); // Supprimer l'élément de idList
-          this.indexList.splice(idIndex, 1);
-          this.nameDeliver.splice(idIndex, 1);
-          this.phoneDeliver.splice(idIndex, 1);
-          this.totalDeliver.splice(idIndex, 1);
-          this.indexDeliver.splice(idIndex, 1);
-        }
-      setTimeout(() => {
-        
-        this.select[i] = false;
-      }, Math.random() * 200); // Délai aléatoire entre 0 et 200ms
+    // Deselect all
+    idList.value = [];
+    indexList.value = [];
+    nameDeliver.value = [];
+    phoneDeliver.value = [];
+    totalDeliver.value = [];
+    indexDeliver.value = [];
+    for (let i = 0; i < orderID.value.length; i++) {
+      select.value[i] = false;
     }
   }
-},
+};
 
-resetOrders() {
-    this.orderDay = [];
-    this.orderIp = [];
-    this.orderID = [];  // Ajoute l'élément à orderID
-    this.orderPhone = []; 
-    this.orderPhone2 = []; 
-    this.orderName = []; 
-    this.remarque = [];
-    this.orderProduct = []; 
-    this.orderType = [];
-    this.deleveryMethod = [];
-    this.deliveryList = [];
-    this.orderWilaya = []; 
-    this.orderDeliveryValue = [];
-    this.orderStatut = []; 
-    this.orderSZone = []; 
-    this.orderMZone = []; 
-    this.orderMInit = [];
-    this.orderDelPrice = [];
-    this.note = []; 
-    this.dis = []; 
-    this.total = []; 
-    this.droped = []; 
-    this.select = []; 
-    this.isOpen = [];
-    this.isEdit = [];
-    this.currentNote = [];
-    this.isNoting = [];
+const resetOrders = () => {
+    orderDay.value = [];
+    orderIp.value = [];
+    orderID.value = [];
+    orderPhone.value = [];
+    orderPhone2.value = [];
+    orderName.value = [];
+    remarque.value = [];
+    orderProduct.value = [];
+    orderType.value = [];
+    deleveryMethod.value = [];
+    deliveryList.value = [];
+    orderWilaya.value = [];
+    orderDeliveryValue.value = [];
+    orderStatut.value = [];
+    orderSZone.value = [];
+    orderMZone.value = [];
+    orderMInit.value = [];
+    orderDelPrice.value = [];
+    note.value = [];
+    dis.value = [];
+    total.value = [];
+    droped.value = [];
+    select.value = [];
+    isOpen.value = [];
+    isEdit.value = [];
+    currentNote.value = [];
+    isNoting.value = [];
+};
 
-},
-
-filterByStatus(value) {
-  this.status = value;
-  this.resetOrders();
-    for (var i = 0; i < this.resulted.length; i++) {
+const filterByStatus = (value) => {
+  status.value = value;
+  resetOrders();
+    for (var i = 0; i < resulted.value.length; i++) {
       if(value != 'all') {
         if(value === 'pending') {
-          if(this.resulted[i].status === value || this.resulted[i].status === 'waiting'){
-            this.setOrders(i);
+          if(resulted.value[i].status === value || resulted.value[i].status === 'waiting'){
+            setOrders(i);
           }
         } else {
-          if(this.resulted[i].status === value){
-            this.setOrders(i);
+          if(resulted.value[i].status === value){
+            setOrders(i);
           }
         }
-        
       } else {
-        this.setOrders(i);
+        setOrders(i);
       }
-       
-      
-              
     }
+    idList.value = [];
+    indexList.value = [];
+    for(var ii = 0; ii < select.value.length; ii++) {
+      select.value[ii] = false;
+    }
+    isOpen2Status.value = value;
+    isOpen2.value = false;
+    selected.value = false;
+};
 
-    this.idList = [];
-  this.indexList = [];
-  for(var ii = 0; ii < this.select.length; ii++) {
-    this.select[ii] = false;
-  }
-  this.isOpen2Status = value;
-  this.isOpen2 = false;
-  this.selected = false;
-},
-
-handleConfirm(orderID, index) {
-  
+const handleConfirm = (orderID, index) => {
   if (orderID !== undefined && orderID !== null && index !== undefined && index !== null) {
-    this.wichDel = { order: orderID, index: index };
+    wichDel.value = { order: orderID, index: index };
   } else {
-    this.wichDel = {};
+    wichDel.value = {};
   }
+  showConfirm.value = true;
+};
 
-  this.showConfirm = true;
-  
-},
+const saveNote = (index) => {
+  updateOrderValue(orderID.value[index], 'note', note.value[index], index);
+  currentNote.value[index] = note.value[index];
+  isNoting.value[index] = false;
+};
 
-saveNote(index) {
-  this.updateOrderValue(this.orderID[index], 'note', this.note[index], index);
-  this.currentNote[index] = this.note[index];
-  this.isNoting[index] = false;
-},
+const clearNote = (index) => {
+  note.value[index] = currentNote.value[index];
+  isNoting.value[index] = false;
+};
 
-clearNote(index) {
-  this.note[index] = this.currentNote[index];
-  this.isNoting[index] = false;
-},
+const handleNote = (index) => {
+  isNoting.value[index] = !isNoting.value[index];
+};
 
-handleNote(index) {
-  this.isNoting[index] = !this.isNoting[index];
-},
-
-confirmation(value) {
-  
+const confirmation = (value) => {
   if(value === true) {
-    if (this.wichDel && this.wichDel.order !== undefined && this.wichDel.index !== undefined) {
-        this.deleteOrder(this.wichDel.order, this.wichDel.index);
+    if (wichDel.value && wichDel.value.order !== undefined && wichDel.value.index !== undefined) {
+        deleteOrder(wichDel.value.order, wichDel.value.index);
     } else {
-        this.deleteSelectedOrder();
+        deleteSelectedOrder();
     }
-    this.showConfirm = false;
+    showConfirm.value = false;
   }else {
-    this.showConfirm = false;
+    showConfirm.value = false;
   }
+};
 
-},
+const cancelShipping = () => {
+  showDeliver.value = false;
+  clearDeliverOrder();
+};
 
-cancelShipping() {
-  this.showDeliver = false;
-  this.clearDeliverOrder();
-},
-
-async shipping({ name, phone1, phone2, note, total, indexing }) {
-  this.isShipping = true;
+const shipping = async ({ name, phone1, phone2, note, total, indexing }) => {
+  isShipping.value = true;
     if (!indexing || indexing.length === 0) {
-        this.showDeliver = false;
-        this.isShipping = false;
+        showDeliver.value = false;
+        isShipping.value = false;
         return;
     }
     
     for (let i = 0; i < indexing.length; i++) {
-        this.orderName[indexing[i]] = name[i];
-        this.orderPhone[indexing[i]] = phone1[i];
-        this.orderPhone2[indexing[i]] = phone2[i];
-        this.remarque[indexing[i]] = note[i];
-        this.total[indexing[i]] = total[i];
+        orderName.value[indexing[i]] = name[i];
+        orderPhone.value[indexing[i]] = phone1[i];
+        orderPhone2.value[indexing[i]] = phone2[i];
+        remarque.value[indexing[i]] = note[i];
+        total.value[indexing[i]] = total[i];
 
-        await this.deliverOrder(indexing[i]);
-        await this.updateOrderValue(this.orderID[indexing[i]], 'status', 'shipping', indexing[i]);
+        await deliverOrder(indexing[i]);
+        await updateOrderValue(orderID.value[indexing[i]], 'status', 'shipping', indexing[i]);
     }
 
-    this.showDeliver = false;
-    this.clearDeliverOrder();
-    this.isShipping = false;
-},
+    showDeliver.value = false;
+    clearDeliverOrder();
+    isShipping.value = false;
+};
 
-
-setDeliver(id, status, value, index) {
-  console.log('value: ',value)
+const setDeliver = (id, status, value, index) => {
   if(value === 'shipping') {
-    this.nameDeliver.push(this.orderName[index]);
-    this.phoneDeliver.push(this.orderPhone[index]);
-    if(this.orderMethod[index] === 'ups' || this.orderMethod[index] === 'anderson') {
-      this.totalDeliver.push(this.total[index]);
+    nameDeliver.value.push(orderName.value[index]);
+    phoneDeliver.value.push(orderPhone.value[index]);
+    if(orderMethod.value[index] === 'ups' || orderMethod.value[index] === 'anderson') {
+      totalDeliver.value.push(total.value[index]);
     } else {
-      this.totalDeliver.push((this.total[index] - parseFloat(this.orderDeliveryValue[index])));
+      totalDeliver.value.push((total.value[index] - parseFloat(orderDeliveryValue.value[index])));
     }
     
-    this.indexDeliver.push(index);
-    this.showDeliver = true;
+    indexDeliver.value.push(index);
+    showDeliver.value = true;
   } else {
-    this.updateOrderValue(id, status, value, index);
+    updateOrderValue(id, status, value, index);
   }
-},
+};
 
-
-setOrders(i) {
-  const formattedDay = this.formattedDate(this.resulted[i].create);
+const setOrders = (i) => {
+  const formattedDay = formattedDate(resulted.value[i].create);
   
-  this.orderDay.push(formattedDay.Time);
-  this.orderIp.push(this.resulted[i].ip);
-  this.orderID.push(this.resulted[i].id); //Ajoute l'élément à orderID
-  this.orderPhone.push(this.resulted[i].phone); 
-  this.orderPhone2.push(''); 
-  this.orderName.push(this.resulted[i].name); 
-  this.remarque.push(''); 
+  orderDay.value.push(formattedDay.Time);
+  orderIp.value.push(resulted.value[i].ip);
+  orderID.value.push(resulted.value[i].id);
+  orderPhone.value.push(resulted.value[i].phone);
+  orderPhone2.value.push('');
+  orderName.value.push(resulted.value[i].name);
+  remarque.value.push('');
   var products = [];
-  for(var ii = 0; ii < this.resulted[i].items.length; ii++) {
+  for(var ii = 0; ii < resulted.value[i].items.length; ii++) {
     products.push({
-      'name': this.resulted[i].items[ii].productName,
-      'price': this.resulted[i].items[ii].price,
-      'promo': this.resulted[i].items[ii].promo,
-      'qty': this.resulted[i].items[ii].qty,
-      'ref': this.resulted[i].items[ii].ref,
-      'items': this.resulted[i].items[ii].items,
+      'name': resulted.value[i].items[ii].productName,
+      'price': resulted.value[i].items[ii].price,
+      'promo': resulted.value[i].items[ii].promo,
+      'qty': resulted.value[i].items[ii].qty,
+      'ref': resulted.value[i].items[ii].ref,
+      'items': resulted.value[i].items[ii].items,
     });
-    
   }
 
-
-  if(this.resulted[i].type == 0) {
-  this.orderType.push('Home');
+  if(resulted.value[i].type == 0) {
+    orderType.value.push('Home');
   } else {
-   this.orderType.push('Stop Desk');
+    orderType.value.push('Stop Desk');
   }
-  //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
-  //this.orderType.push(parseFloat(this.resulted[i].type));
-  this.orderMethod.push(this.resulted[i].method); 
-  this.deliveryList.push({});
-  this.orderDelPrice.push({});
-  this.orderMInit.push(-1); 
-  this.orderProduct.push(products); 
-  this.orderWilaya.push(this.resulted[i].deliveryZone); 
-  this.orderDeliveryValue.push(this.resulted[i].deliveryValue); 
-  this.orderStatut.push(this.resulted[i].status); 
-  this.orderSZone.push(this.resulted[i].sZone); 
-  this.orderMZone.push(this.resulted[i].mZone); 
-  this.note.push(this.resulted[i].note); 
-  this.currentNote.push(this.resulted[i].note);
-  this.dis.push(this.resulted[i].discount); 
-  this.total.push(this.resulted[i].total); 
+  orderMethod.value.push(resulted.value[i].method);
+  deliveryList.value.push({});
+  orderDelPrice.value.push({});
+  orderMInit.value.push(-1);
+  orderProduct.value.push(products);
+  orderWilaya.value.push(resulted.value[i].deliveryZone);
+  orderDeliveryValue.value.push(resulted.value[i].deliveryValue);
+  orderStatut.value.push(resulted.value[i].status);
+  orderSZone.value.push(resulted.value[i].sZone);
+  orderMZone.value.push(resulted.value[i].mZone);
+  note.value.push(resulted.value[i].note);
+  currentNote.value.push(resulted.value[i].note);
+  dis.value.push(resulted.value[i].discount);
+  total.value.push(resulted.value[i].total);
   
-  this.droped.push(false);
-  this.select.push(false);
-  this.isUpdating.push(false);
-  this.isOpen.push(false);
-  this.isEdit.push(false);
-  this.isNoting.push(false);
-  this.modItem.push({
+  droped.value.push(false);
+  select.value.push(false);
+  isUpdating.value.push(false);
+  isOpen.value.push(false);
+  isEdit.value.push(false);
+  isNoting.value.push(false);
+  modItem.value.push({
     user: false,
     delivery: false,
     note: false,
     product: false,
   });
-              
-},
-clearDeliverOrder() {
-  this.nameDeliver = [];
-  this.phoneDeliver = [];
-  this.totalDeliver = [];
-  this.indexDeliver = [];
-  this.remarque = [];
-  this.idList = [];
-  this.indexList = [];
-  this.isOpen3 = false;
-  for(var i = 0; i < this.select.length; i++){
-    this.select[i] = false;
+};
+
+const clearDeliverOrder = () => {
+  nameDeliver.value = [];
+  phoneDeliver.value = [];
+  totalDeliver.value = [];
+  indexDeliver.value = [];
+  remarque.value = [];
+  idList.value = [];
+  indexList.value = [];
+  isOpen3.value = false;
+  for(var i = 0; i < select.value.length; i++){
+    select.value[i] = false;
   }
-  this.selected = false;
-},
+  selected.value = false;
+};
 
-async updateOrderValue(id, status, value, index) {
-
-    this.isUpdating[index] = true;
-  const updateOrder = JSON.stringify({
+const updateOrderValue = async (id, status, value, index) => {
+    isUpdating.value[index] = true;
+    const updateOrder = JSON.stringify({
         id: id,
         status: status,
         value: value,
-        });
-        console.log('updateOrder: ', updateOrder);
-        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=updateOrderValue', {
+    });
+    const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=updateOrderValue', {
         method: 'POST',
         body: updateOrder,
-        });
-        if(!response2.ok){
-            this.orLog = "error in response";
-            this.isUpdating[index] = false;
-            return;
+    });
+    if(!response2.ok){
+        orLog.value = "error in response";
+        isUpdating.value[index] = false;
+        return;
+    }
+    const textResponse = await response2.json();
+    if (textResponse.success) {
+        orLog.value = textResponse.data;
+        await getOrders();
+        resetOrders();
+        for (var i = 0; i < resulted.value.length; i++) {
+          setOrders(i);
         }
-        const textResponse = await response2.json();  // Récupérer la réponse en texte
-        if (textResponse.success) {
-            this.orLog = textResponse.data;
-            
-            
-            await this.getOrders();
-            this.resetOrders();
-            for (var i = 0; i < this.resulted.length; i++) {
-              this.setOrders(i);
-              
-            }
-            this.isUpdating[index] = false;
-        } else {
-            this.orLog = textResponse.message;
-            this.isUpdating[index] = false;
-        }
-        this.isUpdating[index] = false;
-        this.isOpen[index] = false;
-        this.isEdit[index] = false;
-        this.isOpen2 = false;
-  
+    } else {
+        orLog.value = textResponse.message;
+    }
+    isUpdating.value[index] = false;
+    isOpen.value[index] = false;
+    isEdit.value[index] = false;
+    isOpen2.value = false;
+};
 
-},
-
-async deleteSelectedOrder() {
-  
-  for(var i = 0; i < this.idList.length; i++) {
-    this.isUpdating[this.indexList[i]] = true;
-    this.deleteOrder(this.idList[i], this.indexList[i]);
+const deleteSelectedOrder = async () => {
+  for(var i = 0; i < idList.value.length; i++) {
+    isUpdating.value[indexList.value[i]] = true;
+    await deleteOrder(idList.value[i], indexList.value[i]);
   }
-
-  this.idList = [];
-  this.indexList = [];
-  for(var ii = 0; ii < this.select.length; ii++) {
-    this.select[ii] = false;
+  idList.value = [];
+  indexList.value = [];
+  for(var ii = 0; ii < select.value.length; ii++) {
+    select.value[ii] = false;
   }
-  
-  this.selected = false;
-  
-        
-},
+  selected.value = false;
+};
 
-async updateSelectedOrder(status, value) {
-  console.log('test: ', value, ' ', status, ' ', this.nameDeliver[0]);
-  if(value === "shipping" && this.nameDeliver[0]) {
-    this.showDeliver = true;
+const updateSelectedOrder = async (status, value) => {
+  if(value === "shipping" && nameDeliver.value[0]) {
+    showDeliver.value = true;
     return;
   } else {
-    for(var i = 0; i < this.idList.length; i++) {
-    this.isUpdating[this.indexList[i]] = true;
-
-    this.updateOrderValue(this.idList[i], status, value, this.indexList[i]);
+    for(var i = 0; i < idList.value.length; i++) {
+      isUpdating.value[indexList.value[i]] = true;
+      await updateOrderValue(idList.value[i], status, value, indexList.value[i]);
     }
-
-    this.idList = [];
-    this.indexList = [];
-    for(var ii = 0; ii < this.select.length; ii++) {
-      this.select[ii] = false;
+    idList.value = [];
+    indexList.value = [];
+    for(var ii = 0; ii < select.value.length; ii++) {
+      select.value[ii] = false;
     }
-    
-    this.selected = false;
+    selected.value = false;
   }
-  
+};
 
-        
-},
-
-async deleteOrder(id, index) {
-
-    this.isUpdating[index] = true;
-  const updateOrder = JSON.stringify({
-        id: id,
-        });
-
-        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=deleteOrder', {
+const deleteOrder = async (id, index) => {
+    isUpdating.value[index] = true;
+    const updateOrder = JSON.stringify({ id: id });
+    const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=deleteOrder', {
         method: 'POST',
         body: updateOrder,
-        });
-        if(!response2.ok){
-            this.deLog = "error in response";
-            this.isUpdating[index] = false;
-            return;
+    });
+    if(!response2.ok){
+        deLog.value = "error in response";
+        isUpdating.value[index] = false;
+        return;
+    }
+    const textResponse = await response2.json();
+    if (textResponse.success) {
+        deLog.value = textResponse.message;
+        await getOrders();
+        resetOrders();
+        for (var i = 0; i < resulted.value.length; i++) {
+          setOrders(i);
         }
-        const textResponse = await response2.json();  // Récupérer la réponse en texte
-        if (textResponse.success) {
-            this.deLog = textResponse.message;
-            await this.getOrders();
-            this.resetOrders();
-            for (var i = 0; i < this.resulted.length; i++) {
-              this.setOrders(i);
-              
-            }
-            this.isUpdating[index] = false;
-        } else {
-            this.deLog = textResponse.message;
-            this.isUpdating[index] = false;
-        }
-  
-  
-        this.isUpdating[index] = false;
-        this.isOpen[index] = false;
-        this.isEdit[index] = false;
-},
+    } else {
+        deLog.value = textResponse.message;
+    }
+    isUpdating.value[index] = false;
+    isOpen.value[index] = false;
+    isEdit.value[index] = false;
+};
 
-filterByDays(days) {
-    this.resetOrders(); // Réinitialiser une seule fois avant la boucle
-    this.isMounted = false;
-    this.isListed = false;
+const filterByDays = (days) => {
+    resetOrders();
+    isMounted.value = false;
+    isListed.value = false;
     const now = new Date();
-    
-    // Convertir la date limite en numericTime
     const pastDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
-    const formattedPastDate = this.formattedDate(pastDate.toISOString());
+    const timeLimit = formattedDate(pastDate.toISOString()).numericTime;
     
-    const timeLimit = formattedPastDate.numericTime;
-    for (var i = 0; i < this.resulted.length; i++) {
-        const formattedDay = this.formattedDate(this.resulted[i].create);
-        
+    for (var i = 0; i < resulted.value.length; i++) {
+        const formattedDay = formattedDate(resulted.value[i].create);
         if (formattedDay.numericTime >= timeLimit) {
-            this.setOrders(i);
+            setOrders(i);
         }
     }
-    
-    
-    this.isMounted = true;
-    this.isListed = true;
-},
+    isMounted.value = true;
+    isListed.value = true;
+};
 
-filter(value) {
-  
+const filter = (value) => {
   if (value === '1d') {
-    
-    this.filterByDays(2);
-  
+    filterByDays(2);
   } else if(value === '7d') {
-    
-    this.filterByDays(7);
-
+    filterByDays(7);
   } else if (value === '30d') {
-    
-    this.filterByDays(31);
+    filterByDays(31);
+  }
+};
+
+const search = (value) => {
+  resetOrders();
+  const lowerCaseValue = value.toLowerCase();
+
+  if (!lowerCaseValue) {
+    for (let i = 0; i < resulted.value.length; i++) {
+      setOrders(i);
+    }
+    return;
   }
 
-  
+  for (let i = 0; i < resulted.value.length; i++) {
+    const order = resulted.value[i];
+    const orderIdString = `order-${order.id}`;
+    const phoneString = order.phone.toString();
+    const nameString = order.name.toLowerCase();
 
-},
-
-search(value) {
-  let floated = value.match(/[\d.]+/g)?.join('') || ''; 
-  //let floated = parseFloat(numbers);
-  if (value.startsWith("order-")) {
-    let number = parseFloat(value.replace("order-", ""));
-    
-    this.resetOrders();
-    for (var i = 0; i < this.resulted.length; i++) {
-          //const formattedDay = this.formattedDate(this.resulted[i].create);
-          
-            
-      if(i === number) {
-        this.setOrders(i);
-      }
-    }
-
-  } else if (floated === '' && value != '') {
-    this.resetOrders();
-    for (var i = 0; i < this.resulted.length; i++) {
-          //const formattedDay = this.formattedDate(this.resulted[i].create);
-          
-            
-            if(this.resulted[i].name === value) {
-              this.setOrders(i);
-            }
-    }
-  } else if (floated != '' && value != '') {
-    this.resetOrders();
-    for (var i = 0; i < this.resulted.length; i++) {
-          const formattedDay = this.formattedDate(this.resulted[i].create);
-          
-            
-            if(this.resulted[i].phone === floated) {
-              this.setOrders(i);
-            }
-    }
-  } else {
-    this.resetOrders();
-    for (var i = 0; i < this.resulted.length; i++) {
-      this.setOrders(i);
+    if (orderIdString.includes(lowerCaseValue) ||
+        phoneString.includes(lowerCaseValue) ||
+        nameString.includes(lowerCaseValue)) {
+      setOrders(i);
     }
   }
-      
-},
+};
 
-reverseOrder() {
-  this.resetOrders();
-  this.resulted.reverse();
-  for (var i = 0; i < this.resulted.length; i++) {
-          this.setOrders(i);
-
-        
+const reverseOrder = () => {
+  resetOrders();
+  resulted.value.reverse();
+  for (var i = 0; i < resulted.value.length; i++) {
+    setOrders(i);
   }
-},
+};
 
-
-async getOrders() {
-const response = await fetch('https://management.hoggari.com/backend/api.php?action=getOrders', {
-    method: 'GET',
+const getOrders = async () => {
+    const response = await fetch('https://management.hoggari.com/backend/api.php?action=getOrders', {
+        method: 'GET',
     });
     if (!response.ok) {
-      this.log = 'error in getting response category';
+      log.value = 'error in getting response category';
       return;
     }
     const result = await response.json();
     if (result.success) {
       if (!result.data) {
-        this.log = 'No recent orders for now.';
+        log.value = 'No recent orders for now.';
       } else {
-        
-        this.log = result.message;
-      
-        this.resulted = result.data;
-        this.reverseOrder();
-        
-        
+        log.value = result.message;
+        resulted.value = result.data;
+        reverseOrder();
       }
-      this.isListed = true;
-      
-        
+      isListed.value = true;
     } else {
-      this.log = result.message;
-      this.isListed = true;
+      log.value = result.message;
+      isListed.value = true;
     }
+};
 
-    
-    
-},
+const fetchOrders = async () => {
+    log.value = 'request send, wiating responce...';
+    try {
+        await getOrders();
+        status.value = 'all';
+        isMounted.value = true;
+    } catch (error) {
+        log.value = `error in getting request ${error}`;
+        isMounted.value = true;
+        isListed.value = false;
+    }
+};
 
-async fetchOrders() {
-    this.log = 'request send, wiating responce...';
-  try {
-
-    await this.getOrders();
-    this.status = 'all';
-    this.isMounted = true;
-    
-
-    /*if(response.ok) {
-        const data = await response.json(); // Convertir la réponse en JSON
-        if(data.message) {
-          this.log = data.message;
-          this.orders = data; // Stocker les commandes dans le tableau `orders`
-          // Assurez-vous que orders est un tableau valide
-          console.log(this.orders);  // Accède à l'élément 0,1 du tableau
-
-                  // Parcours des éléments à partir de l'indice 1
-          for (var i = 1; i < this.orders.length; i++) {
-              // Assurez-vous que this.orders[i] a un élément à l'indice 13
-              this.orderDay.push(this.orders[i][0]);
-              this.orderID.push(this.orders[i][13]);  // Ajoute l'élément à orderID
-              this.orderPhone.push(this.orders[i][2]); 
-              this.orderName.push(this.orders[i][1]); 
-          }
-          this.isListed = true;
-          console.log(this.orderID);  // Affiche les IDs dans orderID
-        } else {
-          this.log = data.message;
-        }
-
-    } else {
-      this.log = 'ERROR in response form';
-    }*/
-
-
-  } catch (error) {
-    this.log = `error in getting request ${error}`;
-    this.isMounted = true;
-    this.isListed = false;
-    //console.error("Erreur lors de la récupération des commandes:", error);
-  }
-},
-
-async getDelivery(index, method, zone) {
+const getDelivery = async (index, method, zone) => {
   try {
       const response = await fetch('https://management.hoggari.com/backend/api.php?action=getDelivery', {
           method: 'GET',
       });
-
-      if (!response.ok) {
-          return;
-      }
-
-      this.deleveryMethod = await response.json();
+      if (!response.ok) return;
+      const deliveryData = await response.json();
       
-      this.deleveryMethod = this.deleveryMethod.data[0].options;
-      const exists = this.deleveryMethod.findIndex(item => item.name === method);
+      deleveryMethod.value = deliveryData.data[0].options;
+      const exists = deleveryMethod.value.findIndex(item => item.name === method);
       if(exists != -1) {
-        this.deliveryList[index] = this.deleveryMethod[exists];
-        this.orderMInit[index] = exists;
-        this.getDelPrice(index, zone);
-        if(this.upsWork) {
-          const init = this.deleveryMethod[0].price.findIndex(item => item.name === zone);
-          this.getCommunes(index, init, zone);
+        deliveryList.value[index] = deleveryMethod.value[exists];
+        orderMInit.value[index] = exists;
+        getDelPrice(index, zone);
+        if(upsWork.value) {
+          const init = deleveryMethod.value[0].price.findIndex(item => item.name === zone);
+          getCommunes(index, init, zone);
         }
-      }else {
-        this.deliveryList[index] = this.deleveryMethod[0];
-        this.orderMInit[index] = 0;
-        this.orderMethod[index] = this.deleveryMethod[0].name;
-        this.getDelPrice(index, zone);
-        if(this.upsWork) {
-          const init = this.deleveryMethod[0].price.findIndex(item => item.name === zone);
-          this.getCommunes(index, init, zone);
+      } else {
+        deliveryList.value[index] = deleveryMethod.value[0];
+        orderMInit.value[index] = 0;
+        orderMethod.value[index] = deleveryMethod.value[0].name;
+        getDelPrice(index, zone);
+        if(upsWork.value) {
+          const init = deleveryMethod.value[0].price.findIndex(item => item.name === zone);
+          getCommunes(index, init, zone);
         }
       }
-      
   } catch (error) {
     console.log('Error in fetching: ', error);
   }
-},
+};
 
-getDelPrice (index, name) {
-  const exists = this.deliveryList[index].price.findIndex(item => item.name === name);
+const getDelPrice = (index, name) => {
+  const exists = deliveryList.value[index].price.findIndex(item => item.name === name);
   if(exists != -1) {
-        this.orderDelPrice[index] = {
-          home: this.deliveryList[index].price[exists].home_price,
-          desk: this.deliveryList[index].price[exists].desk_price,
+        orderDelPrice.value[index] = {
+          home: deliveryList.value[index].price[exists].home_price,
+          desk: deliveryList.value[index].price[exists].desk_price,
         }
-
-      }else {
-        this.orderDelPrice[index] = {
+      } else {
+        orderDelPrice.value[index] = {
           home: 0,
           desk: 0,
         }
-
       }
-},
+};
 
-async getUps () {
+const getUps = async () => {
   const response = await fetch('https://management.hoggari.com/backend/api.php?action=testUps', {
       method: 'GET'
     });
-
-    if (!response.ok) {
-      console.log('error in response');
-      return;
-    }
-
+    if (!response.ok) return;
     const textResponse = await response.json();
-
     if (textResponse.success) {
-      if (textResponse.data.work == 1) {
-        this.upsWork = true;
-      } else {
-        this.upsWork = false;
-      }
-
-      
-      
+      upsWork.value = textResponse.data.work == 1;
     } else {
       console.error('textResponse: ', textResponse.message);
     }
-},
+};
 
-async getYal () {
+const getYal = async () => {
   const response = await fetch('https://management.hoggari.com/backend/api.php?action=testYalidine', {
       method: 'GET'
     });
-
-    if (!response.ok) {
-      console.log('error in response');
-      return;
-    }
-
+    if (!response.ok) return;
     const textResponse = await response.json();
-
     if (textResponse.success) {
-      if (textResponse.data.work == 1) {
-        this.yalWork = true;
-      } else {
-        this.yalWork = false;
-      }
+      yalWork.value = textResponse.data.work == 1;
     } else {
       console.error('textResponse: ', textResponse.message);
     }
-},
+};
 
-async getGpx () {
+const getGpx = async () => {
   const response = await fetch('https://management.hoggari.com/backend/api.php?action=testGuepex', {
       method: 'GET'
     });
-
-    if (!response.ok) {
-      console.log('error in response');
-      return;
-    }
-
+    if (!response.ok) return;
     const textResponse = await response.json();
-
     if (textResponse.success) {
-      if (textResponse.data.work == 1) {
-        this.gpxWork = true;
-      } else {
-        this.gpxWork = false;
-      }
+      gpxWork.value = textResponse.data.work == 1;
     } else {
       console.error('textResponse: ', textResponse.message);
     }
-},
+};
 
-/*async getYalCommunes() {
-  const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getYalidineCommune', {
-        method: 'GET',
-    });
-
-    const data = await response2.json();
-},*/
-
-
-
-async getCommunes(index, wilaya_id, wilaya) {
+const getCommunes = async (index, wilaya_id, wilaya) => {
   const setToUps = {
       'wilaya_id': wilaya_id,
       'nom': wilaya,
   };
-
-try {
+  try {
     const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getCommune', {
         method: 'POST',
         headers: {
@@ -2102,621 +1865,19 @@ try {
         },
         body: JSON.stringify(setToUps),
     });
-
     const data2 = await response2.json();
-    
-    
-    // Vérifier si le <select> existe
     const selectCommune = document.getElementById("commune");
-    if (!selectCommune) {
-        console.error("Le champ <select> #commune n'existe pas !");
-        return;
-    }
-
-    // Vider le <select> avant d'ajouter les nouvelles communes
+    if (!selectCommune) return;
     selectCommune.innerHTML = '';
-
-    // Ajouter les nouvelles options
     data2.forEach(commune => {
         let option = document.createElement("option");
-        option.value = commune.nom; // Utiliser le nom comme valeur
-        option.textContent = commune.nom; // Nom et code postal
-        
+        option.value = commune.nom;
+        option.textContent = commune.nom;
         selectCommune.appendChild(option);
-        selectCommune.value = this.orderSZone[index];
+        selectCommune.value = orderSZone.value[index];
     });
-
-} catch (error) {
+  } catch (error) {
     console.error("Erreur lors de la récupération des communes:", error);
-}
-}
-}
+  }
 };
 </script>
-
-<style>
-
-.ip-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--color-whity);
-  background-color: var(--color-whizy);
-  font-size: 15px;
-  margin: 8px 0;
-}
-
-.dark .ip-container {
-  border: 1px solid var(--color-darkly);
-  background-color: var(--color-darkow);
-}
-
-.ip-label {
-  margin: 0;
-  font-weight: 500;
-}
-
-.copy-btn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px;
-  transition: transform 0.2s;
-}
-.copy-btn:hover {
-  transform: scale(1.2);
-}
-
-.boxItems{
-display: flex; 
-justify-content: center; 
-align-items: center; 
-padding: 5px; 
-margin-inline: 5px; 
-background: var(--color-whitly); 
-border-radius: 8px;
-}
-.dark .boxItems {
-background: black; 
-}
-
-.loading{
-position:fixed;
-height: 100%;
-width: 100%;
-display: flex;
-justify-content: center;
-align-items: center;
-align-self: center;
-}
-
-.optionBar{
-display: flex;
-justify-content: space-between;
-align-items: center;
-width: 100%;
-height: 50px;
-margin-block: 20px;
-min-width: 200px;
-max-width: 800px;
-
-}
-
-
-.optionBar2{
-display: flex;
-justify-content: space-around;
-align-items: center;
-width: 100%;
-min-width: 200px;
-height: 50px;
-}
-
-
-.filterBtn{
-display: flex;
-justify-content: space-between;
-align-items: center;
-min-width: 80px;
-max-width: 150px;
-height: 30px;
-margin: 10px;
-padding: 8px;
-cursor: pointer;
-background-color: var(--color-whitly);
-border-radius: 6px;
-box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-color: var(--color-darkly);
-}
-.dark .filterBtn{
-background-color: var(--color-darkly);
-color: var(--color-whitly);
-}
-.filterBtn svg{
-color: var(--color-darkly);
-margin-inline: 5px;
-}
-.dark .filterBtn svg{
-color: var(--color-whitly);
-}
-
-.changeBtn{
-display: flex;
-justify-content: space-between;
-align-items: center;
-min-width: 100px;
-height: 30px;
-margin: 10px;
-padding: 8px;
-cursor: pointer;
-color: var(--color-darkly);
-}
-.dark .changeBtn{
-background-color: var(--color-darkly);
-color: var(--color-whitly);
-}
-.changeBtn svg{
-color: var(--color-darkly);
-min-width: 25px;
-}
-.dark .changeBtn svg{
-color: var(--color-whitly);
-}
-
-.listedBtn{
-width: 50%;
-height: 30px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-min-width: 150px;
-max-width: 280px;
-background-color: var(--color-whitly);
-border-radius: 6px;
-margin: 15px;
-box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .listedBtn{
-background-color: var(--color-darkly);
-}
-
-.filterList{
-height: auto; /* Permet d'ajuster la hauteur selon le contenu */
-display: flex;
-flex-wrap: wrap; /* Permet le retour à la ligne si nécessaire */
-justify-content: space-between;
-align-items: center;
-gap: 5px; /* Ajoute un espacement entre les éléments */
-
-}
-
-
-.listedBtn2{
-display: flex;
-justify-content: space-between;
-align-items: center;
-width: 100%;
-font-size: 12px;
-margin: 5px;
-}
-
-.listedBtn3 {
-display: flex;
-justify-content: space-between;
-align-items: center;
-width: 100%;
-
-margin: 5px;
-background-color: var(--color-whitly);
-border-radius: 6px;
-box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-
-overflow-x: auto; /* Permet le scroll horizontal si nécessaire */
-white-space: nowrap; /* Empêche le retour à la ligne des éléments */
-padding: 5px;
-}
-
-.dark .listedBtn3 {
-background-color: var(--color-darkly);
-}
-
-.dark .listedBtn3 button {
-color: var(--color-whitly);
-}
-
-.listedBtn3 button h4 {
-font-size: 14px;
-}
-
-.listedBtn3 button h5 {
-font-size: 10px;
-}
-
-/* Ajoute un style pour la barre de défilement si nécessaire */
-.listedBtn3::-webkit-scrollbar {
-height: 5px;
-}
-
-.listedBtn3::-webkit-scrollbar-thumb {
-background: rgba(0, 0, 0, 0.2);
-border-radius: 10px;
-}
-
-.iconBtn{
-display: flex;
-justify-content: center;
-align-items: center;
-flex-direction: column;
-height: 50px;
-width: 100%;
-margin: 5px;
-padding: 2px;
-cursor: pointer;
-overflow: hidden; /* Empêche le texte de déborder */
-text-overflow: ellipsis; /* Ajoute des "..." si le texte est trop long */
-white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-.dark .iconBtn svg{
-color: var(--color-whitly);
-}
-
-.iconBtnDel{
-display: flex;
-justify-content: center;
-align-items: center;
-flex-direction: column;
-height: 50px;
-width: 100%;
-min-width: 24px;
-margin: 5px;
-padding: 2px;
-cursor: pointer;
-overflow: hidden; /* Empêche le texte de déborder */
-text-overflow: ellipsis; /* Ajoute des "..." si le texte est trop long */
-white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-.dark .iconBtnDel svg{
-color: var(--color-rady);
-}
-
-.numberBtn{
-display: flex;
-justify-content: center;
-align-items: center;
-flex-direction: column;
-min-width: 30px;
-max-width: 30px;
-height: 50px;
-padding: 5px;
-cursor: pointer;
-font-size: 10px;
-color: var(--color-darkly);
-}
-.numberBtn svg {
-color: var(--color-darkly);
-}
-
-.childElement {
-width: 20%;
-min-width: 85px;
-height: 40px;
-margin: 5px;
-display: flex;
-align-items: start;
-justify-content: center;
-flex-direction: column;
-overflow: hidden; /* Empêche le texte de déborder */
-text-overflow: ellipsis; /* Ajoute des "..." si le texte est trop long */
-white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-
-.childElement4 {
-width: 20%;
-min-width: 50px;
-height: 40px;
-margin: 5px;
-display: flex;
-align-items: start;
-justify-content: center;
-flex-direction: column;
-overflow: hidden; /* Empêche le texte de déborder */
-text-overflow: ellipsis; /* Ajoute des "..." si le texte est trop long */
-white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-
-
-.childElement2 {
-position: relative;
-flex: 1 1 auto; /* Permet de répartir l’espace */
-min-width: 150px;
-max-width: 100%; /* Empêche de dépasser */
-margin: 5px;
-display: flex;
-align-items: start;
-justify-content: center;
-flex-direction: column;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-padding: 5px;
-background-color: var(--color-wagly);
-border-radius: 8px;
-height: auto;
-}
-
-.childElement3 {
-min-width: 150px;
-flex: 1 1 auto;
-margin: 5px;
-display: flex;
-align-items: start;
-justify-content: center;
-flex-direction: column;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
-padding: 5px;
-background-color: var(--color-wagly);
-border-radius: 8px;
-}
-
-.wrraping {
-display: flex;
-align-items: flex-end;
-justify-content: flex-start;
-flex: 1 1 auto; /* Prend un espace flexible */
-min-width: 150px;
-}
-
-.alignStart {
-width: 100%;
-display: flex;
-align-items: flex-start;
-justify-content: flex-start;
-flex-direction: column;
-}
-
-
-.dark .childElement2 {
-background-color: var(--color-darky);
-}
-
-.childElement2 .edit-icon {
-position: absolute;
-top: 5px;
-right: 5px;
-font-size: 14px;
-color: #fff;
-background: rgba(0, 0, 0, 0.2);
-padding: 4px;
-border-radius: 50%;
-cursor: pointer;
-transition: background 0.3s ease;
-}
-.dark .childElement2 .edit-icon {
-background: rgb(47, 47, 47);
-}
-
-.childElement2 .edit-icon:hover {
-background: rgba(0, 0, 0, 0.4);
-}
-
-
-
-
-
-
-.childElement h4{
-font-size: 14px;
-font-weight: bold;
-color: var(--color-darkly);
-}
-.dark .childElement h4{
-color: var(--color-whitly);
-}
-
-.childElement h5{
-font-size: 12px;
-color: var(--color-garry);
-}
-.dark .childElement h5{
-color: var(--color-gorry);
-}
-
-.childElement2 h4{
-font-size: 14px;
-font-weight: bold;
-color: var(--color-darkly);
-}
-.dark .childElement2 h4{
-color: var(--color-whitly);
-}
-
-.childElement2 h5{
-font-size: 12px;
-color: var(--color-garry);
-}
-.dark .childElement2 h5{
-color: var(--color-gorry);
-}
-
-.childElement4 h4{
-font-size: 14px;
-font-weight: bold;
-color: var(--color-darkly);
-}
-.dark .childElement4 h4{
-color: var(--color-whitly);
-}
-
-.childElement4 h5{
-font-size: 12px;
-color: var(--color-garry);
-}
-.dark .childElement4 h5{
-color: var(--color-gorry);
-}
-
-.callBtn{
-display: flex; /* Ajout pour centrer correctement */
-align-items: center; /* Centrage vertical */
-justify-content: center; /* Centrage horizontal */
-flex-direction: column;
-min-width: 30px;
-height: 50px;
-margin: 10px;
-cursor: pointer;
-font-size: 10px;
-}
-.dark .callBtn svg{
-color: var(--color-whitly);
-}
-
-.notSelected {
-display: flex; /* Ajout pour centrer correctement */
-align-items: center; /* Centrage vertical */
-justify-content: center; /* Centrage horizontal */
-min-width: 14px;
-height: 14px;
-margin: 10px;
-cursor: pointer;
-border: 2px solid var(--color-darkly); /* Correction de la propriété border */
-border-radius: 50%; /* Correction pour un cercle parfait */
-}
-.dark .notSelected{
-border: 2px solid var(--color-whitly);
-}
-
-.selected {
-display: flex; /* Ajout pour centrer correctement */
-align-items: center; /* Centrage vertical */
-justify-content: center; /* Centrage horizontal */
-min-width: 12px;
-height: 12px;
-margin: 11px;
-cursor: pointer;
-background-color: var(--color-rady);
-border-radius: 50%; /* Correction pour un cercle parfait */
-}
-
-.selected2 {
-align-content: center; /* Centrage vertical */
-min-width: 8px;
-height: 8px;
-cursor: pointer;
-background-color: var(--color-green-500);
-border-radius: 50%; /* Correction pour un cercle parfait */
-margin: 5px;
-}
-
-/* Ajoute une transition fluide pour le dropdown */
-.dropdown-enter-active, .dropdown-leave-active {
-transition: opacity 0.2s ease-in-out;
-}
-.dropdown-enter, .dropdown-leave-to {
-opacity: 0;
-}
-
-.note {
-display: flex;
-flex-wrap: wrap; /* Permet le passage à la ligne */
-align-items: center;
-width: calc(100% - 10px);
-background-color: white;
-border: 2px solid var(--color-gorry);
-border-radius: 6px;
-padding: 5px;
-overflow: hidden;
-transition: all 0.3s ease;
-margin: 5px;
-}
-
-.dark .note{
-background-color: var(--color-darkly);
-border: 2px solid var(--color-garry);
-}
-
-.note button{
-cursor: pointer;
-border: none;
-cursor: pointer;
-padding: 10px;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: background 0.3s ease;
-}
-
-.note button svg{
-color: var(--color-whity);
-}
-
-.noteBar {
-flex: 1;
-border: none;
-outline: none;
-background: transparent;
-font-size: 16px;
-padding: 10px 15px;
-resize: none;
-min-height: 40px;
-height: auto;
-overflow-y: auto;
-color: var(--color-darkly);
-word-break: break-word; /* Permet au texte de couper et passer à la ligne */
-white-space: normal; /* Permet au texte de s'étendre verticalement */
-}
-/* Effet focus */
-.noteBar:focus {
-border-color: #007bff;
-}
-/* Mode sombre */
-.dark .noteBar {
-background: transparent;
-color: var(--color-whitly);
-border-color: var(--color-darky);
-}
-.dark .noteBar:focus {
-border-color: #00bcd4;
-}
-/* Ajustement automatique de la hauteur */
-.noteBar.auto-expand {
-min-height: 50px;
-height: auto;
-overflow-y: hidden;
-}
-
-.noteBar2 {
-border: none;
-outline: none;
-background: transparent;
-font-size: 16px;
-padding: 10px 15px;
-height: 40px;
-}
-
-.moreOrder{
-display: flex;
-flex-direction: column;
-margin-block: 5px;
-}
-
-.moreDirect{
-width: 100%;
-max-width: 800px;
-align-items: center;
-margin-block: 5px;
-border-radius: 6px;
-padding: 10px;
-background-color: var(--color-whitly);
-box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .moreDirect{
-background-color: var(--color-darkly);
-}
-
-</style>
