@@ -1,9 +1,7 @@
 <template>
-    <button @click="clicked" class="router_link">
+    <button @click="clicked" class="flex items-center justify-center p-2.5 mx-2.5 text-base rounded-lg cursor-pointer bg-gradient-to-r from-red-400 to-orange-400 text-darky shadow-lg dark:shadow-2xl">
         {{ text }}
-        <div class="iconCancelBtn" v-html="svg">
-
-        </div>
+        <div class="mx-1.25 text-darky" v-html="svg"></div>
     </button>
 </template>
 
@@ -21,34 +19,3 @@ const clicked = () => {
 }
 
 </script>
-
-<style scoped>
-.router_link {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-inline: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #ff8059, #edaf3d);
-  color: var(--color-darky);
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px #00000050;
-}
-
-.dark .router_link {
-  box-shadow: 0 4px 8px #000000b0;
-}
-
-.iconCancelBtn {
-  margin-inline: 5px;
-  color: var(--color-darky);
-}
-.iconCancelBtn svg {
-  width: 20px;
-  height: 20px;
-  padding-inline: 0;
-}
-
-</style>

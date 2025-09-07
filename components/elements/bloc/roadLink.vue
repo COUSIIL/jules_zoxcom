@@ -1,5 +1,5 @@
 <template>
-  <ul v-if="liList.length > 0" class="road-ul">
+  <ul v-if="liList.length > 0" class="flex items-center w-full h-12 gap-1 px-1.25 my-1.25 list-none overflow-x-auto overflow-y-hidden whitespace-nowrap">
     <Gbtn text="" :svg="homeSvg" color="var(--color-zioly3)" @click="emitHome" />
     <Gbtn text="" :svg="listSvg[0]" color="var(--color-zioly2)" @click="emitToggle" />
   
@@ -11,12 +11,13 @@
       role="button"
       tabindex="0"
       @keydown.enter="emitFolder(li)"
+      class="flex items-center justify-center h-10 min-w-[50px] max-w-[100px] px-2 overflow-hidden text-sm rounded-md cursor-pointer bg-whizy whitespace-nowrap text-ellipsis"
     >
       {{ li.title }}
     </li>
   </ul>
-  <div v-else class="linkBar">
-    <svg style="margin-inline: 5px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+  <div v-else class="flex items-center justify-center w-full h-10 m-1.25 bg-whizy dark:bg-darky">
+    <svg class="mx-1.25" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
           <path d="M7.08848 4.76243L6.08847 5.54298C4.57181 6.72681 3.81348 7.31873 3.40674 8.15333C3 8.98792 3 9.95205 3 11.8803V13.9715C3 17.7562 3 19.6485 4.17157 20.8243C5.34315 22 7.22876 22 11 22H13C16.7712 22 18.6569 22 19.8284 20.8243C21 19.6485 21 17.7562 21 13.9715V11.8803C21 9.95205 21 8.98792 20.5933 8.15333C20.1865 7.31873 19.4282 6.72681 17.9115 5.54298L16.9115 4.76243C14.5521 2.92081 13.3724 2 12 2C10.6276 2 9.44787 2.92081 7.08848 4.76243Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
           <path d="M15 16.5H17V18.5M15 16.5V18.5H17M15 16.5L17 18.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
       </svg>
@@ -68,80 +69,3 @@ const homeSvg = ref(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
     <path d="M15 16.5H17V18.5M15 16.5V18.5H17M15 16.5L17 18.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
 </svg>`)
 </script>
-
-<style scoped>
-/* --- Scrollbar personnalisée --- */
-.road-ul {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 5px;
-  margin: 5px 0;
-  list-style: none;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
-
-  scrollbar-width: thin;              /* Firefox */
-  scrollbar-color: rgba(125, 105, 142, 0.6) transparent;
-}
-
-.road-ul::-webkit-scrollbar {
-  height: 8px;
-}
-
-.road-ul::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.road-ul::-webkit-scrollbar-thumb {
-  background-color: rgba(125, 105, 142, 0.6);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-  transition: background-color 0.3s ease;
-}
-
-.road-ul::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(125, 105, 142, 0.9);
-}
-
-/* --- Liste des éléments (li) --- */
-.road-ul li {
-  min-width: 50px;
-  max-width: 100px;
-  height: 40px;
-  padding: 0 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-whizy);
-  border-radius: 6px;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.dark .road-ul li {
-  background-color: var(--color-darky);
-}
-
-/* --- Bar de lien par défaut (si liList est vide) --- */
-.linkBar {
-  width: calc(100% - 10px);
-  height: 40px;
-  margin: 5px;
-  background-color: var(--color-whizy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dark .linkBar {
-  background-color: var(--color-darky);
-}
-</style>

@@ -6,7 +6,7 @@
     :message="message"
     @ok="isMessage = false"
   />
-  <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+  <div class="flex flex-col items-center w-full">
     <div class="center_column_graph">
       <GraphLine :transactions="transactions"/>
 
@@ -86,7 +86,7 @@
   </div>
   
 
-  <div style="height: 80px;">
+  <div class="h-20">
 
   </div>
 </template>
@@ -210,156 +210,3 @@
 
 </script>
 
-<style>
-.boxContainerTrans {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background-color: var(--color-whitly);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  padding-block: 10px;
-  margin-block: 5px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .boxContainerTrans {
-  background-color: var(--color-darkly);
-}
-
-.boxContainer2 {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 800px;
-  background-color: var(--color-whitly);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  padding: 10px;
-  margin-block: 10px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-}
-.dark .boxContainer2 {
-  background-color: var(--color-darkly);
-}
-
-.center_column_graph {
-  width: 90%;
-  display: flex;
-  flex-wrap: wrap; /* ✅ pour mobile */
-  justify-content: center;
-  align-items: center;
-  margin-inline: 10px;
-}
-
-.center_column2 {
-  display: flex;
-  flex-wrap: wrap; /* ✅ Permet de passer en colonne sur petit écran */
-  justify-content: flex-start;
-  align-items: center;
-  padding-inline: 2px;
-  gap: 5px;
-}
-
-.insider3 {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  min-width: 0; /* ✅ laisse respirer */
-}
-
-.mainTitle,
-.mainTitle2,
-.mainTitle3 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  gap: 5px;
-}
-
-.mainTitle4 {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    gap: 5px;
-    font-size: 14px;
-    color: var(--color-garry);
-  }
-  .dark .mainTitle4 {
-    font-size: 14px;
-    color: var(--color-gorry);
-  }
-
-.svg-up svg {
-  color: var(--color-greny);
-}
-.svg-down svg {
-  color: var(--color-rady);
-}
-.svg-stable svg {
-  color: var(--color-gorry);
-}
-.dark .svg-stable svg {
-  color: var(--color-garry);
-}
-
-
-/* ✅ Ajustement responsive */
-@media (max-width: 768px) {
-
-  .mainTitle,
-  .mainTitle2,
-  .mainTitle3 {
-    font-size: 12px;
-  }
-  .mainTitle4 {
-    font-size: 10px;
-    color: var(--color-garry);
-  }
-  .dark .mainTitle4 {
-    font-size: 10px;
-    color: var(--color-gorry);
-  }
-}
-
-@media (max-width: 480px) {
-
-  .mainTitle {
-    font-size: 12px;
-  }
-
-  .mainTitle2 {
-    font-size: 12px;
-  }
-
-  .mainTitle3 {
-    font-size: 14px;
-  }
-
-  .mainTitle4 {
-    font-size: 10px;
-    color: var(--color-garry);
-  }
-  .dark .mainTitle4 {
-    font-size: 10px;
-    color: var(--color-gorry);
-  }
-
-  .svg-up svg,
-  .svg-down svg,
-  .svg-stable svg {
-    width: 16px; /* ✅ Icônes réduites sur petit écran */
-  }
-}
-
-
-
-</style>

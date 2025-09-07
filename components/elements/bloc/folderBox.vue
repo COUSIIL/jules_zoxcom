@@ -1,28 +1,26 @@
 <template>
-  <div style="width: 100px; position: relative;">
-    <div class="id">
+  <div class="relative w-24">
+    <div class="flex items-center justify-between w-full mx-1.25 overflow-hidden text-xs text-left whitespace-nowrap text-ellipsis">
       id:{{ folder.id }}
       <!-- Toggle pour activer/désactiver la suppression -->
       <div
-        class="toggle-delete"
+        class="flex items-center justify-center"
         :class="folder.markedForDelete ? 'selected1' : 'notSelected1'"
         @click.stop="emitToggleDelete"
         :title="t('Mark for deletion')"
       ></div>
     </div>
-    <div @click="emitToggle" class="image-box">
+    <div @click="emitToggle" class="relative flex items-center justify-center w-24 h-24 overflow-hidden rounded-2xl bg-whizy dark:bg-darky text-darky dark:text-whizy">
       <span v-html="resizeSvg(icons['folder'], 28, 28)"></span>
-
-      
     </div>
 
-    <div class="floating-label">
+    <div class="flex items-center justify-between w-full h-8 px-1.5 py-0.5 mx-auto mt-1.25 text-xs rounded-lg shadow-md bg-zioly4 text-whitly backdrop-blur-sm dark:bg-whizy dark:text-darky">
       <input
         v-if="folder"
         type="text"
         :title="folder.name"
         v-model="folder.name"
-        class="input-name"
+        class="w-full text-xs text-center bg-transparent border-none outline-none text-inherit overflow-hidden text-ellipsis whitespace-nowrap placeholder-whitly"
         @blur="emitRename(folder.name)"
       />
     </div>
@@ -65,105 +63,3 @@ var resizeSvg = (svg, width, height) => {
       .replace(/height="[^"]+"/, `height="${height}"`)
 }
 </script>
-
-<style scoped>
-.image-box {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: var(--color-whizy);
-  color: var(--color-darky);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.dark .image-box {
-  background-color: var(--color-darky);
-  color: var(--color-whizy);
-}
-
-.toggle-delete {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.notSelected1 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  border: 2px solid var(--color-darkly);
-  border-radius: 50%;
-  background-color: transparent;
-}
-.dark .notSelected1 {
-  border: 2px solid var(--color-whitly);
-}
-
-.selected1 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  background-color: var(--color-rady);
-  border-radius: 50%;
-}
-
-.floating-label {
-  height: 30px;
-  width: 100%;
-  margin: 5px auto 0;
-  background-color: var(--color-zioly4);
-  color: var(--color-whitly);
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-.dark .floating-label {
-  background-color: var(--color-whizy);
-  color: var(--color-darky);
-}
-
-.id {
-  width: 100%;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;    
-  text-overflow: ellipsis;
-  font-size: 12px;
-  margin-inline: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.input-name {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font-size: 10px;
-  outline: none;
-  flex: 1;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.input-name::placeholder {
-  color: var(--color-whitly);
-}
-</style>

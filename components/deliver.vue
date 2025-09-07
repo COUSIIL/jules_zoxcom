@@ -1,49 +1,44 @@
 <template>
-        
-      <div v-if="isVisible && isMounted" class="modal" style="max-width: 300px">
-        <div class="list2">
+      <div v-if="isVisible && isMounted" class="p-2.5 mt-12 text-center text-lg bg-white rounded-lg shadow-lg max-w-[300px]">
+        <div class="flex p-2.5 overflow-x-auto space-x-2.5">
             <div v-for="(ref, index2) in _total" :key="index2" >
-              <div style="max-width: 200px">
-                <button style="width: 20px; cursor: pointer;" type="button" @click="changeOrder(index2)">
+              <div class="max-w-xs">
+                <button class="w-5 cursor-pointer" type="button" @click="changeOrder(index2)">
                   {{ index2 + 1}}
               </button>
               </div>
-                
             </div>
         </div>
         
-        <select class="btn2" style="width: 90%" name="method" id="method" v-model="method">
-            <option>
-                ups
-            </option>
+        <select class="flex items-center justify-around w-11/12 min-w-[100px] max-w-[400px] m-2.5 p-1.5 cursor-pointer bg-whity rounded-md border border-rangy dark:bg-darky" name="method" id="method" v-model="method">
+            <option>ups</option>
         </select>
         <div>
             {{ t('Name') }}
-            <input class="input" type="text" v-model="name" @blur="_name[index] = name">
+            <input class="flex items-center w-11/12 max-w-md p-1 m-1 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 border-gorry rounded-md dark:bg-darkly dark:border-garry" type="text" v-model="name" @blur="_name[index] = name">
         </div>
         <div>
             {{ t('Phone') }}
-            <input class="input" type="text" v-model="phone1" @blur="_phone1[index] = phone1">
+            <input class="flex items-center w-11/12 max-w-md p-1 m-1 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 border-gorry rounded-md dark:bg-darkly dark:border-garry" type="text" v-model="phone1" @blur="_phone1[index] = phone1">
         </div>
         <div>
             {{ t('2nd phone') }}
-            <input class="input" type="text" v-model="phone2" @blur="_phone2[index] = phone2">
+            <input class="flex items-center w-11/12 max-w-md p-1 m-1 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 border-gorry rounded-md dark:bg-darkly dark:border-garry" type="text" v-model="phone2" @blur="_phone2[index] = phone2">
         </div>
         <div>
             {{ t('Give note') }}
-            <input class="input" type="text" v-model="note" @blur="_note[index] = note">
+            <input class="flex items-center w-11/12 max-w-md p-1 m-1 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 border-gorry rounded-md dark:bg-darkly dark:border-garry" type="text" v-model="note" @blur="_note[index] = note">
         </div>
         <div>
             {{ t('Total') }}
-            <input class="input" type="text" v-model="total" @blur="_total[index] = total">
+            <input class="flex items-center w-11/12 max-w-md p-1 m-1 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 border-gorry rounded-md dark:bg-darkly dark:border-garry" type="text" v-model="total" @blur="_total[index] = total">
         </div>
         <p>{{ t(message) }}</p>
-        <div class="buttons">
-          <button class="confirm" @click="confirm()">{{ t('Yes') }}</button>
-          <button class="cancel" @click="this.$emit('cancel')">{{ t('No') }}</button>
+        <div class="flex justify-center mt-4 gap-2.5">
+          <button class="px-4 py-2 text-white bg-green-500 border-none rounded-md cursor-pointer" @click="confirm()">{{ t('Yes') }}</button>
+          <button class="px-4 py-2 text-white bg-red-500 border-none rounded-md cursor-pointer" @click="this.$emit('cancel')">{{ t('No') }}</button>
         </div>
       </div>
-
 </template>
   
   <script>
@@ -146,54 +141,3 @@
     },
   };
   </script>
-  
-  <style>
-  .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modal {
-    background: white;
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
-    margin-top: 50px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    font-size: 2vh;
-  }
-
-  
-  .buttons {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  .buttons button {
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .confirm {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .cancel {
-    background-color: #f44336;
-    color: white;
-  }
-  </style>
-  

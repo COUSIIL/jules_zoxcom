@@ -1,50 +1,50 @@
 <template>
-  <div v-if="auth" class="profile-container">
+  <div v-if="auth" class="flex flex-wrap max-w-3xl gap-5 p-5 mx-auto my-7 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] bg-whitly dark:bg-darkly dark:text-whity transition-colors duration-300">
     <!-- Photo de profil -->
-    <div class="profile-image-container">
+    <div class="flex flex-col items-center justify-center flex-1 basis-52">
       <img v-if="auth.profile_image"
-        class="profile-image"
+        class="object-cover border-3 w-36 h-36 rounded-full border-whizy dark:border-darkow"
         :src="`https://management.hoggari.com/uploads/profile/${auth.profile_image}`"
         alt="Profile Image"
       />
-      <img v-else class="profile-image" :src="defaultImage" alt="defaultImage">
-      <label v-if="isEditable" class="upload-btn">
+      <img v-else class="object-cover border-3 w-36 h-36 rounded-full border-whizy dark:border-darkow" :src="defaultImage" alt="defaultImage">
+      <label v-if="isEditable" class="inline-block px-4 py-2 mt-2.5 text-sm rounded-lg cursor-pointer bg-whizy text-darky dark:bg-darkow dark:text-whity hover:bg-darkow hover:text-whity dark:hover:bg-whizy dark:hover:text-darky transition-colors duration-300">
         {{ t('Change photo') }}
         <input type="file" @change="updateProfileImage" hidden />
       </label>
     </div>
 
     <!-- Informations utilisateur -->
-    <div class="profile-info">
-      <div class="field">
-        <label>{{ t('Username') }}</label>
-        <input type="text" v-model="auth.username" disabled />
+    <div class="flex-2 basis-100">
+      <div class="mb-4">
+        <label class="block mb-1.25 font-bold">{{ t('Username') }}</label>
+        <input type="text" v-model="auth.username" disabled class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300" />
       </div>
 
-      <div class="field">
-        <label>{{ t('First name') }}</label>
-        <input v-if="isEditable" type="text" v-model="auth.name" :placeholder="t('Enter your first name')" />
-        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your first name')" disabled/>
+      <div class="mb-4">
+        <label class="block mb-1.25 font-bold">{{ t('First name') }}</label>
+        <input v-if="isEditable" type="text" v-model="auth.name" :placeholder="t('Enter your first name')" class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300" />
+        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your first name')" disabled class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300"/>
       </div>
 
-      <div class="field">
-        <label>{{ t('Last name') }}</label>
-        <input v-if="isEditable" type="text" v-model="auth.family_name" :placeholder="t('Enter your last name')" />
-        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your last name')" disabled/>
+      <div class="mb-4">
+        <label class="block mb-1.25 font-bold">{{ t('Last name') }}</label>
+        <input v-if="isEditable" type="text" v-model="auth.family_name" :placeholder="t('Enter your last name')" class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300" />
+        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your last name')" disabled class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300"/>
       </div>
 
-      <div class="field">
-        <label>{{ t('Email') }}</label>
-        <input v-if="isEditable" type="email" v-model="auth.email" :placeholder="t('Enter your email')" />
-        <input v-else type="email" v-model="auth.email" :placeholder="t('Enter your email')" disabled/>
+      <div class="mb-4">
+        <label class="block mb-1.25 font-bold">{{ t('Email') }}</label>
+        <input v-if="isEditable" type="email" v-model="auth.email" :placeholder="t('Enter your email')" class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300" />
+        <input v-else type="email" v-model="auth.email" :placeholder="t('Enter your email')" disabled class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300"/>
       </div>
 
-      <div class="field">
-        <label>{{ t('IP Address') }}</label>
-        <input type="text" v-model="auth.ip_adresse" disabled />
+      <div class="mb-4">
+        <label class="block mb-1.25 font-bold">{{ t('IP Address') }}</label>
+        <input type="text" v-model="auth.ip_adresse" disabled class="w-full p-2 border rounded-lg bg-whitly border-whizy text-darky dark:bg-darkow dark:border-darkow dark:text-whity transition-colors duration-300" />
       </div>
 
-      <button v-if="isEditable" class="save-btn" @click="saveProfile">{{ t('💾 Save') }}</button>
+      <button v-if="isEditable" class="px-5 py-2.5 bg-whizy text-darky border-none rounded-lg cursor-pointer hover:bg-darkow hover:text-whity dark:bg-darkow dark:text-whity dark:hover:bg-whizy dark:hover:text-darky transition-colors duration-300" @click="saveProfile">{{ t('💾 Save') }}</button>
     </div>
   </div>
 </template>
@@ -159,121 +159,3 @@ const saveProfile = async () => {
 
 </script>
 
-<style scoped>
-.profile-container {
-  max-width: 800px;
-  margin: 30px auto;
-  padding: 20px;
-  background: var(--color-whitly);
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  transition: background 0.3s, color 0.3s;
-}
-
-.profile-image-container {
-  flex: 1 1 200px;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-}
-
-.profile-image {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--color-whizy);
-}
-
-.upload-btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 8px 15px;
-  background: var(--color-whizy);
-  color: var(--color-darky);
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s;
-}
-.upload-btn:hover {
-  background: var(--color-darkow);
-  color: var(--color-whity);
-}
-
-.profile-info {
-  flex: 2 1 400px;
-}
-
-.field {
-  margin-bottom: 15px;
-}
-
-.field label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.field input {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid var(--color-whizy);
-  background: var(--color-whity);
-  color: var(--color-darky);
-  transition: background 0.3s, color 0.3s;
-}
-
-.save-btn {
-  padding: 10px 20px;
-  background: var(--color-whizy);
-  color: var(--color-darky);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s, color 0.3s;
-}
-.save-btn:hover {
-  background: var(--color-darkow);
-  color: var(--color-whity);
-}
-
-/* 🌙 Mode sombre */
-.dark .profile-container {
-  background: var(--color-darkly);
-  color: var(--color-whity);
-}
-
-.dark .profile-image {
-  border-color: var(--color-darkow);
-}
-
-.dark .upload-btn {
-  background: var(--color-darkow);
-  color: var(--color-whity);
-}
-.dark .upload-btn:hover {
-  background: var(--color-whizy);
-  color: var(--color-darky);
-}
-
-.dark .field input {
-  background: var(--color-darkow);
-  border-color: var(--color-darkow);
-  color: var(--color-whity);
-}
-
-.dark .save-btn {
-  background: var(--color-darkow);
-  color: var(--color-whity);
-}
-.dark .save-btn:hover {
-  background: var(--color-whizy);
-  color: var(--color-darky);
-}
-</style>

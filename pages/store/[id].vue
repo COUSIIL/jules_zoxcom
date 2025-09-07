@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+  <div class="flex flex-col items-center justify-center">
     <!--Page ID : {{ route.params.id }}-->
 
     <EmailEdit />

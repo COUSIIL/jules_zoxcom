@@ -1,5 +1,4 @@
 <template>
-
   <LoaderBlack v-if="isSaving" width="80px"/>
 
   <Message :isVisible="isMessage"
@@ -7,84 +6,59 @@
           @ok="isMessage = false"
         />
 
-  <div :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}">
-    <div v-if="!isActive" class="boxContainer1">
-  
-      <div style="display: flex; justify-content: center; align-items: center; margin-inline: 10px; gap: 5px;">
-          <div v-html="resizeSvg(icons['bank'], 20, 20)">
-
-          </div>
-          <h1>
-          {{ banksLength }} {{ t('banks') }}
-          </h1>
-          
+  <div class="flex flex-col items-center max-w-full">
+    <div v-if="!isActive" class="flex items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly">
+      <div class="flex items-center justify-center mx-2.5 gap-1.25">
+          <div v-html="resizeSvg(icons['bank'], 20, 20)"></div>
+          <h1>{{ banksLength }} {{ t('banks') }}</h1>
       </div>
-
       <CallToAction :text="t('add bank')" :svg="icons['add']" @clicked="activate"/>
-
     </div>
 
     <AddBank v-if="isActive" @saving="saving" @success="success" @cancel="cancel" @message="messager" @x="isActive = false"/>
 
-    <div v-if="banks" v-for="(box, index) in banks" :key="index" class="center_column">
-
-      <div class="boxContainer2">
-        <div class="center_bank">
-          <div v-html="resizeSvg(icons['bank'], 50, 50)">
-
-          </div>
-          <div class="insider2">
-            
-            <p class="titleBank">
+    <div v-if="banks" v-for="(box, index) in banks" :key="index" class="flex flex-col items-center justify-center w-11/12">
+      <div class="flex flex-col items-end justify-between w-full max-w-3xl min-w-[300px] p-1.25 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md cursor-pointer bg-whitly dark:bg-darkly">
+        <div class="flex items-center justify-start w-full min-w-[250px] gap-2.5 mx-1.25">
+          <div v-html="resizeSvg(icons['bank'], 50, 50)"></div>
+          <div class="flex flex-col items-center justify-start min-w-[150px]">
+            <p class="flex items-center justify-start min-w-[150px] overflow-hidden text-xl font-bold text-ellipsis whitespace-nowrap">
               {{ box.name }}
-
-              <!--Radio :selected="box.status" @changed="box.status = !box.status"/-->
             </p>
-            <p class="minTitle4">
+            <p class="flex items-center justify-start min-w-[150px] overflow-hidden text-sm text-gorry text-ellipsis whitespace-nowrap dark:text-garry">
               {{ box.created_at }}
             </p>
           </div>
-          
         </div>
-        <div class="center_bank">
-          <div v-html="resizeSvg(icons['piggyBank'], 20, 20)">
-
-          </div>
-          <p class="minTitle2">
+        <div class="flex items-center justify-start w-full min-w-[250px] gap-2.5 mx-1.25">
+          <div v-html="resizeSvg(icons['piggyBank'], 20, 20)"></div>
+          <p class="flex items-center justify-start min-w-[100px] overflow-hidden text-sm text-ellipsis whitespace-nowrap">
             {{ t('current capital') }} : 
           </p>
-          <p class="minTitle3">
+          <p class="flex items-center justify-start min-w-[120px] overflow-hidden text-base font-bold text-greny text-ellipsis whitespace-nowrap">
             {{ box.current_balance }} {{ box.currency }}
           </p>
           <div 
             v-html="resizeSvg(icons[box.evaluation], 18, 18)" 
             :class="{
-              'svg-up': box.evaluation === 'up',
-              'svg-down': box.evaluation === 'down',
-              'svg-stable': box.evaluation === 'stable'
+              'text-greny': box.evaluation === 'up',
+              'text-rady': box.evaluation === 'down',
+              'text-garry': box.evaluation === 'stable'
             }">
           </div>
-
         </div>
 
-        <div class="center_bank">
-          <div v-html="resizeSvg(icons['fund'], 20, 20)">
-
-          </div>
-          <p class="minTitle4">
+        <div class="flex items-center justify-start w-full min-w-[250px] gap-2.5 mx-1.25">
+          <div v-html="resizeSvg(icons['fund'], 20, 20)"></div>
+          <p class="flex items-center justify-start min-w-[150px] overflow-hidden text-sm text-gorry text-ellipsis whitespace-nowrap dark:text-garry">
             {{ t('capital started with') }} {{ box.opening_balance }} {{ box.currency }}
           </p>
         </div>
-
       </div>
     </div>
-    
   </div>
 
-  <div style="height: 80px;">
-
-  </div>
-
+  <div class="h-20"></div>
 </template>
 
 <script setup>
@@ -172,170 +146,3 @@
   }
 
 </script>
-
-<style>
-
-.boxContainer1 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-  }
-  .dark .boxContainer1{
-    background-color: var(--color-darkly);
-  }
-
-  .boxContainer2 {
-    display: flex;
-    align-items: right;
-    justify-content: space-between;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-    padding: 5px;
-    cursor: pointer;
-  }
-  .dark .boxContainer2{
-    background-color: var(--color-darkly);
-  }
-  
-
-  .no_image {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    border-radius: 50px;
-    background-color: var(--color-whizy);
-  }
-  .dark .no_image {
-    background-color: var(--color-darkow);
-  }
-
-  .center_column {
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .center_bank {
-    width: 100%;
-    display: flex;
-    min-width: 250px;
-    justify-content: left;
-    align-items: center;
-    gap: 10px;
-    margin-inline: 5px;
-  }
-
-  .insider2 {
-    display: flex;
-    min-width: 150px;
-    justify-content: left;
-    align-items: center;
-    flex-direction: column;
-  }
-  .titleBank {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 20px;
-    font-weight: bold;
-  }
-
-  .minTitle {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 100px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 14px;
-  }
-  .minTitle2 {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 100px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 14px;
-  }
-
-  .minTitle4 {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 14px;
-    color: var(--color-gorry);
-  }
-  .dark.minTitle4 {
-    color: var(--color-garry);
-  }
-
-  .minTitle3 {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 120px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--color-greny);
-  }
-
-  .center_bank img {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    object-fit: cover; /* Remplit la zone en gardant le ratio */
-    display: flex;
-    border-radius: 50%; /* Cercle parfait */
-    
-
-  }
-
-  .svg-up svg {
-    color: var(--color-greny);
-  }
-
-  .svg-down svg {
-    color: var(--color-rady);
-  }
-
-  .svg-stable svg {
-    color: var(--color-garry);
-  }
-
-
-</style>

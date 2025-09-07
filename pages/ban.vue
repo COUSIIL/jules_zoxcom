@@ -1,29 +1,20 @@
 <template>
-
     <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
     <Confirm :isVisible="toConfirm" @confirm="save()" @cancel="toConfirm = false" />
 
-    <div style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-        <div class="boxDelivery" v-if="isCreating === false">
-            <div class="DeliveryContent">
-                <div v-html="resizedImg">
-
-                </div>
-                
+    <div class="flex flex-col items-center justify-center w-full">
+        <div class="flex items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly" v-if="isCreating === false">
+            <div class="flex items-center justify-start mx-2.5 gap-1.25">
+                <div v-html="resizedImg"></div>
                 {{ t('black list') }}
             </div>
-            <Inputer style="max-width: 200px;" type="text" :lock="false" :placeHolder="t('ip')" :holder="t('')" v-model="ip"/>
-            <Inputer style="max-width: 200px;" type="text" :lock="false" :placeHolder="t('reason')" :holder="t('ex: abuse')" v-model="reason"/>
+            <Inputer class="max-w-xs" type="text" :lock="false" :placeHolder="t('ip')" :holder="t('')" v-model="ip"/>
+            <Inputer class="max-w-xs" type="text" :lock="false" :placeHolder="t('reason')" :holder="t('ex: abuse')" v-model="reason"/>
             <CallToAction :text="t('add new ip to black list')" :svg="icons['add']" @clicked="toConfirm = !toConfirm"/>
         </div>
 
         <BanList v-if="isSaving === false && data" :data="data" @updated="getIp" />
-
-        
     </div>
-
-
-
 </template>
 
 <script setup>
@@ -175,33 +166,3 @@ const getIp = async() => {
 
 
 </script>
-
-
-<style>
-.boxDelivery {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .boxDelivery{
-    background-color: var(--color-darkly);
-}
-
-.DeliveryContent {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    margin-inline: 10px;
-    gap: 5px;
-}
-
-</style>

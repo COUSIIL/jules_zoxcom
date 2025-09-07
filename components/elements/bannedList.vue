@@ -1,42 +1,31 @@
 <template>
-
     <LoaderBlack v-if="isSaving" width="100px" />
     <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
     <Confirm :isVisible="toConfirm" @confirm="deleteIp" @cancel="toConfirm = false" />
 
-    <div v-if="isMounted" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-        <div class="boxDelivery" v-for="(ip, index) in data" :key="index">
-            <div class="boxDeliveryTitle">
-                <div class="bigBox">
-                    <div class="directBox">
+    <div v-if="isMounted" class="flex flex-col items-center justify-center w-full">
+        <div class="flex flex-col items-center justify-between w-full max-w-3xl min-w-[300px] my-1.25 transition-all duration-300 ease-in-out rounded-md shadow-md" v-for="(ip, index) in data" :key="index">
+            <div class="flex items-center justify-between w-full my-1.25">
+                <div class="p-1.25 items-start">
+                    <div class="flex items-center justify-between text-base font-bold">
                         {{ ip.ip_address }}
                     </div>
-                    <div class="miniBox">
+                    <div class="m-1.25 text-sm text-start text-zioly1 dark:text-garry">
                         {{ ip.created_at }}
                     </div>
-                    <div class="miniBox">
+                    <div class="m-1.25 text-sm text-start text-zioly1 dark:text-garry">
                         {{ t('reason') }} : {{ ip.reason }}
                     </div>
-                    
                 </div>
                 
-                
-
-                <div class="rowBox">
-
-                    <button class="directBtn" type="button" @click="toConfirm = true, ipIndex = index">
-                        <div v-html="resizedImgDelete" >
-
-                        </div>
+                <div class="flex items-center justify-between">
+                    <button class="flex items-center justify-between p-0.5 m-1.25 text-base bg-whizy dark:bg-darkow rounded-lg gap-0.5 cursor-pointer" type="button" @click="toConfirm = true, ipIndex = index">
+                        <div v-html="resizedImgDelete" ></div>
                     </button>
-
-                    
                 </div>
             </div>
         </div>
     </div>
-
-
 </template>
 
 <script setup>
@@ -142,90 +131,3 @@ onMounted(() => {
 })
 
 </script>
-
-<style>
-
-.bigBox {
-    padding: 5px;
-    align-items: start;
-}
-
-.directBtn {
-    
-    font-size: 16px;
-    margin: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px;
-    border-radius: 8px;
-    background-color: var(--color-whizy);
-    gap: 2px;
-    cursor: pointer;
-
-}
-.dark .directBtn {
-    background-color: var(--color-darkow);
-}
-
-.directBox {
-    font-size: 16px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-}
-
-.rowBox {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-
-.miniBox {
-    font-size: 14px;
-    margin: 5px;
-    color: var(--color-zioly1);
-    text-align: start;
-}
-.dark .miniBox {
-    color: var(--color-garry);
-}
-
-.contentDelivery {
-    width: 100%; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    flex-direction: column;
-    padding-block: 5px;
-    margin-block: 5px;
-}
-
-
-.boxDelivery {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    margin-block: 5px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.boxDeliveryTitle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-block: 5px;
-}
-
-
-</style>

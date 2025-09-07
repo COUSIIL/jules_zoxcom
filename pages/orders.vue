@@ -2,15 +2,15 @@
 
       
 
-  <div class="loading" v-if="!isMounted">
+  <div class="fixed inset-0 flex items-center justify-center w-full h-full" v-if="!isMounted">
 
-    <Loader :style="{width: '80px', height: '80px'}"/>
+    <Loader class="w-20 h-20"/>
 
   </div>
 
   
 
-  <div :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}" v-else>
+  <div class="flex flex-col items-center max-w-full" v-else>
     <Confirm :isVisible="showConfirm"
     @confirm="confirmation(true)"
     @cancel="confirmation(false)"
@@ -18,7 +18,7 @@
 
   <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
 
-  <nav v-if="showDeliver" class="overlay">
+  <nav v-if="showDeliver" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
     <Deliver v-if="!isShipping" :isVisible="showDeliver"
     :_name="nameDeliver"
     :_phone1="phoneDeliver"
@@ -29,23 +29,23 @@
   />
 
   <div v-else-if="isShipping">
-    <Loader :style="{width: '80px', height: '80px'}"/>
+    <Loader class="w-20 h-20"/>
   </div>
   
 
   </nav>
 
   
-    <div :style="{width: '100%',marginTop: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center'}">
+    <div class="flex items-center justify-center w-full mt-2.5">
       <Search v-model:searcher="searchValue" @search-submitted="search"></Search>
     </div>
 
     
     
-    <div class="optionBar">
-      <button class="filterBtn text-darkly" type="button" @click="toFilters">
+    <div class="flex items-center justify-between w-full h-16 max-w-3xl my-5 min-w-52">
+      <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="toFilters">
         {{ t('filter') }}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
           <path d="M3 7H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M3 17H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M18 17L21 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -57,11 +57,11 @@
 
 
 
-      <div class="listedBtn">
+      <div class="flex items-center justify-between w-1/2 h-8 m-4 rounded-md shadow-md min-w-36 max-w-72 bg-whitly dark:bg-darkly">
         <div class="relative inline-block text-left">
           <!-- Bouton pour ouvrir le menu -->
-          <button @click="toggleMultyDropdown" class="changeBtn text-darkly">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+          <button @click="toggleMultyDropdown" class="flex items-center justify-between h-8 p-2 m-2.5 cursor-pointer min-w-24 text-darkly dark:bg-darkly dark:text-whitly">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="min-w-[25px] text-darkly dark:text-whitly">
                 <path d="M16.9767 19.5C19.4017 17.8876 21 15.1305 21 12C21 7.02944 16.9706 3 12 3C11.3126 3 10.6432 3.07706 10 3.22302M16.9767 19.5V16M16.9767 19.5H20.5M7 4.51555C4.58803 6.13007 3 8.87958 3 12C3 16.9706 7.02944 21 12 21C12.6874 21 13.3568 20.9229 14 20.777M7 4.51555V8M7 4.51555H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             {{ t('actes') }}
@@ -71,15 +71,14 @@
           <!-- Liste Dropdown -->
           <div 
             v-if="isOpen3" 
-            class="absolute mt-2 w-52 bg-whitly dark:bg-darkly border rounded-lg shadow-lg z-50"
+            class="absolute z-50 mt-2 border rounded-lg shadow-lg w-52 bg-whitly dark:bg-darkly"
             
             >
             <button
               v-for="(status, index2) in filteredStatus" 
               :key="status.name"
               @click="updateSelectedOrder('status', status.value)"
-              class="flex items-center w-48 px-4 py-1 text-left hover:bg-gorry"
-              :style="{margin: '5px'}"
+              class="flex items-center w-48 px-4 py-1 m-1.25 text-left hover:bg-gorry"
             >
               <span v-if="status.svg" v-html="status.svg" class="w-6 h-6 mr-2"></span>
               <span>{{ status.name }}</span>
@@ -88,7 +87,7 @@
         </div>
         
 
-        <button class="iconBtnDel" @click="handleConfirm()">
+        <button class="flex flex-col items-center justify-center w-full h-12 p-0.5 m-1.25 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap min-w-6" @click="handleConfirm()">
           <svg class="text-rady" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
             <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
             <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -97,19 +96,19 @@
         </svg>
         </button>
 
-          <div :class="selected ? 'selected' : 'notSelected'" @click="selectAll">
+          <div :class="selected ? 'flex items-center justify-center min-w-[12px] h-[12px] m-[11px] cursor-pointer bg-rady rounded-full' : 'flex items-center justify-center min-w-[14px] h-[14px] m-2.5 cursor-pointer border-2 border-darkly rounded-full dark:border-whitly'" @click="selectAll">
           
           </div>
 
 
       </div>
     </div>
-    <div v-if="toFilter" class="filterList">
+    <div v-if="toFilter" class="flex flex-wrap items-center justify-between h-auto gap-1.25">
       <div class="inline-block text-left">
         <!-- Bouton pour ouvrir le menu -->
-        <button @click="toggleDropdown2" class="filterBtn">
+        <button @click="toggleDropdown2" class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly">
           {{ isOpen2Status }}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
               <path d="M16.9767 19.5C19.4017 17.8876 21 15.1305 21 12C21 7.02944 16.9706 3 12 3C11.3126 3 10.6432 3.07706 10 3.22302M16.9767 19.5V16M16.9767 19.5H20.5M7 4.51555C4.58803 6.13007 3 8.87958 3 12C3 16.9706 7.02944 21 12 21C12.6874 21 13.3568 20.9229 14 20.777M7 4.51555V8M7 4.51555H3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           
@@ -119,31 +118,30 @@
         <!-- Liste Dropdown -->
         <div 
           v-if="isOpen2" 
-          class="absolute mt-2 w-52 bg-whitly dark:bg-darkly border rounded-lg shadow-lg"
+          class="absolute w-52 mt-2 bg-whitly dark:bg-darkly border rounded-lg shadow-lg"
           
           >
           <button
             v-for="(status, index2) in allStatus" 
             :key="status.name"
             @click="filterByStatus(status.value)"
-            class="flex items-center w-48 px-4 py-1 text-left hover:bg-gorry"
-            :style="{margin: '5px'}"
+            class="flex items-center w-48 px-4 py-1 m-1.25 text-left hover:bg-gorry"
           >
             <span v-if="status.svg" v-html="status.svg" class="w-6 h-6 mr-2"></span>
             <span>{{ status.value }}</span>
           </button>
         </div>
       </div>
-      <button class="filterBtn" type="button" @click="reverseOrder()">
+      <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="reverseOrder()">
         {{ t('reverse') }}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="#000000" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="#000000" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
           <path d="M11 6H15.5C17.9853 6 20 8.01472 20 10.5C20 12.9853 17.9853 15 15.5 15H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M6.99998 12C6.99998 12 4.00001 14.2095 4 15C3.99999 15.7906 7 18 7 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </button>
-      <button class="filterBtn" type="button" @click="filter('1d')">
+      <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="filter('1d')">
         {{ t('day') }}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
           <path d="M17 2V5M7 2V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M13 3.5H11C7.22876 3.5 5.34315 3.5 4.17157 4.67157C3 5.84315 3 7.72876 3 11.5V14C3 17.7712 3 19.6569 4.17157 20.8284C5.34315 22 7.22876 22 11 22H13C16.7712 22 18.6569 22 19.8284 20.8284C21 19.6569 21 17.7712 21 14V11.5C21 7.72876 21 5.84315 19.8284 4.67157C18.6569 3.5 16.7712 3.5 13 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M3.5 8.5H20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -151,9 +149,9 @@
       </svg>
       </button>
 
-      <button class="filterBtn" type="button" @click="filter('7d')">
+      <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="filter('7d')">
         {{ t('week') }}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
           <path d="M17 2V5M7 2V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M13 3.5H11C7.22876 3.5 5.34315 3.5 4.17157 4.67157C3 5.84315 3 7.72876 3 11.5V14C3 17.7712 3 19.6569 4.17157 20.8284C5.34315 22 7.22876 22 11 22H13C16.7712 22 18.6569 22 19.8284 20.8284C21 19.6569 21 17.7712 21 14V11.5C21 7.72876 21 5.84315 19.8284 4.67157C18.6569 3.5 16.7712 3.5 13 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M3.5 8.5H20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -161,9 +159,9 @@
       </svg>
       </button>
 
-      <button class="filterBtn" type="button" @click="filter('30d')">
+      <button class="flex items-center justify-between h-8 max-w-40 min-w-20 p-2 m-2.5 rounded-md shadow-md cursor-pointer bg-whitly text-darkly dark:bg-darkly dark:text-whitly" type="button" @click="filter('30d')">
         {{ t('month') }}
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" class="mx-1.25 text-darkly dark:text-whitly">
           <path d="M17 2V5M7 2V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M13 3.5H11C7.22876 3.5 5.34315 3.5 4.17157 4.67157C3 5.84315 3 7.72876 3 11.5V14C3 17.7712 3 19.6569 4.17157 20.8284C5.34315 22 7.22876 22 11 22H13C16.7712 22 18.6569 22 19.8284 20.8284C21 19.6569 21 17.7712 21 14V11.5C21 7.72876 21 5.84315 19.8284 4.67157C18.6569 3.5 16.7712 3.5 13 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M3.5 8.5H20.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -171,12 +169,12 @@
       </svg>
       </button>
     </div>
-    <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-if="isListed" v-for="(id, index) in orderID" :key="id">
-      <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-if="isUpdating[index]">
-        <Loader :style="{width: '50px', height: '50px'}"/>
+    <div class="flex flex-col items-center justify-center w-full" v-if="isListed" v-for="(id, index) in orderID" :key="id">
+      <div class="flex flex-col items-center justify-center w-full" v-if="isUpdating[index]">
+        <Loader class="w-12 h-12"/>
       </div>
-      <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-else>
-        <div class="order" v-if="!droped[index]">
+      <div class="flex flex-col items-center justify-center w-full" v-else>
+        <div class="flex items-center justify-between w-full h-16 max-w-3xl p-1 mt-0 rounded-t-md shadow-md bg-whitly dark:bg-darkly" v-if="!droped[index]">
           <button :class="
           orderStatut[index] === 'waiting' ? 
             'numberBtn bg-rangy' : 
@@ -206,32 +204,32 @@
           </svg>
           </button>
 
-          <div style="width: calc(100% - 115px); display: flex; justify-content: space-between; align-items: center;">
-            <div class="childElement" @click="drop(index)">
-              <h4>
+          <div class="flex items-center justify-between w-[calc(100%-115px)]">
+            <div class="flex flex-col items-start justify-center w-1/5 h-10 m-1.25 overflow-hidden min-w-20 text-ellipsis whitespace-nowrap" @click="drop(index)">
+              <h4 class="text-sm font-bold text-darkly dark:text-whitly">
                 order-{{ orderID[index] }}
               </h4>
-              <h5>
+              <h5 class="text-xs text-garry dark:text-gorry">
                 {{ orderDay[index] }}
               </h5>
               
             </div>
   
-            <div class="childElement" @click="drop(index)">
-              <h4>
+            <div class="flex flex-col items-start justify-center w-1/5 h-10 m-1.25 overflow-hidden min-w-20 text-ellipsis whitespace-nowrap" @click="drop(index)">
+              <h4 class="text-sm font-bold text-darkly dark:text-whitly">
                 {{ orderPhone[index] }}
               </h4>
-              <h5>
+              <h5 class="text-xs text-garry dark:text-gorry">
                 {{ orderName[index] }}
               </h5>
               
             </div>
   
-            <div class="childElement4" @click="drop(index)">
-              <h4>
+            <div class="flex flex-col items-start justify-center w-1/5 h-10 m-1.25 overflow-hidden min-w-12 text-ellipsis whitespace-nowrap" @click="drop(index)">
+              <h4 class="text-sm font-bold text-darkly dark:text-whitly">
                 {{ orderWilaya[index] }}
               </h4>
-              <h5>
+              <h5 class="text-xs text-garry dark:text-gorry">
                 {{ orderSZone[index] }}, {{ orderMZone[index] }}
               </h5>
               
@@ -242,8 +240,8 @@
 
   
           
-          <a class="callBtn" :href="`tel: ${orderPhone[index]}`">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#000000" fill="none">
+          <a class="flex flex-col items-center justify-center h-12 m-2.5 cursor-pointer min-w-8 text-xs" :href="`tel: ${orderPhone[index]}`">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#000000" fill="none" class="dark:text-whitly">
               <path d="M3.77762 11.9424C2.8296 10.2893 2.37185 8.93948 2.09584 7.57121C1.68762 5.54758 2.62181 3.57081 4.16938 2.30947C4.82345 1.77638 5.57323 1.95852 5.96 2.6524L6.83318 4.21891C7.52529 5.46057 7.87134 6.08139 7.8027 6.73959C7.73407 7.39779 7.26737 7.93386 6.33397 9.00601L3.77762 11.9424ZM3.77762 11.9424C5.69651 15.2883 8.70784 18.3013 12.0576 20.2224M12.0576 20.2224C13.7107 21.1704 15.0605 21.6282 16.4288 21.9042C18.4524 22.3124 20.4292 21.3782 21.6905 19.8306C22.2236 19.1766 22.0415 18.4268 21.3476 18.04L19.7811 17.1668C18.5394 16.4747 17.9186 16.1287 17.2604 16.1973C16.6022 16.2659 16.0661 16.7326 14.994 17.666L12.0576 20.2224Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
           </svg>
           {{ orderStatut[index] }}
