@@ -6,7 +6,7 @@
     :class="[
       'fixed top-[50px] right-0 h-full z-50 transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]',
       'bg-whitly dark:bg-darkly shadow-lg dark:shadow-darky overflow-y-auto',
-      isLargeScreen ? 'w-[250px] translate-x-[80%]' : 'w-[200px] translate-x-full',
+      isLargeScreen ? 'w-[250px] translate-x-full' : 'w-[200px] translate-x-full',
       { 'translate-x-0': isHovered || prop.isVisible }
     ]"
     @mouseover="handleHover(true)"

@@ -1,6 +1,6 @@
 <template>
 
-  <Nav :user="user" :isMounted="isMounted" :isDark="isDark" :isDeasy="isDeasy" :isAuthenticated="isAuthenticated" :logoDark="logoDark" :logoWhite="logoWhite" :varqWhite="varqWhite" :varqDark="varqDark" :isVisible="isVisible" @darkMode="toggleDarkMode" @sideBar="viewMenu" @viewMenu="toggleDarkMode" @handleLogout="handleLogout"/>
+  <Nav :user="user" :isMounted="isMounted" :isDark="isDark" :isDeasy="isDeasy" :isAuthenticated="isAuthenticated" :logoDark="logoDark" :logoWhite="logoWhite" :varqWhite="varqWhite" :varqDark="varqDark" :isVisible="isVisible" @darkMode="toggleDarkMode" @sideBar="viewMenu" @handleLogout="handleLogout"/>
 
 
   <SideBar v-if="isAuthenticated" @viewMenu="viewMenu" @handleLogout="handleLogout" :isVisible="isVisible" @close="isVisible = false"/>
@@ -23,7 +23,7 @@ const { t } = useLang();
 
 const isMounted = ref(false);
 const isVisible = ref(false);
-const isDark = ref();
+const isDark = ref(false);
 const user = ref(t('connexion'));
 const isAuthenticated = ref(false);
 const isDeasy = ref(true);
@@ -46,21 +46,20 @@ onMounted(() => {
       user.value = authData.username;
       isAuthenticated.value = true;
     }
-    
-    
   }
-    // Vérifie si le thème est enregistré dans le localStorage
-    if (localStorage.getItem('darkMode')) {
-      isDark.value = JSON.parse(localStorage.getItem('darkMode'));
-    } else {
-      // Si rien dans le localStorage, détecte le thème de l'appareil
-      isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
 
-    // Applique la classe en fonction du thème détecté
-    document.documentElement.classList.toggle('dark', isDark.value);
+  // Vérifie si le thème est enregistré dans le localStorage
+  if (localStorage.getItem('darkMode')) {
+    isDark.value = JSON.parse(localStorage.getItem('darkMode'));
+  } else {
+    // Si rien dans le localStorage, détecte le thème de l'appareil
+    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
 
-    isMounted.value = true;
+  // Applique la classe en fonction du thème détecté
+  document.documentElement.classList.toggle('dark', isDark.value);
+
+  isMounted.value = true;
 });
 
 const viewMenu = () => {
@@ -71,7 +70,7 @@ const viewMenu = () => {
 const toggleDarkMode = () => {
   isDark.value = !isDark.value;
   document.documentElement.classList.toggle("dark", isDark.value);
-  localStorage.setItem('darkMode', isDark.value);
+  localStorage.setItem('darkMode', JSON.stringify(isDark.value));
 };
 
 
