@@ -2,7 +2,7 @@
     <div style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
         <div class="boxContainer">
             <h1>
-                Add Order
+                {{ t('add order') }}
             </h1>
         
             <h2 v-if="getting">
@@ -12,7 +12,7 @@
         
         <div class="boxContainer">
             
-            <label>Choose products</label>
+            <label>{{ t('choose products') }}</label>
             <div class="list2">
                 <div v-for="(product, index) in productList" :key="product.id">  
                     <div style="max-width: 200px; min-width: 200px; flex-direction: column; border-radius: 6px; box-shadow: 0px 2px 5px var(--color-rangy);">
@@ -167,7 +167,7 @@
                         </div>
                         <h3 style="display: flex; justify-content: space-between; align-items: center;">
                             
-                            TOTAL: 
+                            {{ t('total:') }}
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <svg style="margin: 5px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none">
                                     <path d="M14.5 12C14.5 13.3807 13.3807 14.5 12 14.5C10.6193 14.5 9.5 13.3807 9.5 12C9.5 10.6193 10.6193 9.5 12 9.5C13.3807 9.5 14.5 10.6193 14.5 12Z" stroke="currentColor" stroke-width="1.5" />
@@ -181,7 +181,7 @@
                         </h3>
 
                         <button class="btn2" style="width: 80%; max-width: 450px;" type="button" @click="removeProduct(index)">
-                            Remove Product
+                            {{ t('remove product') }}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                                 <path d="M16 12L8 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                 <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" stroke-width="1.5" />
@@ -209,7 +209,7 @@
                     ">
 
                         <h3>
-                            {{ qty }} Articles for {{ totalProdPrice }}
+                            {{ qty }} {{ t('articles for') }} {{ totalProdPrice }}
                         </h3>
                         
                     </div>
@@ -217,7 +217,7 @@
 
                 <div class="boxList">
                     <h3 style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                        Phone
+                        {{ t('phone') }}
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                             <path d="M3.77762 11.9424C2.8296 10.2893 2.37185 8.93948 2.09584 7.57121C1.68762 5.54758 2.62181 3.57081 4.16938 2.30947C4.82345 1.77638 5.57323 1.95852 5.96 2.6524L6.83318 4.21891C7.52529 5.46057 7.87134 6.08139 7.8027 6.73959C7.73407 7.39779 7.26737 7.93386 6.33397 9.00601L3.77762 11.9424ZM3.77762 11.9424C5.69651 15.2883 8.70784 18.3013 12.0576 20.2224M12.0576 20.2224C13.7107 21.1704 15.0605 21.6282 16.4288 21.9042C18.4524 22.3124 20.4292 21.3782 21.6905 19.8306C22.2236 19.1766 22.0415 18.4268 21.3476 18.04L19.7811 17.1668C18.5394 16.4747 17.9186 16.1287 17.2604 16.1973C16.6022 16.2659 16.0661 16.7326 14.994 17.666L12.0576 20.2224Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
                         </svg>
@@ -227,7 +227,7 @@
                     <input class="input" type="text" v-model="phone" @blur="getCustomer(phone)" required>
 
                 <h3 style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                    Name
+                    {{ t('name') }}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                         <path d="M13 21.9506C12.6711 21.9833 12.3375 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12C22 12.3375 21.9833 12.6711 21.9506 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                         <path d="M7.5 17C8.90247 15.5311 11.0212 14.9041 13 15.1941M14.4951 9.5C14.4951 10.8807 13.3742 12 11.9915 12C10.6089 12 9.48797 10.8807 9.48797 9.5C9.48797 8.11929 10.6089 7 11.9915 7C13.3742 7 14.4951 8.11929 14.4951 9.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -242,7 +242,7 @@
     
         
                 <h3 style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                    Chose Country
+                    {{ t('chose country') }}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                         <path d="M4 7L4 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M11.7576 3.90865C8.45236 2.22497 5.85125 3.21144 4.55426 4.2192C4.32048 4.40085 4.20358 4.49167 4.10179 4.69967C4 4.90767 4 5.10138 4 5.4888V14.7319C4.9697 13.6342 7.87879 11.9328 11.7576 13.9086C15.224 15.6744 18.1741 14.9424 19.5697 14.1795C19.7633 14.0737 19.8601 14.0207 19.9301 13.9028C20 13.7849 20 13.6569 20 13.4009V5.87389C20 5.04538 20 4.63113 19.8027 4.48106C19.6053 4.33099 19.1436 4.459 18.2202 4.71504C16.64 5.15319 14.3423 5.22532 11.7576 3.90865Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -257,7 +257,7 @@
                     </select>
 
                     <h3 v-if="country" style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                        Chose Method
+                        {{ t('chose method') }}
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                             <path d="M19.5 17.5C19.5 18.8807 18.3807 20 17 20C15.6193 20 14.5 18.8807 14.5 17.5C14.5 16.1193 15.6193 15 17 15C18.3807 15 19.5 16.1193 19.5 17.5Z" stroke="currentColor" stroke-width="1.5" />
                             <path d="M9.5 17.5C9.5 18.8807 8.38071 20 7 20C5.61929 20 4.5 18.8807 4.5 17.5C4.5 16.1193 5.61929 15 7 15C8.38071 15 9.5 16.1193 9.5 17.5Z" stroke="currentColor" stroke-width="1.5" />
@@ -298,12 +298,12 @@
             
                     <div v-if="select" style="width: 90%; max-width: 450px; display: flex; justify-content: center; align-items: center; flex-direction: column;">
                         <h3 style="width: 90%; max-width: 450px;">
-                            Delivery zone
+                            {{ t('delivery zone') }}
                         </h3>
                         <div style="width: 90%; max-width: 450px; display: flex; justify-content: center; align-items: center;">
                             <button :class="zone1 === true ? 'btn3' : 'btn2'" type="button" style="width: 50%; height: 100px; max-width: 450px; display: flex; justify-content: center; align-items: center; flex-direction: column;" :checked="zone1" @click="calculateDeliveryPrice('home')">
                                 <h3>
-                                    Home
+                                    {{ t('home') }}
                                 </h3>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                                     <path d="M3.16405 11.3497L4 11.5587L4.45686 16.1005C4.715 18.6668 4.84407 19.9499 5.701 20.7249C6.55793 21.5 7.84753 21.5 10.4267 21.5H13.5733C16.1525 21.5 17.4421 21.5 18.299 20.7249C19.1559 19.9499 19.285 18.6668 19.5431 16.1005L20 11.5587L20.836 11.3497C21.5201 11.1787 22 10.564 22 9.85882C22 9.35735 21.7553 8.88742 21.3445 8.59985L13.1469 2.86154C12.4583 2.37949 11.5417 2.37949 10.8531 2.86154L2.65549 8.59985C2.24467 8.88742 2 9.35735 2 9.85882C2 10.564 2.47993 11.1787 3.16405 11.3497Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -313,7 +313,7 @@
     
                             <button :class="zone2 === true ? 'btn3' : 'btn2'" type="button" style="width: 50%; height: 100px; max-width: 450px; display: flex; justify-content: center; align-items: center; flex-direction: column;" :checked="zone2" @click="calculateDeliveryPrice('desk')">
                                 <h3>
-                                    Stop-desk
+                                    {{ t('stop-desk') }}
                                 </h3>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                                     <path d="M22 12H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -364,7 +364,7 @@
                             
                         </h3>
                         <h3 v-else style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                            adresse
+                            {{ t('adresse') }}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                                 <path d="M13.6177 21.367C13.1841 21.773 12.6044 22 12.0011 22C11.3978 22 10.8182 21.773 10.3845 21.367C6.41302 17.626 1.09076 13.4469 3.68627 7.37966C5.08963 4.09916 8.45834 2 12.0011 2C15.5439 2 18.9126 4.09916 20.316 7.37966C22.9082 13.4393 17.599 17.6389 13.6177 21.367Z" stroke="currentColor" stroke-width="1.5" />
                                 <path d="M15.5 11C15.5 12.933 13.933 14.5 12 14.5C10.067 14.5 8.5 12.933 8.5 11C8.5 9.067 10.067 7.5 12 7.5C13.933 7.5 15.5 9.067 15.5 11Z" stroke="currentColor" stroke-width="1.5" />
@@ -383,7 +383,7 @@
 
                 <div style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center; flex-direction: column;">
                     <div style="width: 90%; display: flex; justify-content: space-between; align-items: center;">
-                        Discount Code
+                        {{ t('discount code') }}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                         <path d="M10.9961 10H11.0111M10.9998 16H11.0148" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M7 13H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -404,7 +404,7 @@
 
 
                 <h3 style="width: 90%; max-width: 450px; display: flex; justify-content: space-between; align-items: center;">
-                    Take note
+                    {{ t('take note') }}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                         <path d="M10.6119 5.00008L10.0851 7M12.2988 2.76313C12.713 3.49288 12.4672 4.42601 11.7499 4.84733C11.0326 5.26865 10.1153 5.01862 9.70118 4.28887C9.28703 3.55912 9.53281 2.62599 10.2501 2.20467C10.9674 1.78334 11.8847 2.03337 12.2988 2.76313Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                         <path d="M13 21.998C12.031 20.8176 10.5 18 8.5 18C7.20975 18.1059 6.53573 19.3611 5.84827 20.3287M5.84827 20.3287C5.45174 19.961 5.30251 19.4126 5.00406 18.3158L3.26022 11.9074C2.5584 9.32827 2.20749 8.0387 2.80316 7.02278C3.39882 6.00686 4.70843 5.66132 7.32766 4.97025L9.5 4.39708M5.84827 20.3287C6.2448 20.6965 6.80966 20.8103 7.9394 21.0379L12.0813 21.8725C12.9642 22.0504 12.9721 22.0502 13.8426 21.8205L16.6723 21.0739C19.2916 20.3828 20.6012 20.0373 21.1968 19.0214C21.7925 18.0055 21.4416 16.7159 20.7398 14.1368L19.0029 7.75375C18.301 5.17462 17.9501 3.88506 16.9184 3.29851C16.0196 2.78752 14.9098 2.98396 12.907 3.5" stroke="currentColor" stroke-width="1.5" />
@@ -432,7 +432,7 @@
                     font-size: 2.5vh;
                     ">
                         <h3>
-                            Total:
+                            {{ t('total') }}
                         </h3>
                         <h3>
                             {{ total }}
@@ -441,7 +441,7 @@
                     </div>
                 </div>
                 <button class="btn1" style="width: 100%; height: 50px; max-width: 450px;" type="submit">
-                    Order it now
+                    {{ t('order it now') }}
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                         <path d="M14.9713 7.5C14.9713 7.5 15.4713 7.5 15.9713 8.5C15.9713 8.5 17.5595 6 18.9713 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M18.9954 15.042L19.0241 19.5927C18.9748 20.9362 17.8679 22 16.5192 22H5.39281C4.00847 22 2.88623 20.8814 2.88623 19.5014L2.9724 13.0355M8.98101 6.0129L5.1476 5.94884C4.25796 5.92732 3.46051 6.49283 3.18918 7.33765L2.09203 10.7538C1.96224 11.1579 1.95328 11.5994 2.16878 11.9654C2.95433 13.2993 5.06345 15.1192 8.41723 13.163M7.44587 11.3322C7.83597 12.6005 9.36528 14.8259 12.486 13.5372" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -467,17 +467,19 @@
     
     <script>
     import { ref, onMounted } from 'vue';
+    import { useLang } from '~/composables/useLang';
       
       export default {
         name: 'Add Orders',
 
         setup() {
     
+        const { t } = useLang();
         const isMounted = ref(false);
         const test = ref('');
         const ordLog = ref('');
         const disLog = ref('');
-        const prodLog = ref('Waiting Products');
+        const prodLog = ref(t('waiting products'));
         const productList = ref([]);
         const selectedProd = ref([]);
         const name = ref('');
@@ -506,10 +508,10 @@
         const totalBefor = ref(0);
 
         async function saveOrder() {
-            saveLog.value = 'Saving order, please wait...';
+            saveLog.value = t('saving order, please wait...');
 
             if (!name.value || !phone.value || !qty.value || !country.value || !method.value.name) {
-                saveLog.value = 'Please fill in all required fields.';
+                saveLog.value = t('please fill in all required fields.');
                 return;
             }
 
@@ -534,7 +536,7 @@
                 selectedProd: selectedProd.value,
             };
 
-            saveLog.value = 'Saving order, please wait for response...';
+            saveLog.value = t('saving order, please wait for response...');
 
             try {
                 const response = await fetch("https://management.hoggari.com/backend/api.php?action=postOrder", {
@@ -551,7 +553,7 @@
                 
 
                 if (result.success) {
-                    saveLog.value = 'Order saved successfully.';
+                    saveLog.value = t('order saved successfully.');
 
                     // Réinitialiser toutes les valeurs en une seule étape
                     Object.assign({
@@ -767,7 +769,7 @@
                 });
         
                 if (!response.ok) {
-                    prodLog.value = 'Response was not ok';
+                    prodLog.value = t('error in response');
                     isMounted.value = false;
                     getting.value = false;
                     return;
@@ -778,7 +780,7 @@
                 console.log('productList: ', productList.value);
                 getting.value = false;
             } catch (error) {
-                prodLog.value = 'Error in fetching';
+                prodLog.value = t('error in fetching');
                 getting.value = false;
             } finally {
                 getting.value = false;
@@ -793,7 +795,7 @@
                 });
         
                 if (!response.ok) {
-                    delLog.value = 'Response was not ok';
+                    delLog.value = t('error in response');
                     isMounted.value = false;
                     return;
                 }
@@ -802,7 +804,7 @@
                 deliveryList.value = result.data;
                 console.log('deliveryList.value: ', deliveryList.value);
             } catch (error) {
-                delLog.value = 'Error in fetching';
+                delLog.value = t('error in fetching');
             } finally {
                 isMounted.value = true;
             }
@@ -860,7 +862,7 @@
                 body: postBody,
                 });
                 if(!response2.ok){
-                    disLog.value = "error in response";
+                    disLog.value = t("error in response");
                     return;
                 }
                 const textResponse = await response2.json();  // Récupérer la réponse en texte
@@ -892,19 +894,19 @@
                             discountV.value = `${textResponse.data.value} ${type}`;
                             disLog.value = `CODE : ${textResponse.message} ${textResponse.data.value} ${type}`;
                         } else if (textResponse.message === '2') {
-                            disLog.value = 'لقد إنتهت مدة الصلحية';
+                            disLog.value = t('the validity period has expired');
                         } else if (textResponse.message === '3') {
-                            disLog.value = 'لقد إستعملت الرمز بهاتفك';
+                            disLog.value = t('you have used the code with your phone');
                         } else if (textResponse.message === '4') {
-                            disLog.value = 'لقد إنتهت صلحية الرمز';
+                            disLog.value = t('the validity of the code has expired');
                         } else if (textResponse.message === '5') {
-                            disLog.value = 'رمز غير صالح';
+                            disLog.value = t('invalid code');
                         } else if (textResponse.message === '6') {
-                            disLog.value = 'رمز غير متوفر';
+                            disLog.value = t('code not available');
                         } else if (textResponse.message === '7') {
-                            disLog.value = 'رقم الهاتف مهم';
+                            disLog.value = t('phone number is important');
                         } else if (textResponse.message === '8') {
-                            disLog.value = 'معذرة لا يوجد رمز ترويجي';
+                            disLog.value = t('sorry there is no promotional code');
                         }
                     }
 
@@ -915,25 +917,25 @@
 
                 } else {
                     if (textResponse.message === '2') {
-                            disLog.value = 'لقد إنتهت مدة الصلحية'
+                            disLog.value = t('the validity period has expired');
                         } else if (textResponse.message === '3') {
-                            disLog.value = 'لقد إستعملت الرمز بهاتفك';
+                            disLog.value = t('you have used the code with your phone');
                         } else if (textResponse.message === '4') {
-                            disLog.value = 'لقد إنتهت صلحية الرمز';
+                            disLog.value = t('the validity of the code has expired');
                         } else if (textResponse.message === '5') {
-                            disLog.value = 'رمز غير صالح';
+                            disLog.value = t('invalid code');
                         } else if (textResponse.message === '6') {
-                            disLog.value = 'رمز غير متوفر';
+                            disLog.value = t('code not available');
                         } else if (textResponse.message === '7') {
-                            disLog.value = 'رقم الهاتف مهم';
+                            disLog.value = t('phone number is important');
                         } else if (textResponse.message === '8') {
-                            disLog.value = 'معذرة لا يوجد رمز ترويجي';
+                            disLog.value = t('sorry there is no promotional code');
                         }
                 }
             } else {
                 discount.value.value = 0;
                 updateTotal();
-                disLog.value = 'لا يوجد أي رمز';
+                disLog.value = t('there is no code');
             }
 
 

@@ -28,7 +28,7 @@
             type="button" 
             class="toggle-password" 
             @click="showPassword = !showPassword"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'"
+            :aria-label="showPassword ? t('hide password') : t('show password')"
             v-html="showPassword ? resizeSvg(icons['hide'], 18, 18) : resizeSvg(icons['view'], 18, 18)"
           >
           </button>
@@ -110,7 +110,7 @@ const handleLogin = async () => {
   try {
     // ⚡ Récupérer le token reCAPTCHA v3
     const token = await new Promise((resolve, reject) => {
-      if (!window.grecaptcha) return reject('reCAPTCHA not charged')
+      if (!window.grecaptcha) return reject(t('recaptcha not charged'))
       grecaptcha.ready(() => {
         grecaptcha.execute(siteKey, { action: 'login' }).then(resolve).catch(reject)
       })
@@ -133,7 +133,7 @@ const handleLogin = async () => {
     )
 
     if (!response.ok) {
-      errorMessage.value = 'error server'
+      errorMessage.value = t('error server')
       return
     }
 
@@ -160,10 +160,10 @@ const handleLogin = async () => {
       })
       
     } else {
-      errorMessage.value = data.message || 'identitie not correct'
+      errorMessage.value = data.message || t('identitie not correct')
     }
   } catch (error) {
-    errorMessage.value = 'error connexion'
+    errorMessage.value = t('error connexion')
   } finally {
     loading.value = false
   }

@@ -140,6 +140,7 @@
   import ImageResize from 'tiptap-extension-resize-image'
 
   import Explorer from '../components/elements/explorer.vue';
+  const { t } = useLang();
 
   // 🔥 Props pour récupérer la valeur de description
   const props = defineProps({
@@ -172,7 +173,7 @@
       resizable: true,
     }),
     ],
-    content: props.modelValue ||  '<p>Bienvenue sur votre éditeur Tiptap amélioré ! 🚀</p>',
+    content: props.modelValue ||  `<p>${t('Welcome to your enhanced Tiptap editor! 🚀')}</p>`,
     onBlur: () => {
     emit('update:modelValue', editor.getHTML()) // 🔥 Émet le contenu lors du blur
   }

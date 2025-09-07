@@ -4,8 +4,8 @@
     class="sticky top-0 z-[5000] flex h-[50px] w-full items-center justify-center bg-[--color-whitly] backdrop-blur-[10px] shadow-[0_4px_8px_var(--color-tioly)] dark:bg-[--color-darkly] dark:shadow-[0_0px_8px_var(--color-darky)]"
   >
     <NuxtLink to="/" class="m-[5px] flex w-2/5 min-w-[120px] justify-start">
-      <img v-if="!isDark" :src="logoDark" alt="Logo du site" class="h-10" />
-      <img v-else :src="logoWhite" alt="Logo du site" class="h-10" />
+      <img v-if="!isDark" :src="logoDark" :alt="t('site logo')" class="h-10" />
+      <img v-else :src="logoWhite" :alt="t('site logo')" class="h-10" />
     </NuxtLink>
 
     <div class="w-full"></div>
@@ -55,6 +55,9 @@
 
 <script setup>
 import ProfileBtn from './bloc/profileBtn.vue'
+import { useLang } from '~/composables/useLang'
+
+const { t } = useLang()
 
 defineProps({
   user: String,

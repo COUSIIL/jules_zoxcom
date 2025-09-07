@@ -1,6 +1,6 @@
 <template>
   <div class="storeMenu">
-    <div v-if="loading">Loading...</div>
+    <div v-if="loading">{{ t('loading...') }}</div>
 
     <div v-if="!loading" class="spaceBox">
       <div class="alignBox">
@@ -11,12 +11,12 @@
         </div>
       </div>
 
-      <Linker :link="`/store/${title}`" text="Manage" :svg="icons['settings']" />
+      <Linker :link="`/store/${title}`" :text="t('manage')" :svg="icons['settings']" />
         
     </div>
 
     <div v-if="!loading" class="seo-score-container">
-      <h2>SEO Score</h2>
+      <h2>{{ t('seo score') }}</h2>
       <div class="progress-bar">
         <div class="progress" ref="progress">{{ progressText }}</div>
       </div>
@@ -42,44 +42,44 @@
 
     <div v-if="!loading && drop" class="audit-results">
       <div class="audit-card">
-        <h3>SEO Ready</h3>
+        <h3>{{ t('seo ready') }}</h3>
         <p :style="{ color: seoReady ? 'green' : 'red' }">
-          {{ seoReady ? 'Yes, your website is SEO-ready.' : 'No, improvements are needed for SEO readiness.' }}
+          {{ seoReady ? t('yes, your website is seo-ready.') : t('no, improvements are needed for seo readiness.') }}
         </p>
       </div>
     
       <div class="audit-card">
-        <h3>Facebook Pixel</h3>
+        <h3>{{ t('facebook pixel') }}</h3>
         <p :style="{ color: facebookPixelInstalled ? 'green' : 'red' }">
-          {{ facebookPixelInstalled ? 'Facebook Pixel is installed.' : 'Facebook Pixel is not detected.' }}
+          {{ facebookPixelInstalled ? t('facebook pixel is installed.') : t('facebook pixel is not detected.') }}
         </p>
       </div>
     
       <div class="audit-card">
-        <h3>Google Analytics</h3>
+        <h3>{{ t('google analytics') }}</h3>
         <p :style="{ color: googleAnalyticsInstalled ? 'green' : 'red' }">
-          {{ googleAnalyticsInstalled ? 'Google Analytics is active.' : 'Google Analytics is missing.' }}
+          {{ googleAnalyticsInstalled ? t('google analytics is active.') : t('google analytics is missing.') }}
         </p>
       </div>
     
       <div class="audit-card">
-        <h3>Google Ads</h3>
+        <h3>{{ t('google ads') }}</h3>
         <p :style="{ color: googleAdsInstalled ? 'green' : 'red' }">
-          {{ googleAdsInstalled ? 'Google Ads tag is detected.' : 'Google Ads tag not found.' }}
+          {{ googleAdsInstalled ? t('google ads tag is detected.') : t('google ads tag not found.') }}
         </p>
       </div>
     
       <div class="audit-card">
-        <h3>Structured Data</h3>
+        <h3>{{ t('structured data') }}</h3>
         <p :style="{ color: structuredDataPresent ? 'green' : 'red' }">
-          {{ structuredDataPresent ? 'Structured data (Schema.org) is present.' : 'No structured data detected.' }}
+          {{ structuredDataPresent ? t('structured data (schema.org) is present.') : t('no structured data detected.') }}
         </p>
       </div>
     
       <div class="audit-card">
-        <h3>Speed Optimization</h3>
+        <h3>{{ t('speed optimization') }}</h3>
         <p :style="{ color: fastLoadingPractices ? 'green' : 'red' }">
-          {{ fastLoadingPractices ? 'Async/defer practices are applied.' : 'No async/defer found, speed could improve.' }}
+          {{ fastLoadingPractices ? t('async/defer practices are applied.') : t('no async/defer found, speed could improve.') }}
         </p>
       </div>
     </div>

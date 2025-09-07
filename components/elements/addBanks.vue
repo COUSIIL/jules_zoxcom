@@ -94,20 +94,20 @@ const submitForm = async () => {
     })
 
     if (!response.ok) {
-      throw new Error('Server error')
+      throw new Error(t('server error'))
     }
 
     const result = await response.json()
 
     if (result.success) {
       emit('success', result)
-      emit('message', result.message || t('Bank account created successfully'))
+      emit('message', result.message || t('bank account created successfully'))
     } else {
-      emit('message', result.message || t('Failed to create bank account'))
+      emit('message', result.message || t('failed to create bank account'))
       emit('cancel', true)
     }
   } catch (error) {
-    emit('message', error.message || 'Unexpected error')
+    emit('message', error.message || t('unexpected error'))
   } finally {
     emit('saving', false)
   }

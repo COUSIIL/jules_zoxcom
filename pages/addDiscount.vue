@@ -8,7 +8,7 @@
         width: '100%'}" v-if="isMounted">
 
             <h2 class="boxContainer">
-                Add Discount
+                {{ t('add discount') }}
             </h2>
             <div class="boxContainer">
                 
@@ -17,7 +17,7 @@
                         <path d="M6.57757 15.4816C5.1628 16.324 1.45336 18.0441 3.71266 20.1966C4.81631 21.248 6.04549 22 7.59087 22H16.4091C17.9545 22 19.1837 21.248 20.2873 20.1966C22.5466 18.0441 18.8372 16.324 17.4224 15.4816C14.1048 13.5061 9.89519 13.5061 6.57757 15.4816Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M16.5 6.5C16.5 8.98528 14.4853 11 12 11C9.51472 11 7.5 8.98528 7.5 6.5C7.5 4.01472 9.51472 2 12 2C14.4853 2 16.5 4.01472 16.5 6.5Z" stroke="currentColor" stroke-width="1.5" />
                     </svg>
-                    One usage code
+                    {{ t('one usage code') }}
                     
                 </h4>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -28,7 +28,7 @@
                             <path d="M3 8H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M14.5 15L18 18.5M18 18.5L21.5 22M18 18.5L21.5 15M18 18.5L14.5 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        Create a time-limited code
+                        {{ t('create a time-limited code') }}
                     </button>
                     <button :class="created === true && limited === false && usage === true ? 'btn1' : 'btn2'" style="display: flex; justify-content: space-between; align-items: center; flex-direction: column; min-width: 100px; min-height: 80px;" type="button" @click="createUniqueCode(true, false)">
                         <svg style="margin-inline: 5px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
@@ -37,7 +37,7 @@
                             <path d="M14 19.5C14 19.5 15.3485 20.0067 16 22C16 22 19.1765 17 22 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M2.5 8.5H19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        Create a time-unlimited code
+                        {{ t('create a time-unlimited code') }}
                     </button>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                         <path d="M8 4C6.34315 4 5 5.34315 5 7C5 8.22309 5.73193 9.27523 6.78168 9.7423" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M3.71429 19C2.76751 19 2 18.2325 2 17.2857C2 14.9188 3.91878 13 6.28571 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
-                    Multy usage code
+                    {{ t('multy usage code') }}
                     
                 </h4>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -64,7 +64,7 @@
                             <path d="M3 8H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M14.5 15L18 18.5M18 18.5L21.5 22M18 18.5L21.5 15M18 18.5L14.5 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        Create a time-limited code
+                        {{ t('create a time-limited code') }}
                     </button>
                     <button :class="created === true && limited === false && usage === false ? 'btn1' : 'btn2'" style="display: flex; justify-content: space-between; align-items: center; flex-direction: column; min-width: 100px; min-height: 80px;" type="button" @click="createUniqueCode(false, false)">
                         <svg style="margin-inline: 5px" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none">
@@ -73,7 +73,7 @@
                             <path d="M14 19.5C14 19.5 15.3485 20.0067 16 22C16 22 19.1765 17 22 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                             <path d="M2.5 8.5H19.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
-                        Create a limited usage code
+                        {{ t('create a limited usage code') }}
                     </button>
                     
                 </div>
@@ -95,11 +95,16 @@
 </template>
 
 <script>
+import { useLang } from '~/composables/useLang';
 const DiscountForm = () => import('../components/discountForm.vue');
 
 
 export default {
     name: 'Discount',
+    setup() {
+        const { t } = useLang();
+        return { t };
+    },
     data() {
     return {
 

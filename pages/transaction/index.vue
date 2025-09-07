@@ -170,11 +170,11 @@
           transactions.value = data.data.transactions
           transactionsLength.value = transactions.value.length
         } else {
-        messager(data.message || 'Failed to load transactions')
+        messager(data.message || t('failed to load transactions'))
         }
     } catch (err) {
         console.error(err)
-        messager('Error while fetching transactions')
+        messager(t('error while fetching transactions'))
     } finally {
         isSaving.value = false
     }
@@ -198,11 +198,11 @@
               img: ''
           }))
         } else {
-        messager(data.message || 'Failed to load banks')
+        messager(data.message || t('failed to load banks'))
         }
     } catch (err) {
         console.error(err)
-        messager('Error while fetching banks')
+        messager(t('error while fetching banks'))
     } finally {
         isSaving.value = false
     }

@@ -7,7 +7,7 @@
         class="toggle-delete"
         :class="folder.markedForDelete ? 'selected1' : 'notSelected1'"
         @click.stop="emitToggleDelete"
-        title="Marquer pour suppression"
+        :title="t('Mark for deletion')"
       ></div>
     </div>
     <div @click="emitToggle" class="image-box">
@@ -32,6 +32,7 @@
 <script setup>
 
 import icons from '~/public/icons.json'
+const { t } = useLang()
 
 const props = defineProps({
   folder: {

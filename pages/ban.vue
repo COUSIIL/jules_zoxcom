@@ -81,13 +81,13 @@ const save = async () => {
 
   // 1. Validations
   if (!ip.value) {
-    message.value = "please choose ip"
+    message.value = t("please choose ip")
     isMessage.value = true
     isSaving.value = false
     return
   }
   if (!reason.value) {
-    message.value = "please enter reason"
+    message.value = t("please enter reason")
     isMessage.value = true
     isSaving.value = false
     return
@@ -114,7 +114,7 @@ const save = async () => {
     )
 
     if (!response.ok) {
-      message.value   = "error in response"
+      message.value   = t("error in response")
       isMessage.value = true
       isSaving.value  = false
       return   // <<-- Interrompt ici pour ne pas continuer

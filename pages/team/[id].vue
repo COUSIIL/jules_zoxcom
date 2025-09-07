@@ -9,7 +9,7 @@
       />
       <img v-else class="profile-image" :src="defaultImage" alt="defaultImage">
       <label v-if="isEditable" class="upload-btn">
-        Changer la photo
+        {{ t('Change photo') }}
         <input type="file" @change="updateProfileImage" hidden />
       </label>
     </div>
@@ -17,34 +17,34 @@
     <!-- Informations utilisateur -->
     <div class="profile-info">
       <div class="field">
-        <label>Nom d'utilisateur</label>
+        <label>{{ t('Username') }}</label>
         <input type="text" v-model="auth.username" disabled />
       </div>
 
       <div class="field">
-        <label>Prénom</label>
-        <input v-if="isEditable" type="text" v-model="auth.name" placeholder="Entrez votre prénom" />
-        <input v-else type="text" v-model="auth.name" placeholder="Entrez votre prénom" disabled/>
+        <label>{{ t('First name') }}</label>
+        <input v-if="isEditable" type="text" v-model="auth.name" :placeholder="t('Enter your first name')" />
+        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your first name')" disabled/>
       </div>
 
       <div class="field">
-        <label>Nom</label>
-        <input v-if="isEditable" type="text" v-model="auth.family_name" placeholder="Entrez votre nom" />
-        <input v-else type="text" v-model="auth.name" placeholder="Entrez votre prénom" disabled/>
+        <label>{{ t('Last name') }}</label>
+        <input v-if="isEditable" type="text" v-model="auth.family_name" :placeholder="t('Enter your last name')" />
+        <input v-else type="text" v-model="auth.name" :placeholder="t('Enter your last name')" disabled/>
       </div>
 
       <div class="field">
-        <label>Email</label>
-        <input v-if="isEditable" type="email" v-model="auth.email" placeholder="Entrez votre email" />
-        <input v-else type="email" v-model="auth.email" placeholder="Entrez votre email" disabled/>
+        <label>{{ t('Email') }}</label>
+        <input v-if="isEditable" type="email" v-model="auth.email" :placeholder="t('Enter your email')" />
+        <input v-else type="email" v-model="auth.email" :placeholder="t('Enter your email')" disabled/>
       </div>
 
       <div class="field">
-        <label>Adresse IP</label>
+        <label>{{ t('IP Address') }}</label>
         <input type="text" v-model="auth.ip_adresse" disabled />
       </div>
 
-      <button v-if="isEditable" class="save-btn" @click="saveProfile">💾 Enregistrer</button>
+      <button v-if="isEditable" class="save-btn" @click="saveProfile">{{ t('💾 Save') }}</button>
     </div>
   </div>
 </template>
@@ -52,6 +52,7 @@
 <script setup>
 import { useRoute } from 'vue-router'
 
+const { t } = useLang()
 const route = useRoute()
 const user = ref('')
 const members = ref([])
@@ -72,7 +73,7 @@ const getUsers = async () => {
   
   const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUsers')
   if (!response.ok) {
-    console.error('Erreur de récupération des utilisateurs')
+    console.error(t('Error retrieving users'))
     return
   }
   const result = await response.json()
@@ -120,17 +121,17 @@ const updateProfileImage = async (event) => {
       auth.value.profile_image = result['profile_image']
 
     } else {
-      console.error('Erreur lors de la mise à jour de l’image')
+      console.error(t('Error updating image'))
     }
   } catch (error) {
-    console.error('Erreur réseau :', error)
+    console.error(t('Network error:'), error)
   }
 }
 
 
 const saveProfile = async () => {
   if (!auth.value || !auth.value.id) {
-    alert('Utilisateur introuvable')
+    alert(t('User not found'))
     return
   }
 
@@ -150,9 +151,9 @@ const saveProfile = async () => {
 
   const result = await response.json()
   if (result.success) {
-    alert('Profil mis à jour avec succès !')
+    alert(t('Profile updated successfully!'))
   } else {
-    alert('Erreur lors de la mise à jour.')
+    alert(t('Error during update.'))
   }
 }
 

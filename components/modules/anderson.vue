@@ -5,7 +5,7 @@
             <img src="../../public/anderson.png" alt="">
         </div>
       
-        <h3 class="title">anderson API KEY</h3>
+        <h3 class="title">{{ t('anderson api key') }}</h3>
     </li>
     
     <Toggle v-if="!loading" :toggle="work" @toggle="activator('anderson_module')"/>
@@ -14,7 +14,7 @@
 
 <div style="width: 300px; min-width: 5px; display: flex; justify-content: center; align-items: center;">
   <h3>
-      Key :
+      {{ t('key :') }}
   </h3>
   
 </div>
@@ -23,7 +23,7 @@
     <input class="input" v-model="andersonKey" type="text">
 
     <button v-if="!saving" class="btn2" style="width: 50%;" @click="applyanderson" type="button">
-      Save
+      {{ t('save') }}
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
         <path d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z" stroke="currentColor" stroke-width="1.5" />
         <path d="M6 13.5L7.5 9L9.375 13.5M6 13.5L5.5 15M6 13.5H9.375M9.375 13.5L10 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -40,13 +40,17 @@
   </template>
   
   <script>
-
+import { useLang } from '~/composables/useLang';
 import Loader from '../../components/loader.vue';
 import Toggle from '../components/toggle.vue';
   
   
   export default {
   name: 'Modules',
+  setup() {
+    const { t } = useLang();
+    return { t };
+  },
   data() {
     return {
       isMounted: false,
@@ -143,7 +147,7 @@ import Toggle from '../components/toggle.vue';
 
       console.log('data: ', andersonModule);
 
-      this.disLog = "Waiting response...";
+      this.disLog = this.t("waiting response...");
 
       try {
         const response = await fetch('https://management.hoggari.com/backend/api.php?action=andersonModule', {
@@ -155,12 +159,12 @@ import Toggle from '../components/toggle.vue';
         });
 
         if (!response.ok) {
-          this.disLog = "Error in response";
+          this.disLog = this.t("error in response");
           this.saving = false;
           return;
         }
 
-        this.disLog = "Waiting data...";
+        this.disLog = this.t("waiting data...");
         const textResponse = await response.json();
 
         if (textResponse.success) {
@@ -169,7 +173,7 @@ import Toggle from '../components/toggle.vue';
           this.disLog = textResponse.message + (textResponse.data ? ` : ${textResponse.data}` : '');
         }
       } catch (error) {
-        this.disLog = `Request failed: ${error.message}`;
+        this.disLog = `${this.t("request failed: ")}${error.message}`;
       } finally {
         this.saving = false;
       }

@@ -16,11 +16,11 @@
           <path d="M17 4L7 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
         <h1>
-          {{ productsLength }} Products
+          {{ productsLength }} {{ t('products') }}
         </h1>
         
       </div>
-      <Linker :link="'/products/0'" text="Add Product" :svg="icons['addPackage']" />
+      <Linker :link="'/products/0'" :text="t('add product')" :svg="icons['addPackage']" />
     </div>
 
       <div v-if="!isUpdating" class="listTable" :style="{display: 'flex', justifyContent: 'center', alignItems: 'center'}">
@@ -212,7 +212,7 @@
       });
 
       if (!response.ok) {
-        console.error('Erreur lors de la récupération des produits:', response.statusText);
+        console.error(t('error fetching products:'), response.statusText);
         isMounted.value = true;
         isUpdating.value = false;
         return;
@@ -223,7 +223,7 @@
       productsLength.value = productList.value.length;
       isUpdating.value = false;
     } catch (error) {
-      console.error('Une erreur est survenue:', error);
+      console.error(t('an error occurred:'), error);
       isUpdating.value = false;
     } finally {
       isMounted.value = true;
@@ -252,7 +252,7 @@
       body: updateOrder,
       });
       if(!response2.ok){
-          console.error("error in response");
+          console.error(t("error in response"));
           isUpdating.value = false;
           return;
       }
