@@ -1,26 +1,14 @@
 <template>
-
-    <div class="searcher">
-        <!--Filter :currentFilter="filterType[0]" :filter="filterType"/>
-        <Filter :currentFilter="filterType2[0]" :filter="filterType2"/>
-        <!--select v-model="filterType" class="searcherFilter">
-            <option value="file">📁 {{ t('file') }}</option>
-            <option value="image">🖼️ {{ t('image') }}</option>
-        </!select>
-        <select-- v-model="filterType2" class="searcherFilter">
-            <option value="id">🆔 {{ t('by id') }}</option>
-            <option value="name">🔤 {{ t('by name') }}</option>
-        </select-->
-
+    <div class="flex items-center w-full max-w-md p-1.25 m-1.25 overflow-hidden transition-all duration-300 ease-in-out bg-white border-2 rounded-full border-zioly2 dark:bg-darkly dark:border-garry">
         <textarea
             v-model="internalSearch"
             @input="emitSearch"
-            class="searcherBar"
+            class="flex items-center justify-center flex-1 h-10 px-4 text-sm text-center bg-transparent border-none outline-none resize-none text-darkly dark:text-whitly placeholder:text-center"
             :placeholder="t('search')">
         </textarea>
     
-        <button class="searcherBtn" @click="emitSearch">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none">
+        <button class="flex items-center justify-center p-1.25 rounded-full cursor-pointer bg-zioly2" @click="emitSearch">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" class="text-whity">
                 <path d="M17.5 17.5L22 22" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M20 11C20 6.02944 15.9706 2 11 2C6.02944 2 2 6.02944 2 11C2 15.9706 6.02944 20 11 20C15.9706 20 20 15.9706 20 11Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
             </svg>
@@ -86,104 +74,3 @@ const emitSearch = () => {
 
 
 </script>
-
-
-<style>
-.searcher{
-    width: calc(100% - 10px);
-    height: 40px;
-    display: flex;
-    align-items: center;
-    
-    max-width: 450px;
-    background-color: white;
-    border: 2px solid var(--color-zioly2);
-    border-radius: 25px;
-    padding: 5px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    margin: 5px;
-}
-.dark .searcher{
-    background-color: var(--color-darkly);
-    border: 2px solid var(--color-garry);
-}
-
-
-
-.searcherBtn{
-    background-color: var(--color-zioly2);
-    cursor: pointer;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.3s ease;
-}
-
-.searcherBtn svg{
-    color: var(--color-whity);
-}
-
-.searcherBar {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 14px;
-  padding: 0 15px;
-  resize: none;
-  height: 40px;
-  color: var(--color-darkly);
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 40px;
-}
-
-.searcherBar::placeholder {
-  text-align: center;
-}
-
-
-/* Mode sombre */
-.dark .searcherBar {
-    background: transparent;
-    color: var(--color-whitly);
-    border-color: var(--color-darky);
-}
-
-
-/* Ajustement automatique de la hauteur */
-.searcherBar.auto-expand {
-    min-height: 40px;
-    height: auto;
-    overflow-y: hidden;
-}
-
-.searcherFilter {
-  border: none;
-  background-color: transparent;
-  font-size: 14px;
-  padding: 0 10px;
-  cursor: pointer;
-  color: var(--color-darkly);
-  height: 100%;
-  appearance: none;
-  text-align: center;
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpolyline%20points='6%209%2012%2015%2018%209'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-}
-
-.dark .searcherFilter {
-  color: var(--color-whity);
-}
-
-
-</style>

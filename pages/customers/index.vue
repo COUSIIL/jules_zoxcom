@@ -1,95 +1,68 @@
 <template>
-  <div v-if="isMounted" class="customer-wrapper">
-
+  <div v-if="isMounted" class="max-w-3xl p-5 mx-auto">
     <div v-if="isUpdating">
       <LoaderBlack width="80px" />
     </div>
 
-    <div v-if="customerList" class="box">
-      <div v-html="resizeSvg(icons['user'], 20, 20)">
-
-      </div>
-      <label>
-          {{ customerList.length }}
-      </label>
-            
+    <div v-if="customerList" class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+      <div v-html="resizeSvg(icons['user'], 20, 20)"></div>
+      <label>{{ customerList.length }}</label>
     </div>
 
     <div
       v-for="(customer, index) in visibleCustomers"
       :key="index"
-      
     >
-    <div class="customer-card">
+    <div class="flex items-center justify-between gap-1.25 p-4 mb-3 rounded-lg shadow-md bg-whitly dark:bg-darkly dark:shadow-2xl text-darky dark:text-whizy">
       <div>
-        <div class="box">
-          <label>
+        <div class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+          <label class="inline-block min-w-[80px] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
             ID: {{ customer.id }}
           </label>
         </div>
         
-        <div class="box">
-            <div v-html="resizeSvg(icons['user'], 20, 20)">
-
-            </div>
-            <label>
+        <div class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+            <div v-html="resizeSvg(icons['user'], 20, 20)"></div>
+            <label class="inline-block min-w-[80px] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
                 {{ customer.name }}
             </label>
-            
         </div>
-        <div class="box">
-            <div v-html="resizeSvg(icons['phone'], 20, 20)">
-
-            </div>
-            <label>
+        <div class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+            <div v-html="resizeSvg(icons['phone'], 20, 20)"></div>
+            <label class="inline-block min-w-[80px] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
                 {{ customer.phone }}
             </label>
-            
         </div>
 
-        <div v-if="customer.items.length > 0" class="box">
-            <div v-html="resizeSvg(icons['time'], 20, 20)">
-
-            </div>
-            <label>
+        <div v-if="customer.items.length > 0" class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+            <div v-html="resizeSvg(icons['time'], 20, 20)"></div>
+            <label class="inline-block min-w-[80px] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
                 {{ customer.items[0].created_at }}
             </label>
-            
         </div>
       </div>
 
-      <div style="display: flex; justify-content: center; align-items: center; flex-direction: column">
-        <div class="box">
-          <div v-html="resizeSvg(icons['fire'], 20, 20)">
-
-          </div>
-          <label>
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center justify-start gap-1.25 p-1.25 text-sm overflow-hidden rounded-lg max-w-full">
+          <div v-html="resizeSvg(icons['fire'], 20, 20)"></div>
+          <label class="inline-block min-w-[80px] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap">
               {{ customer.power }}
           </label>
-          
         </div>
 
-        <button class="x" type="button" @click="deleteCustomer(customer.id, index)">
-            <div v-html="resizeSvg(icons['deleteImg'], 20, 20)">
-
-          </div>
+        <button class="flex items-center justify-center w-6 h-6 rounded-full cursor-pointer bg-rady text-whity" type="button" @click="deleteCustomer(customer.id, index)">
+            <div v-html="resizeSvg(icons['deleteImg'], 20, 20)"></div>
         </button>
-
       </div>
     </div>
-    
-    
     </div>
 
     <button
       v-if="visibleCount < customerList.length"
       @click="loadMore"
-      class="load-more-btn"
-        >
-        <label>
-            {{t('show more')}}    
-        </label>
-      
+      class="block px-5 py-2.5 mx-auto mt-5 text-base text-white bg-purple-600 border-none rounded-lg cursor-pointer transition-colors hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+    >
+        <label>{{t('show more')}}</label>
     </button>
   </div>
 </template>
@@ -199,91 +172,3 @@ async function deleteCustomer(id, index) {
 
 
 </script>
-
-<style scoped>
-.customer-wrapper {
-  padding: 20px;
-  max-width: 800px;
-  margin: auto;
-}
-
-.customer-card {
-  background-color: var(--color-whitly);
-  color: var(--color-darky);
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 5px;
-}
-
-.load-more-btn {
-  display: block;
-  margin: 20px auto 0;
-  padding: 10px 20px;
-  background-color: #7f5af0;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.load-more-btn:hover {
-  background-color: #6e4ae0;
-}
-
-/* Mode sombre */
-.dark .customer-card {
-  background-color: var(--color-darkly);
-  color: var(--color-whizy);
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
-}
-
-.dark .load-more-btn {
-  background-color: #a084ff;
-  color: #fff;
-}
-
-.dark .load-more-btn:hover {
-  background-color: #8c6fff;
-}
-
-.box {
-  padding: 5px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  gap: 5px;
-  max-width: 100%; /* sécurité */
-  overflow: hidden;
-  font-size: 14px;
-}
-
-.box label {
-  max-width: 150px;
-  min-width: 80px;
-  white-space: nowrap;       /* reste sur une seule ligne */
-  overflow: hidden;          /* masque ce qui dépasse */
-  text-overflow: ellipsis;   /* ajoute "…" si le texte est trop long */
-  display: inline-block;
-}
-
-.x {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: var(--color-rady);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  color: var(--color-whity)
-}
-
-</style>

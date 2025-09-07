@@ -1,53 +1,32 @@
 <template>
-
   <LoaderBlack v-if="isSaving" width="100px" />
   <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
   <Confirm :isVisible="toConfirm" @confirm="save" @cancel="toConfirm = false" />
 
-    <div class="boxAddDelivery">
-        <div class="contentBox">
-          <div class="contentForm">
+    <div class="flex flex-col items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly">
+        <div class="flex flex-wrap items-start justify-center w-full gap-2.5 md:flex-nowrap">
+          <div class="flex flex-col items-stretch justify-center flex-1 max-w-xs gap-2.5">
             <Selector :options="deliveryListed" :placeHolder="t('method')" :img="icons['delivery']" @update:modelLabel="selectedDeliveryName" @update:modelValue="selectedDeliveryValue" :required="true"/>
-            <Inputer :placeHolder="t('delivery name')" type="text" :img="icons['label']" v-model="deliveryName" :required="true" style="max-width: 250px;" />
+            <Inputer :placeHolder="t('delivery name')" type="text" :img="icons['label']" v-model="deliveryName" :required="true" class="max-w-xs" />
             <Selector :options="wilaya" :placeHolder="t('drop-off area')" :img="icons['drop']" @update:modelLabel="selectedDropArea" :required="true" />
           </div>
-          <div class="contentForm">
-            <div class="contentLine" @click="returnFree = !returnFree">
-              <div v-html="icons['deliveryReturn']">
-
-              </div>
+          <div class="flex flex-col items-stretch justify-center flex-1 max-w-xs gap-2.5">
+            <div class="flex items-center justify-between w-full max-w-xl p-2 m-1.25 rounded-xl cursor-pointer bg-whity dark:bg-darkow" @click="returnFree = !returnFree">
+              <div v-html="icons['deliveryReturn']"></div>
               {{ t('free return') }}
               <Radio :selected="returnFree"/>
             </div>
-            <div class="contentLine" @click="includeFees = !includeFees">
-              <div v-html="icons['invoice']">
-
-              </div>
+            <div class="flex items-center justify-between w-full max-w-xl p-2 m-1.25 rounded-xl cursor-pointer bg-whity dark:bg-darkow" @click="includeFees = !includeFees">
+              <div v-html="icons['invoice']"></div>
               {{ t('include shipping fees in delivery form') }}
               <Radio :selected="includeFees"/>
             </div>
-            <div style="width: 100%; 
-              display: flex; 
-              justify-content:center; 
-              align-items: center;">
+            <div class="flex items-center justify-center w-full">
               <Gbtn :text="t('cancel')" @click="cancel" color="var(--color-rady)" :svg="icons['x']"/>
               <Gbtn :text="t('save')" @click="toConfirm = true" color="var(--color-greny)" :svg="icons['check']"/>
-              
             </div>
-            
-            
           </div>
-
-          
-          
         </div>
-
-
-        
-
-        
-
-        
     </div>
 </template>
 
@@ -455,103 +434,3 @@ onMounted(async () => {
 
 
 </script>
-
-<style>
-
-.boxAddDelivery {
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .boxAddDelivery{
-    background-color: var(--color-darkly);
-}
-
-.boxAddDelivery p {
-    margin-inline: 10px;
-}
-
-.contentBox {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    flex-wrap: wrap; /* Clé pour mobile */
-    gap: 10px;
-}
-
-.contentForm {
-  flex: 1;
-  max-width: 250px;
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.contentRow {
-  width: calc(100% - 20px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-  margin: 5px;
-  padding: 10px;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  max-width: 650px;
-}
-.dark .contentRow {
-  background-color: var(--color-darkow);
-}
-
-.contentMiniBox {
-  width: 100px;
-  height: 100px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 5px;
-  padding: 5px;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  cursor: pointer;
-}
-.contentMiniBox:hover {
-  background-color: var(--color-whiby);
-}
-.dark .contentMiniBox {
-  background-color: var(--color-darkow);
-}
-.dark .contentMiniBox:hover {
-  background-color: var(--color-whizy);
-}
-
-.contentLine {
-  width: calc(100% - 20px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  margin: 5px;
-  padding: 10px;
-  cursor: pointer;
-}
-.dark .contentLine {
-  background-color: var(--color-darkow);
-}
-
-</style>

@@ -1,16 +1,13 @@
 <template>
-  <div class="transactionContainer">
-    <div class="formContainer2">
-      <p>
-        {{ t('transfer') }}
-      </p>
+  <div class="flex flex-col items-center w-full max-w-3xl p-5 m-2.5 mx-auto rounded-md shadow-md bg-whitly dark:bg-darkly">
+    <div class="flex items-center justify-center w-full gap-2.5">
+      <p>{{ t('transfer') }}</p>
       <Radio :selected="is_transfer" @changed="is_transfer = !is_transfer"/>
     </div>
 
-    <div class="formContainer">
-
+    <div class="flex flex-wrap items-center justify-center w-full gap-4">
       <!-- Sélecteur Banque -->
-       <div v-if="!is_transfer" class="formContainer2">
+       <div v-if="!is_transfer" class="flex items-center justify-center w-full gap-2.5">
         <Selector 
             :options="props.options" 
             @update:modelValue="setBank" 
@@ -19,21 +16,17 @@
             :modelValue="form.account_id" 
             v-model="bank_name" 
             :img="icons['bank']"
-            class="formItem"
+            class="flex flex-col flex-1 gap-2.5 min-w-[100px]"
         />
 
-        <button v-if="form.direction == 'out'" class="btnTransactionOut" @click="form.direction = 'in'">
-            <div v-html="resizeSvg(icons['up'], 30, 30)">
-
-            </div>
+        <button v-if="form.direction == 'out'" class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer min-w-10 min-h-10 bg-rady" @click="form.direction = 'in'">
+            <div v-html="resizeSvg(icons['up'], 30, 30)"></div>
         </button>
-        <button v-else class="btnTransactionIn" @click="form.direction = 'out'">
-            <div v-html="resizeSvg(icons['down'], 30, 30)">
-
-            </div>
+        <button v-else class="flex items-center justify-center w-10 h-10 rounded-full cursor-pointer min-w-10 min-h-10 bg-greny" @click="form.direction = 'out'">
+            <div v-html="resizeSvg(icons['down'], 30, 30)"></div>
         </button>
        </div>
-       <div v-else class="formContainer2">
+       <div v-else class="flex items-center justify-center w-full gap-2.5">
         <Selector 
             :options="props.options" 
             @update:modelValue="setBankFrom" 
@@ -42,11 +35,9 @@
             :modelValue="form.from_account_id" 
             v-model="from_bank_name" 
             :img="icons['bank']"
-            class="formItem"
+            class="flex flex-col flex-1 gap-2.5 min-w-[100px]"
         />
-        <p>
-        {{ t('to') }}
-       </p>
+        <p>{{ t('to') }}</p>
        <Selector 
             :options="props.options" 
             @update:modelValue="setBankTo" 
@@ -55,14 +46,12 @@
             :modelValue="form.to_account_id" 
             v-model="to_bank_name" 
             :img="icons['bank']"
-            class="formItem"
+            class="flex flex-col flex-1 gap-2.5 min-w-[100px]"
         />
        </div>
-       
       
-
       <!-- Inputs -->
-      <div class="formItem">
+      <div class="flex flex-col flex-1 gap-2.5 min-w-[100px]">
         <Inputer 
           :placeHolder="t('description')" 
           v-model="form.description" 
@@ -79,11 +68,10 @@
       </div>
 
       <!-- Boutons -->
-      <div class="actions">
+      <div class="flex flex-wrap justify-center w-full gap-4 mt-2.5 md:flex-col">
         <CBtn :text="t('cancel')" :svg="icons['x']" @clicked="emit('x')" />
         <CallToAction :text="t('add')" :svg="icons['check']" @clicked="submitForm" />
       </div>
-
     </div>
   </div>
 </template>
@@ -310,92 +298,3 @@ const submitForm = async () => {
   
 }
 </script>
-
-
-<style scoped>
-.transactionContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 800px;
-  background-color: var(--color-whitly);
-  border-radius: 6px;
-  padding: 20px;
-  margin: 10px auto;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .transactionContainer {
-  background-color: var(--color-darkly);
-}
-
-.formContainer {
-  display: flex;
-  flex-wrap: wrap; /* permet le passage à la ligne */
-  gap: 15px;
-  width: 100%;
-  justify-content: center;
-}
-
-.formContainer2 {
-  display: flex;
-  justify-content: center; /* permet le passage à la ligne */
-  gap: 10px;
-  width: 100%;
-  align-items: center;
-}
-
-.formItem {
-  flex: 1 1 100px; /* chaque bloc prend min 300px et s'adapte */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-  margin-top: 10px;
-  flex-wrap: wrap; /* empile les boutons si pas de place */
-}
-
-@media (max-width: 600px) {
-  .formContainer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .actions {
-    flex-direction: column;
-  }
-}
-
-.btnTransactionIn {
-    background-color: var(--color-greny);
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.btnTransactionOut {
-    background-color: var(--color-rady);
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-</style>
-
-

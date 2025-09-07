@@ -1,8 +1,8 @@
 <template>
-  <div class="boxContainer2">
-    <div class="centerFlex">
+  <div class="flex flex-col items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 m-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly">
+    <div class="flex flex-wrap items-center justify-center w-full gap-4 md:flex-nowrap">
 
-      <div class="centerColumn">
+      <div class="flex flex-col items-center justify-between w-full">
         <Inputer :placeHolder="t('bank name')" v-model="form.bank_name" :required="true" :holder="t('ex: products')"/>
         <Selector 
             :options="currency" 
@@ -17,9 +17,7 @@
         <Inputer :placeHolder="t('initial balance')" v-model="form.balance" type="number" :holder="0"/>
       </div>
 
-      
-
-      <div class="actions">
+      <div class="flex flex-wrap justify-center w-full gap-4 mt-2.5 md:flex-col">
         <CBtn :text="t('cancel')" :svg="icons['x']" @clicked="emit('x')"/>
         <CallToAction :text="t('add')" :svg="icons['check']" @clicked="submitForm"/>
       </div>
@@ -113,91 +111,3 @@ const submitForm = async () => {
   }
 }
 </script>
-
-<style scoped>
-.profile-image-upload {
-  margin-top: 1rem;
-  margin: 10px;
-}
-
-.upload-label {
-  max-width: 150px;
-  min-width: 150px;
-  max-height: 150px;
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  border: 2px dashed #ccc;
-  padding: 1rem;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  border-radius: 50%;
-}
-
-.image-preview img {
-  max-width: 150px;
-  max-height: 150px;
-  border-radius: 50%;
-}
-
-.image-placeholder {
-  color: #999;
-  font-size: 14px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-  margin-top: 10px;
-  flex-wrap: wrap; /* empile les boutons si pas de place */
-}
-
-.centerFlex {
-  display: flex;
-  flex-wrap: wrap; /* permet le passage à la ligne */
-  gap: 15px;
-  width: 100%;
-  justify-content: center;
-}
-
-@media (max-width: 600px) {
-  .centerFlex {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .actions {
-    flex-direction: column;
-  }
-}
-
-.centerColumn {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.boxContainer2 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 800px;
-  min-width: 300px;
-  background-color: var(--color-whitly);
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  padding-block: 10px;
-  margin: 10px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .boxContainer2{
-  background-color: var(--color-darkly);
-}
-</style>

@@ -1,18 +1,16 @@
 <template>
-  <div class="dropdown1" :style="{ backgroundColor: color }">
-    <div class="selected1" @click="toggleDropdown">
+  <div class="relative w-full max-w-xs min-w-[150px] p-0.5 rounded-3xl cursor-pointer" :style="{ backgroundColor: color }">
+    <div class="w-full h-8 p-1 rounded-3xl bg-gradient-to-r from-whity to-whiby dark:from-darky dark:to-darkiw" @click="toggleDropdown">
       {{ options.length || t('your list') }}
     </div>
 
-    <ul v-if="showDropdown" class="dropdown-list1">
-      <li v-for="(option, index) in options" :key="option.value" class="dropdown-item1">
-        <span @click="selectOption(option.value)" style="display: flex; align-items: center; gap: 10px;">
-          <div v-if="typeof option.value === 'string' && option.value.startsWith('#')"  style="width: 30px; height: 30px; border-radius: 50%;" :style="{backgroundColor: option.value}">
-
-          </div>
+    <ul v-if="showDropdown" class="absolute z-10 w-full p-1 m-0 list-none bg-white rounded-3xl shadow-lg dark:bg-darky dark:shadow-2xl">
+      <li v-for="(option, index) in options" :key="option.value" class="flex items-center justify-between px-2 py-1 hover:bg-whizy dark:hover:bg-zioly1 rounded-3xl">
+        <span @click="selectOption(option.value)" class="flex items-center gap-2.5">
+          <div v-if="typeof option.value === 'string' && option.value.startsWith('#')" class="w-8 h-8 rounded-full" :style="{backgroundColor: option.value}"></div>
           {{ option.label }}
         </span>
-        <button class="delete-btn1" @click.stop="deleteOption(index)">
+        <button class="text-sm text-red-500 bg-transparent border-none cursor-pointer" @click.stop="deleteOption(index)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" color="#ff5555" fill="none">
                 <path d="M19.0005 4.99988L5.00049 18.9999M5.00049 4.99988L19.0005 18.9999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
@@ -60,79 +58,3 @@ function deleteOption(index) {
   emit('update:options', newOptions)
 }
 </script>
-
-<style scoped>
-
-.imageCircle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block; /* ou inline-block selon ton contexte */
-}
-
-
-.dropdown1 {
-  position: relative;
-  border-radius: 22px;
-  padding: 2px;
-  cursor: pointer;
-  width: 100%;
-  min-width: 150px;
-  max-width: 250px;
-}
-
-.selected1 {
-  background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
-  border-radius: 24px;
-  padding: 4px;
-  height: 30px;
-  width: 100%;
-}
-.dark .selected1 {
-  background: linear-gradient(to right, var(--color-darky), var(--color-darkiw));
-}
-
-.dropdown-list1 {
-  position: absolute;
-  background: var(--color-whitly);
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  border-radius: 22px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-  width: 100%;
-  z-index: 10;
-}
-.dark .dropdown-list1 {
-  background: var(--color-darky);
-  box-shadow: 0 0 6px rgba(0,0,0,0.8);
-}
-
-.dropdown-item1 {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 8px;
-  align-items: center;
-}
-
-.dropdown-item1:hover {
-  background: var(--color-whizy);
-  border-radius: 22px;
-}
-.dark .dropdown-item1:hover {
-  background: var(--color-zioly1);
-  border-radius: 22px;
-}
-
-.delete-btn1 {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: red;
-  font-size: 14px;
-}
-
-
-/* Réutilise le style du label flottant et du conteneur .gBtn */
-</style>

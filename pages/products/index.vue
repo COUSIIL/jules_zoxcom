@@ -4,12 +4,12 @@
 
 
 
-  <div v-if="isMounted" :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}">
+  <div v-if="isMounted" class="flex flex-col items-center max-w-full">
 
-    <div class="boxContainer1">
+    <div class="flex items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly">
       
-      <div style="display: flex; justify-content: center; align-items: center; margin-inline: 10px;">
-        <svg style="margin-inline: 5px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="currentColor" fill="none">
+      <div class="flex items-center justify-center mx-2.5">
+        <svg class="mx-1.25" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="currentColor" fill="none">
           <path d="M12 22C11.1818 22 10.4002 21.6698 8.83693 21.0095C4.94564 19.3657 3 18.5438 3 17.1613C3 16.7742 3 10.0645 3 7M12 22C12.8182 22 13.5998 21.6698 15.1631 21.0095C19.0544 19.3657 21 18.5438 21 17.1613V7M12 22L12 11.3548" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
           <path d="M8.32592 9.69138L5.40472 8.27785C3.80157 7.5021 3 7.11423 3 6.5C3 5.88577 3.80157 5.4979 5.40472 4.72215L8.32592 3.30862C10.1288 2.43621 11.0303 2 12 2C12.9697 2 13.8712 2.4362 15.6741 3.30862L18.5953 4.72215C20.1984 5.4979 21 5.88577 21 6.5C21 7.11423 20.1984 7.5021 18.5953 8.27785L15.6741 9.69138C13.8712 10.5638 12.9697 11 12 11C11.0303 11 10.1288 10.5638 8.32592 9.69138Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
           <path d="M6 12L8 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -23,7 +23,7 @@
       <Linker :link="'/products/0'" :text="t('add product')" :svg="icons['addPackage']" />
     </div>
 
-      <div v-if="!isUpdating" class="listTable" :style="{display: 'flex', justifyContent: 'center', alignItems: 'center'}">
+      <div v-if="!isUpdating" class="flex flex-wrap items-center justify-center gap-5">
         <Confirm :isVisible="showConfirm"
           @confirm="confirmation(true)"
           @cancel="confirmation(false)"
@@ -50,30 +50,30 @@
             </svg>
           </button>
 
-          <div class="activer_info_float" v-if="product.prodActive == 1">
-            <div style="width: 10px; height: 10px; min-width: 10px; min-height: 10px; background-color: var(--color-greny); margin-inline: 5px; border-radius: 50%;">
+          <div class="absolute top-1.5 left-1.5 flex items-center justify-center h-6 max-w-24 px-1.5 bg-white/80 rounded-full shadow-md transition-all duration-200" v-if="product.prodActive == 1">
+            <div class="w-2.5 h-2.5 min-w-[10px] min-h-[10px] bg-greny mx-1.25 rounded-full">
             </div>
-            <p>
+            <p class="m-1.25 text-xs font-bold text-darkow">
               {{ t('active') }}
             </p>
           </div>
-          <div class="activer_info_float" v-else>
-            <div style="width: 10px; height: 10px; min-width: 10px; min-height: 10px; background-color: var(--color-rady); margin-inline: 5px; border-radius: 50%;">
+          <div class="absolute top-1.5 left-1.5 flex items-center justify-center h-6 max-w-24 px-1.5 bg-white/80 rounded-full shadow-md transition-all duration-200" v-else>
+            <div class="w-2.5 h-2.5 min-w-[10px] min-h-[10px] bg-rady mx-1.25 rounded-full">
             </div>
-            <p>
+            <p class="m-1.25 text-xs font-bold text-darkow">
               {{ t('disabled') }}
             </p>
           </div>
           
         </div>
-        <div class="product-info" style="width: 100%;">
-          <h2 class="product-title">{{ product.name }}</h2>
-          <label v-if="product.models[0]" class="product-price">
+        <div class="w-full mt-2.5 text-center">
+          <h2 class="text-base font-semibold my-1.25">{{ product.name }}</h2>
+          <label v-if="product.models[0]" class="inline-block px-2 py-1 mt-1 text-3xl font-bold text-green-600 bg-green-100 rounded-md">
             {{ product.models[0].sell }}
           </label>
           <div v-for="(view, viewIndex) in viewPageList" 
           :key="viewIndex">
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: cneter;" v-if="view.product_id === product.id">
+            <div class="flex items-center justify-between w-full" v-if="view.product_id === product.id">
               
               <h3>
                 {{ view.view }}
@@ -87,7 +87,7 @@
           </div>
           <div v-for="(click, clickIndex) in productClickList" 
           :key="clickIndex">
-            <div style="width: 100%; display: flex; justify-content: space-between; align-items: cneter;" v-if="click.product_id === product.id">
+            <div class="flex items-center justify-between w-full" v-if="click.product_id === product.id">
               
               <h3>
                 {{ click.click }}
@@ -290,172 +290,4 @@
   
   </script>
 
-<style>
-  .cancel {
-    background-color: #f44336;
-    color: white;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 6px;
-  }
-
-  .boxContainer1 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-  }
-  .dark .boxContainer1{
-    background-color: var(--color-darkly);
-  }
-
-  .product-card {
-    max-width: 160px;
-    min-width: 160px;
-    max-height: 300px;
-    min-height: 300px;
-    padding: 10px;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    animation: fadeIn 0.4s ease forwards;
-    opacity: 0;
-    position: relative;
-  }
-  .dark .product-card {
-    background: #131212;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-    color: var(--color-whizy)
-  }
-
-  .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  }
-
-.product-image-wrapper {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  overflow: hidden;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-
-  .product-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-
-  .product-image-wrapper:hover .product-image {
-    transform: scale(1.1);
-  }
-
-  .product-info {
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  .product-title {
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 5px 0;
-  }
-
-  .product-price {
-    display: inline-block;
-    font-size: 3vh;
-    color: #4CAF50;
-    font-weight: bold;
-    background-color: #e8f5e9;
-    padding: 4px 8px;
-    border-radius: 6px;
-    margin-top: 4px;
-  }
-
-.delete-button-floating {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background-color: rgba(255, 255, 255, 0.85);
-  border: none;
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #f44336;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.delete-button-floating:hover {
-  background-color: #f44336;
-  color: white;
-  transform: scale(1.1);
-}
-
-.activer_info_float{
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  background-color: rgba(255, 255, 255, 0.85);
-  border: none;
-  border-radius: 12px;
-  max-width: 100px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.activer_info_float p{
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--color-darkow);
-  margin: 5px;
-}
-
-  /* Animation d’apparition */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .product-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-  }
-
-
-</style>
   

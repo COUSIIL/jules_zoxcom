@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;" v-if="isMounted">
+  <div class="flex flex-col items-center justify-center" v-if="isMounted">
     <WebStore />
   </div>
 </template>
@@ -14,7 +14,3 @@ onMounted(() => {
   isMounted.value = true
 })
 </script>
-
-<style>
-/* ton style ici */
-</style>

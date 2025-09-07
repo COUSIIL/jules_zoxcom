@@ -1,10 +1,10 @@
 <template>
   
-  <div :style="{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}" v-if="isMounted">
+  <div class="flex flex-col items-center justify-center" v-if="isMounted">
     <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
     <Explorer v-if="isExplorer" :show="isExplorer" @confirm="getExplorerImg" @cancel="isExplorer = false" />
     <div class="boxProduct">
-      <h1 style="font-size: 18px; font-weight: bold;">
+      <h1 class="text-lg font-bold">
         {{ productID }} {{ t('product informations') }}
       </h1>
       
@@ -55,14 +55,14 @@
     </div>
 
     <div class="boxProduct">
-      <div :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '80%', maxWidth: '800px', minWidth: '200px' }">
+      <div class="flex items-center justify-center w-4/5 max-w-3xl min-w-52">
         <Inputer :placeHolder="t('youtube link')" :img="ytbSvg" :required="false" v-model="youtubeLink" @blur:modelValue="updateVideoId"/>
 
         <Radio :selected="ytbActive" @click="ytbActive = !ytbActive"/>
 
       </div>
       
-      <div :style="{ marginBlock: '5px', width: '80%', maxWidth: '800px', minWidth: '200px' }">
+      <div class="w-4/5 max-w-3xl my-1.25 min-w-52">
         <iframe 
           v-if="videoId"
           :src="`https://www.youtube.com/embed/${videoId}`"
@@ -151,15 +151,7 @@
         
         
       <div v-if="isModal" v-for="(ref, index) in modal" :key="index" 
-      :style="{
-        width: '80%',
-        marginBlock: '20px', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        
-        }">
+      class="flex flex-col items-center justify-center w-4/5 my-5">
         <div class="formLine" @click="ref.isActive = !ref.isActive">
           {{ t('acivate modal') }} {{index + 1}}
           <Radio :selected="ref.isActive"/>
@@ -199,7 +191,7 @@
           <Inputer :placeHolder="t('model sku')" :img="icons['barcode1']" :required="false" v-model="ref.sku"/>
           
           <div class="formRow">
-            <div type="button" @click="activeStock(index)" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div type="button" @click="activeStock(index)" class="flex items-center justify-between w-full h-12 m-1.25 cursor-pointer">
               {{t('Infinite stock')}}
               <Radio :selected="ref.infinit_stock"/>
 
@@ -208,14 +200,14 @@
 
           <div class="formRow">
 
-            <div type="button" @click="activeColor(index)" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div type="button" @click="activeColor(index)" class="flex items-center justify-between w-full h-12 m-1.25 cursor-pointer">
               {{t('Activate color')}}
               <Radio :selected="ref.activeColor"/>
 
             </div>
           </div>
           <div class="formRow">
-            <div type="button" @click="activeSize(index)" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div type="button" @click="activeSize(index)" class="flex items-center justify-between w-full h-12 m-1.25 cursor-pointer">
               {{t('Activate Size')}}
               <Radio :selected="ref.activeSize"/>
 
@@ -226,28 +218,21 @@
 
         <!--Add Details-->
         <div v-if="ref.activeColor || ref.activeSize" class="formRow">
-          <Inputer style="max-width: 100px;" type="number" :placeHolder="t('id catalog image')" :img="icons[image]" :required="true" v-model="catalog_index" v-on="{ 'blur:modelValue': val => catalog_image = catalogImage[val].previewImage }"/>
+          <Inputer class="max-w-24" type="number" :placeHolder="t('id catalog image')" :img="icons[image]" :required="true" v-model="catalog_index" v-on="{ 'blur:modelValue': val => catalog_image = catalogImage[val].previewImage }"/>
           <label class="inputImg">
             <span v-if="!catalog_image">{{ t('optimal 1:1') }}</span>
             <img v-else-if="catalog_image" :src="catalog_image" alt="Preview" />
           </label>
           <Selector v-if="ref.activeColor" :options="colors" color="var(--color-zioly2)" :placeHolder="t('color')" @update:modelValue="getColor" />
           <Selector v-if="ref.activeSize" :options="sizes" color="var(--color-zioly2)" :placeHolder="t('size')" @update:modelValue="getSize" />
-          <Inputer v-if="!ref.infinit_stock" style="max-width: 100px;" type="number" :placeHolder="t('qty')" :img="labelSvg" :required="true" v-model="ref.quantity"/>
+          <Inputer v-if="!ref.infinit_stock" class="max-w-24" type="number" :placeHolder="t('qty')" :img="labelSvg" :required="true" v-model="ref.quantity"/>
           <Gbtn :text="t('add detail')" @click="addDetail(ref.quantity, index, catalog_index)" color="var(--color-zioly2)" :svg="icons['add']"/>
         </div>
 
         <div class="folder-tree">
           <div v-for="(ref2, indexD) in ref.details" :key="indexD" >
             <div class="folder-item">
-              <div :style="{
-                    minWidth: '50px', 
-                    maxWidth: '50px', 
-                    minHeight: '50px', 
-                    maxHeight: '50px', 
-                    margin: '5px',
-                    borderRadius: '50%',
-                    backgroundColor: ref2.color, }" 
+              <div class="w-12 h-12 m-1.25 rounded-full" :style="{ backgroundColor: ref2.color }" >
               </div>
               <img v-if="ref2.catalog_image" :src="ref2.catalog_image" alt="Preview" />
               <h3 v-if="ref.activeColor">{{ ref2.colorName }}</h3>
@@ -265,18 +250,18 @@
         </div>
 
         <div class="formRow">
-          <p style="font-size: 3vh; font-weight: bold;">
+          <p class="text-3xl font-bold">
             {{ t('delivery packaging details') }}
           </p>
           <div class="formRow">
-            <div type="button" @click="ref.breakable = !ref.breakable" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+            <div type="button" @click="ref.breakable = !ref.breakable" class="flex items-center justify-between w-full h-12 m-1.25 cursor-pointer">
               {{t('product breakable')}}
               <Radio :selected="ref.breakable"/>
 
             </div>
           </div>
-          <Inputer style="max-width: 200px;" type="number" :placeHolder="t('weight')" :img="icons['weight']" v-model="ref.weight" holder="KG"/>
-          <Inputer style="max-width: 200px;" type="number" :placeHolder="t('volume')" :img="icons['volume']" v-model="ref.volume" holder="m2"/>
+          <Inputer class="max-w-52" type="number" :placeHolder="t('weight')" :img="icons['weight']" v-model="ref.weight" holder="KG"/>
+          <Inputer class="max-w-52" type="number" :placeHolder="t('volume')" :img="icons['volume']" v-model="ref.volume" holder="m2"/>
         </div>
 
         <Gbtn :text="t('remove')" @click="clearRef(index)" color="#ff5555" :svg="icons['x']"/>
@@ -299,9 +284,9 @@
 
     
 
-    <div style="position: sticky; bottom: 20px; display: flex; justify-content: center; align-items: center; width: 80%; margin: 30px; z-index: 1500;" v-if="!uploading">
-      <CancelBtn style="width: 20%; min-width: 100px;" :text="t('clear')" @clicked="resetForm" :svg="icons['clear']" />
-      <CallToAction style="width: 80%" :text="t('save')" @clicked="uploadProductImage" :svg="icons['check']" />
+    <div class="sticky bottom-5 z-50 flex items-center justify-center w-4/5 m-7" v-if="!uploading">
+      <CancelBtn class="w-1/5 min-w-24" :text="t('clear')" @clicked="resetForm" :svg="icons['clear']" />
+      <CallToAction class="w-4/5" :text="t('save')" @clicked="uploadProductImage" :svg="icons['check']" />
       
     </div>
     <LoaderBlack v-else width="100px" />
@@ -1346,346 +1331,3 @@ function resetForm() {
 }
 </script>
 
-<style scoped>
-.inputYoutube {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  width: 100%;
-  max-width: 800px;
-}
-
-.youtube {
-  width: 100%; 
-  height: 300px; 
-  margin-top: 50px;
-}
-
-.inputImg {
-display: flex;
-align-items: center;
-justify-content: center;
-width: 200px;
-height: 200px;
-background-color: var(--color-whizy);
-border: 1px solod var(--color-rangy);
-border-radius: 5px;
-padding: 5px;
-cursor: pointer; /* Indique que c'est cliquable */
-transition: all 0.3s ease;
-margin: 5px;
-text-align: center;
-color: var(--color-rangy);
-
-}
-
-.inputImg img {
-max-width: 200px;
-max-height: 200px;
-object-fit: contain;
-}
-
-.dark .inputImg{
-background-color: var(--color-darky);
-}
-.inputImg button{
-background-color: var(--color-rangy);
-cursor: pointer;
-border: none;
-cursor: pointer;
-padding: 10px;
-border-radius: 50%;
-display: flex;
-align-items: center;
-justify-content: center;
-transition: background 0.3s ease;
-}
-.inputImg button svg{
-color: var(--color-whity);
-}
-
-.boxProduct {
-    width: 90%;
-    margin: 10px;
-    border-radius: 8px;
-    padding-block: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    box-shadow: 0 4px 8px #3b3b3b20;
-    text-align: center;
-  }
-  .dark .boxProduct {
-    background-color: var(--color-darkly);
-  }
-
-
-  .productContent {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    flex-wrap: wrap; /* Clé pour mobile */
-    gap: 10px;
-}
-
-
-.imageUploadSection {
-  width: 100%;
-  max-width: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 5px;
-}
-
-.productForm {
-  flex: 1;
-  min-width: 250px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.formRow {
-  width: calc(100% - 20px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-  margin: 5px;
-  padding: 10px;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  max-width: 650px;
-}
-.dark .formRow {
-  background-color: var(--color-darkow);
-}
-
-.formLine {
-  width: calc(100% - 20px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  margin: 10px;
-  padding-inline: 5px;
-  cursor: pointer;
-}
-.dark .formLine {
-  background-color: var(--color-darkow);
-}
-
-/* Responsive pour écrans <= 768px */
-@media screen and (max-width: 768px) {
-  .productContent {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .formRow {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .productForm {
-    width: 100%;
-  }
-}
-.formRow2 {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.formRow2 p {
-  max-width: 100px;
-  min-width: 50px;
-  background-color: var(--color-whity);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 5px;
-}
-.dark .formRow2 p {
-  background-color: var(--color-darkow);
-}
-
-
-.inputImg2 {
-display: flex;
-align-items: center;
-justify-content: center;
-width: 100px;
-height: 100px;
-background-color: var(--color-whizy);
-border: 1px solod var(--color-rangy);
-border-radius: 5px;
-padding: 5px;
-cursor: pointer; /* Indique que c'est cliquable */
-transition: all 0.3s ease;
-margin: 5px;
-text-align: center;
-color: var(--color-rangy);
-}
-.dark .inputImg2{
-background-color: var(--color-darky);
-/*box-shadow: 0px 0px 8px var(--color-rangy);*/
-}
-.inputImg2 img {
-max-width: 100px;
-max-height: 100px;
-object-fit: contain;
-}
-
-.inputImg3 {
-display: flex;
-align-items: center;
-justify-content: center;
-flex-direction: column;
-width: 100px;
-height: 100px;
-background-color: var(--color-whity);
-border: 1px dashed var(--color-rangy);
-border-radius: 50%;
-cursor: pointer; /* Indique que c'est cliquable */
-transition: all 0.3s ease;
-text-align: center;
-color: var(--color-rangy);
-box-shadow: 0px 2px 8px var(--color-rangy);
-}
-.dark .inputImg3{
-background-color: var(--color-darky);
-box-shadow: 0px 0px 8px var(--color-rangy);
-}
-
-.removeImg {
-position: relative;
-top: -140px;
-left: 95px;
-width: 20px;
-height: 20px;
-display: flex;
-align-items: center;
-border-radius: 50%;
-justify-content: center;
-cursor: pointer;
-z-index: 500;
-}
-.removeImg svg {
-color: var(--color-rady);
-}
-
-.removeImg2 {
-position: relative;
-top: 0;
-left: 40px;
-width: 20px;
-height: 20px;
-display: flex;
-align-items: center;
-border-radius: 50%;
-justify-content: center;
-cursor: pointer;
-z-index: 500;
-}
-.removeImg2 svg {
-color: var(--color-rady);
-}
-
-
-.important {
-position: relative;
-bottom: 0;
-left: 0px;
-width: 20px;
-height: 20px;
-display: flex;
-align-items: center;
-border-radius: 50%;
-justify-content: center;
-cursor: pointer;
-z-index: 500;
-}
-
-
-.boxList2{
-max-width: calc(100% - 20px);
-width: 100%;
-border-radius: 6px;
-margin: 10px;
-display: flex;
-justify-content: center;
-flex-direction: column;
-align-items: center;
-background-color: var(--color-whity);
-}
-.dark .boxList2{
-background-color: var(--color-darkiw);
-}
-
-.folder-tree {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 2fr));
-  gap: 12px;
-  padding: 12px;
-  max-height: 400px;
-  overflow-y: auto;
-
-  /* Scrollbar styling */
-  scrollbar-width: thin;              /* Firefox */
-  scrollbar-color: #888 transparent; /* Firefox */
-}
-
-/* Chrome, Edge, Safari */
-.folder-tree::-webkit-scrollbar {
-  width: 8px;
-}
-
-.folder-tree::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.folder-tree::-webkit-scrollbar-thumb {
-  background-color: rgba(125, 105, 142, 0.6); /* couleur mauve translucide */
-  border-radius: 10px;
-  border: 2px solid transparent; /* espace autour */
-  background-clip: content-box;
-  transition: background-color 0.3s ease;
-}
-
-.folder-tree::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(125, 105, 142, 0.9);
-}
-
-.folder-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  user-select: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  background-color: var(--color-whity);
-}
-.dark .folder-item {
-  background-color: var(--color-darkow);
-}
-
-.folder-item:hover {
-  background-color: #1400003f;
-}
-.dark .folder-item:hover {
-  background-color: #e0e0e03f;
-}
-
-</style>

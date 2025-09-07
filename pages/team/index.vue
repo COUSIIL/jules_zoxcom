@@ -7,10 +7,10 @@
           @ok="isMessage = false"
         />
 
-  <div :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}">
-    <div class="boxContainer1">
+  <div class="flex flex-col items-center max-w-full">
+    <div class="flex items-center justify-between w-full max-w-3xl min-w-[300px] p-2.5 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md bg-whitly dark:bg-darkly">
   
-      <div style="display: flex; justify-content: center; align-items: center; margin-inline: 10px; gap: 5px;">
+      <div class="flex items-center justify-center gap-1.25 mx-2.5">
           <div v-html="resizeSvg(icons['team'], 20, 20)">
 
           </div>
@@ -26,28 +26,28 @@
 
     <AddMember v-if="isActive" @saving="saving" @success="success" @cancel="cancel" @message="messager" @x="isActive = false"/>
 
-    <div v-for="(user, index) in members" :key="index" class="center_column">
-      <div class="boxContainer2" @click="router.push(`/team/${user['username']}`)">
-          <div class="center_flex">
-            <img v-if="user['profile_image']" :src="'https://management.hoggari.com/uploads/profile/' + user['profile_image']" :alt="user['profile_image']">
-            <div v-else class="no_image">
+    <div v-for="(user, index) in members" :key="index" class="flex flex-col items-center justify-center w-11/12">
+      <div class="flex flex-col items-end justify-between w-full max-w-3xl min-w-[300px] p-1.25 my-2.5 transition-all duration-300 ease-in-out rounded-md shadow-md cursor-pointer bg-whitly dark:bg-darkly" @click="router.push(`/team/${user['username']}`)">
+          <div class="flex items-center justify-center w-full min-w-[250px] max-w-52 gap-2.5 mx-1.25">
+            <img v-if="user['profile_image']" :src="'https://management.hoggari.com/uploads/profile/' + user['profile_image']" :alt="user['profile_image']" class="flex object-cover w-24 h-24 rounded-full min-w-24 min-h-24">
+            <div v-else class="w-24 h-24 rounded-full min-w-24 min-h-24 bg-whizy dark:bg-darkow">
 
             </div>
-            <div class="insider">
-              <div class="titleTeam">
+            <div class="flex flex-col items-center justify-center w-1/2 min-w-36 max-w-72">
+              <div class="flex items-center justify-start min-w-[150px] max-w-[150px] overflow-hidden text-xl font-bold text-ellipsis whitespace-nowrap">
                 {{ user['username'] }}
               </div>
-              <div class="minTitle">
+              <div class="flex items-center justify-start min-w-[150px] max-w-[150px] overflow-hidden text-sm text-ellipsis whitespace-nowrap">
                 {{ user['name'] }} {{ user['family_name'] }}
               </div>
-              <div class="minTitle">
+              <div class="flex items-center justify-start min-w-[150px] max-w-[150px] overflow-hidden text-sm text-ellipsis whitespace-nowrap">
                 {{ user['created_at'] }}
               </div>
             </div>
     
           </div>
 
-          <div v-if="user['email']" class="center_flex">
+          <div v-if="user['email']" class="flex items-center justify-center w-full min-w-[250px] max-w-52 gap-2.5 mx-1.25">
             <div v-html="resizeSvg(icons['mail'], 20, 20)">
 
             </div>
@@ -56,7 +56,7 @@
             </p>
           </div>
 
-          <div v-if="user['phone']" class="center_flex">
+          <div v-if="user['phone']" class="flex items-center justify-center w-full min-w-[250px] max-w-52 gap-2.5 mx-1.25">
             <div v-html="resizeSvg(icons['phone'], 20, 20)">
 
             </div>
@@ -149,124 +149,3 @@
   }
 
 </script>
-
-<style>
-
-  .boxContainer1 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-  }
-  .dark .boxContainer1{
-    background-color: var(--color-darkly);
-  }
-
-  .boxContainer2 {
-    display: flex;
-    align-items: right;
-    justify-content: space-between;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    background-color: var(--color-whitly);
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-    padding: 5px;
-    cursor: pointer;
-  }
-  .dark .boxContainer2{
-    background-color: var(--color-darkly);
-  }
-  
-
-  .no_image {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    border-radius: 50px;
-    background-color: var(--color-whizy);
-  }
-  .dark .no_image {
-    background-color: var(--color-darkow);
-  }
-
-  .center_column {
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .center_flex {
-    width: 100%;
-    display: flex;
-    min-width: 250px;
-    max-width: 200px;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin-inline: 5px;
-  }
-
-  .insider {
-    width: 50%;
-    display: flex;
-    min-width: 150px;
-    max-width: 300px;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
-  .titleTeam {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 20px;
-    font-weight: bold;
-  }
-  .minTitle {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 14px;
-  }
-
-  .center_flex img {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    object-fit: cover; /* Remplit la zone en gardant le ratio */
-    display: flex;
-    border-radius: 50%; /* Cercle parfait */
-    
-
-  }
-
-
-</style>

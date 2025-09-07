@@ -1,16 +1,16 @@
 <template>
-  <nav v-if="isVisible && isMounted" class="overlay">
-    <div class="modal1">
+  <nav v-if="isVisible && isMounted" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 animate-fadeIn">
+    <div class="flex flex-col items-center justify-center min-w-[260px] max-w-[300px] p-7 text-center transition-all duration-300 ease-in-out rounded-2xl shadow-2xl animate-scaleIn bg-whity text-darky dark:bg-darkly dark:text-whity">
       <DotLottieVue
-        style="height: 50px; width: 50px"
+        class="w-12 h-12"
         src="/animations/important.lottie"
         autoplay
         loop
       />
-      <p>{{ message }}</p>
-      <div class="buttons">
-        <button class="confirm" @click="$emit('confirm')">Yes</button>
-        <button class="cancel" @click="$emit('cancel')">No</button>
+      <p class="my-5 text-base">{{ message }}</p>
+      <div class="flex justify-center gap-3">
+        <button class="px-4 py-2 text-sm font-medium text-white bg-green-500 border-none rounded-lg cursor-pointer transition-transform ease-in-out duration-200 hover:bg-green-600" @click="$emit('confirm')">Yes</button>
+        <button class="px-4 py-2 text-sm font-medium text-white bg-red-500 border-none rounded-lg cursor-pointer transition-transform ease-in-out duration-200 hover:bg-red-600" @click="$emit('cancel')">No</button>
       </div>
     </div>
   </nav>
@@ -44,97 +44,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5000;
-  animation: fadeIn 0.25s ease-in-out;
-}
-
-.modal1 {
-  background: var(--color-whity);
-  color: var(--color-darky);
-  padding: 24px 28px;
-  border-radius: 16px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  animation: scaleIn 0.3s ease;
-  min-width: 260px;
-  max-width: 300px;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-.dark .modal1 {
-  background: var(--color-darkly);
-  color: var(--color-whity);
-}
-
-.modal1 p {
-  font-size: 16px;
-  margin: 20px 0;
-}
-
-.buttons {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
-.buttons button {
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.3s ease;
-}
-
-.confirm {
-  background-color: #4caf50;
-  color: white;
-}
-
-.confirm:hover {
-  background-color: #43a047;
-}
-
-.cancel {
-  background-color: #f44336;
-  color: white;
-}
-
-.cancel:hover {
-  background-color: #e53935;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-</style>

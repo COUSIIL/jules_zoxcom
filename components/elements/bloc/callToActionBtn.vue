@@ -1,9 +1,7 @@
 <template>
-    <button @click="clicked" class="router_link">
+    <button @click="clicked" class="flex items-center justify-center p-2.5 mx-2.5 text-base rounded-lg cursor-pointer bg-gradient-to-r from-green-400 to-lime-400 text-darky">
         {{ text }}
-        <div class="iconCTA" v-html="svg">
-
-        </div>
+        <div class="mx-2.5 text-darky" v-html="svg"></div>
     </button>
 </template>
 
@@ -21,30 +19,3 @@ const clicked = () => {
 }
 
 </script>
-
-<style scoped>
-.router_link {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-inline: 10px;
-  padding: 10px;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #3ded86, #b2ff59);
-  color: var(--color-darky);
-  font-size: 16px;
-  cursor: pointer;
-
-}
-
-.iconCTA {
-  margin-inline: 10px;
-  color: var(--color-darky);
-}
-
-.iconCTA svg {
-  width: 20px;
-  height: 20px;
-  padding-inline: 0;
-}
-</style>

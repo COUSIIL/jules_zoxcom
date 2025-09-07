@@ -2,29 +2,19 @@
   <Confirm :isVisible="showConfirm" @confirm="deleteAll" @cancel="showConfirm = false"/>
   <Message :isVisible="isMessage" :message="message" @ok="isMessage = false" />
 
-  <div v-if="show" class="backCalque">
+  <div v-if="show" class="fixed top-0 right-0 w-full h-full bg-black bg-opacity-15 backdrop-blur-sm z-2000"></div>
 
-  </div>
-
-  <div v-if="show && ready" class="modalExp" @contextmenu.prevent>
+  <div v-if="show && ready" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-3xl max-h-[80vh] overflow-y-auto p-4 rounded-lg bg-opacity-90 bg-white dark:bg-opacity-80 dark:bg-black dark:border dark:border-gray-800 shadow-lg backdrop-blur-md z-2000 flex flex-col items-stretch justify-start" @contextmenu.prevent>
     
-    <div v-if="isLargeScreen" style="width: 100%;">
+    <div v-if="isLargeScreen" class="w-full">
       <RoadLink v-if="liList" :liList="liList" @back-click="backToFolder" @selected-back="backToSelectedFolder" @back-home="backToHome"/>
       <Uploader :folder-id="currentParentId" @uploaded="getImages"/>
       
-      <div style="width: 100%; 
-          display: flex; 
-          justify-content:center; 
-          align-items: center;">
-        
+      <div class="flex items-center justify-center w-full">
         <Searcher v-model="search" @search-submitted="toSearch" @filters-changed="onFiltersChanged" />
-
-        <!--Gbtn :text="t('confirm')" @click="confirmExp" color="var(--color-greny)" :svg="confirmImg"/-->
-
         <Gbtn :text="t('close')" @click="closeExp" color="#ff5555" :svg="icons['closeImg']"/>
-
       </div>
-      <div style="width: 100%; display: flex; align-items: center;">
+      <div class="flex items-center w-full">
         <InputBtn
           :placeHolder="t('add folder')"
           :img="icons['folderImg']"
@@ -34,15 +24,12 @@
           color="#7D698E"
           @clicked="addFolderTo(currentParentId, newFolderName)"
         />
-
         <Gbtn :text="t('delete')" @click="showConfirm = true" color="#ff5555" :svg="icons['deleteImg']"/>
         <Gbtn :text="t('download')" @click="downloadImagesSelected" :svg="icons['download']" color="var(--color-greny)"/>
-
-
       </div>
       
-      <div v-if="!isAdding" class="folder-tree">
-        <div class="folder-item" v-for="folder in folders" :key="folder.id">
+      <div v-if="!isAdding" class="grid w-full grid-cols-[repeat(auto-fill,minmax(100px,2fr))] gap-3 p-3 max-h-96 overflow-y-auto">
+        <div class="flex flex-col items-center p-2 transition-colors duration-200 ease-in-out rounded-md cursor-pointer select-none hover:bg-gray-200" v-for="folder in folders" :key="folder.id">
           <FolderBox
               v-if="folder.id != 1"
               :folder="folder"
@@ -54,16 +41,13 @@
               @clicked="folderRoadList(folder.name, folder.id)"
               @rename="newName => renameFolder(folder.id, newName)"
               @toggle-delete="handleToggleDelete"
-              
           />
         </div>
       </div>
-      <!-- Trigger invisible pour charger plus -->
-      <div ref="loadMoreRef" class="observer-trigger"></div>
+      <div ref="loadMoreRef" class="h-px"></div>
 
-      
-      <div v-if="!isAdding" class="folder-tree">
-        <div class="folder-item" v-for="image in images" :key="image.id">
+      <div v-if="!isAdding" class="grid w-full grid-cols-[repeat(auto-fill,minmax(100px,2fr))] gap-3 p-3 max-h-96 overflow-y-auto">
+        <div class="flex flex-col items-center p-2 transition-colors duration-200 ease-in-out rounded-md cursor-pointer select-none hover:bg-gray-200" v-for="image in images" :key="image.id">
           <ImageBox
             :src="'https://management.hoggari.com' + image.path"
             :image="image"
@@ -77,36 +61,20 @@
             @toggle-delete="handleToggleDeleteImages"
             @click="confirmExp('https://management.hoggari.com' + image.path)"
             @clicked="selectImage('https://management.hoggari.com' + image.path)"
-            
           />
           <Gbtn :text="t('')" @click="downloadImage('https://management.hoggari.com' + image.path)" :svg="icons['download']" color="var(--color-greny)"/>
         </div>
       </div>
       <LoaderBlack v-else width="100px" />
-      <!-- Trigger invisible pour charger plus -->
-      <div ref="loadMoreRef" class="observer-trigger"></div>
-
-      
-
-        
-
+      <div ref="loadMoreRef" class="h-px"></div>
     </div>
-    <div v-else style="width: 100%;">
+    <div v-else class="w-full">
       <RoadLink v-if="liList" :liList="liList" @back-click="backToFolder" @selected-back="backToSelectedFolder" @back-home="backToHome"/>
-
       <Uploader :folder-id="currentParentId" @uploaded="getImages"/>
-
-      <div style="display: flex; justify-content: center; align-items: center;">
+      <div class="flex items-center justify-center">
         <Searcher v-model="search" @search-submitted="toSearch" @filters-changed="onFiltersChanged" />
-
-        <!--Gbtn :text="t('confirm')" @click="confirmExp" color="var(--color-greny)" :svg="confirmImg"/-->
-
         <Gbtn :text="t('close')" @click="closeExp" color="#ff5555" :svg="icons['closeImg']"/>
       </div>
-
-      
-
-
       <div>
         <InputBtn
           :placeHolder="t('add folder')"
@@ -117,17 +85,14 @@
           color="#7D698E"
           @clicked="addFolderTo(currentParentId, newFolderName)"
         />
-
-        <div style="width: 100%; display: flex; align-items: center;">
+        <div class="flex items-center w-full">
           <Gbtn :text="t('delete')" @click="showConfirm = true" color="#ff5555" :svg="icons['deleteImg']"/>
           <Gbtn :text="t('download')" @click="downloadImagesSelected" :svg="icons['download']" color="var(--color-greny)"/>
         </div>
-        
-
       </div>
       
-      <div v-if="!isAdding" class="folder-tree">
-        <div class="folder-item" v-for="folder in folders" :key="folder.id">
+      <div v-if="!isAdding" class="grid w-full grid-cols-[repeat(auto-fill,minmax(100px,2fr))] gap-3 p-3 max-h-96 overflow-y-auto">
+        <div class="flex flex-col items-center p-2 transition-colors duration-200 ease-in-out rounded-md cursor-pointer select-none hover:bg-gray-200" v-for="folder in folders" :key="folder.id">
           <FolderBox
             v-if="folder.id != 1"
             :folder="folder"
@@ -139,17 +104,13 @@
             @clicked="folderRoadList(folder.name, folder.id)"
             @rename="newName => renameFolder(folder.id, newName)"
             @toggle-delete="handleToggleDelete"
-            
           />
         </div>
       </div>
-      
-      <!-- Trigger invisible pour charger plus -->
-      <div ref="loadMoreRef" class="observer-trigger"></div>
+      <div ref="loadMoreRef" class="h-px"></div>
 
-
-      <div v-if="!isAdding" class="folder-tree">
-        <div class="folder-item" v-for="image in images" :key="image.id">
+      <div v-if="!isAdding" class="grid w-full grid-cols-[repeat(auto-fill,minmax(100px,2fr))] gap-3 p-3 max-h-96 overflow-y-auto">
+        <div class="flex flex-col items-center p-2 transition-colors duration-200 ease-in-out rounded-md cursor-pointer select-none hover:bg-gray-200" v-for="image in images" :key="image.id">
           <ImageBox
             :src="'https://management.hoggari.com' + image.path"
             :image="image"
@@ -163,23 +124,14 @@
             @toggle-delete="handleToggleDeleteImages"
             @click="confirmExp('https://management.hoggari.com' + image.path)"
             @clicked="selectImage('https://management.hoggari.com' + image.path)"
-            
           />
           <Gbtn :text="t('')" @click="downloadImage('https://management.hoggari.com' + image.path)" :svg="icons['download']" color="var(--color-greny)"/>
         </div>
       </div>
       <LoaderBlack v-else width="100px" />
-      <!-- Trigger invisible pour charger plus -->
-      <div ref="loadMoreRef" class="observer-trigger"></div>
-
-      
+      <div ref="loadMoreRef" class="h-px"></div>
     </div>
-    
-    
   </div>
-
-  
-
 </template>
 
 <script setup>
@@ -826,132 +778,3 @@ onMounted(() => {
 })
 
 </script>
-
-<style>
-
-/* Bloquer sélection de texte et gestures par défaut */
-* {
-  -webkit-touch-callout: none; /* désactive le menu contextuel iOS */
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.backCalque {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(2px);         /* flou principal */
-  -webkit-backdrop-filter: blur(2px); /* compatibilité Safari */
-  z-index: 2000;
-}
-
-.folder-tree {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 2fr));
-  gap: 12px;
-  padding: 12px;
-  max-height: 400px;
-  overflow-y: auto;
-
-  /* Scrollbar styling */
-  scrollbar-width: thin;              /* Firefox */
-  scrollbar-color: #888 transparent; /* Firefox */
-}
-
-/* Chrome, Edge, Safari */
-.folder-tree::-webkit-scrollbar {
-  width: 8px;
-}
-
-.folder-tree::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.folder-tree::-webkit-scrollbar-thumb {
-  background-color: rgba(125, 105, 142, 0.6); /* couleur mauve translucide */
-  border-radius: 10px;
-  border: 2px solid transparent; /* espace autour */
-  background-clip: content-box;
-  transition: background-color 0.3s ease;
-}
-
-.folder-tree::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(125, 105, 142, 0.9);
-}
-
-.folder-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-
-.folder-item:hover {
-  background-color: #e0e0e0;
-}
-
-.folder-item folderbox {
-  margin-bottom: 6px;
-}
-
-
-
-.modalExp {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 800px;       /* ou ce que tu veux */
-  max-height: 80vh;       /* 80% de la hauteur de la fenêtre */
-  overflow-y: auto;       /* activation du scroll vertical */
-  padding: 16px;
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 2000;
-  
-  /* On enlève le centrage vertical pour laisser défiler */
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;   /* <-- important */
-  justify-content: flex-start; /* <-- important */
-  backdrop-filter: blur(4px);         /* flou principal */
-  -webkit-backdrop-filter: blur(4px); /* compatibilité Safari */
-}
-.dark .modalExp {
-  background: rgba(0, 0, 0, 0.8);
-  border: 1px solid rgb(29, 29, 29);
-  box-shadow: 0 4px 8px #000000e0;
-}
-
-.observer-trigger {
-  height: 1px;
-}
-
-.download-btn {
-  background: #3490dc;
-  color: white;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.25rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  margin-top: 0.3rem;
-}
-.download-btn:hover {
-  opacity: 0.9;
-}
-
-
-</style>
-
-

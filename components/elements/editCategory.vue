@@ -1,23 +1,21 @@
 <template>
-
   <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
   <Explorer :show="isExplorer" @confirm="getExplorerImg" @cancel="isExplorer = false" />
-  <div class="catBox">
-    <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+  <div class="flex flex-col items-center justify-center w-full max-w-3xl p-1.25 m-2.5 text-center rounded-lg shadow-lg bg-whitly dark:bg-darkly dark:shadow-2xl">
+    <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-gray-200">
       {{ isEdit ? t('edit category') : t('new category') }}
     </h2>
-    <div class="formLine" @click="form.sustainable = !form.sustainable">
+    <div class="flex items-center justify-between w-full max-w-xl p-2 m-2.5 rounded-xl cursor-pointer bg-whity dark:bg-darkow" @click="form.sustainable = !form.sustainable">
       {{ t('activate this categorie') }}
       <Radio :selected="form.sustainable"/>
     </div>
 
-    <div class="productContent">
-
-          <!-- 4. Image & Preview -->
-      <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; margin-block: 5px;">
-        <div class="important">
+    <div class="flex flex-wrap items-start justify-center w-full gap-2.5 md:flex-nowrap">
+      <!-- 4. Image & Preview -->
+      <div class="flex flex-col items-center justify-center my-1.25">
+        <div class="relative bottom-0 left-0 z-50 flex items-center justify-center w-5 h-5 rounded-full cursor-pointer">
           <DotLottieVue
-            style="height: 24px; width: 24px"
+            class="w-6 h-6"
             src="/animations/important.lottie"
             autoplay
             loop
@@ -26,7 +24,7 @@
         <button
           @click.prevent="openExplorer"
           type="button"
-          class="imageBox"
+          class="w-36 h-36 rounded-3xl cursor-pointer bg-whizy dark:bg-darkiw hover:bg-whiby dark:hover:bg-darkow"
         >
           <template v-if="!catImage">
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ t('click to choose') }}</span>
@@ -41,7 +39,7 @@
       </div>
 
       <!-- 1. Name & SEO Slug -->
-       <div class="productForm">
+       <div class="flex flex-col items-stretch flex-1 min-w-[250px] gap-2.5">
         <Inputer
           v-model="form.name"
           :img="icons['category']"
@@ -64,11 +62,7 @@
           class="dark:bg-darkiw dark:text-whitly"
         />
        </div>
-      
-
     </div>
-
-    
 
     <!-- 2. Description (meta) -->
     <TextInputer
@@ -82,33 +76,23 @@
         class="dark:bg-darkiw dark:text-whitly"
     />
 
-    <p>
-      {{ t('chose categorie type') }}
-    </p>
-    <div style="display: flex; justify-content: center; align-items: center; gap: 5px; margin-block: 5px;">
-      <div class="btnBox" :style="form.level === 'meta' ? {border: '2px solid var(--color-greny)'} : {}" @click="form.level = 'meta'">
+    <p>{{ t('chose categorie type') }}</p>
+    <div class="flex items-center justify-center my-1.25 gap-1.25">
+      <div class="flex flex-col items-center justify-center h-24 w-24 max-w-[150px] max-h-[150px] rounded-3xl cursor-pointer bg-whizy dark:bg-darkiw hover:bg-whiby dark:hover:bg-darkow" :class="form.level === 'meta' ? 'border-2 border-greny' : ''" @click="form.level = 'meta'">
         <div v-html="icons['categorie']" alt="meta"></div>
-        <p>
-          {{ t('categorie') }}
-        </p>
+        <p class="text-sm">{{ t('categorie') }}</p>
       </div>
-      <div class="btnBox" :style="form.level === 'branch' ? {border: '2px solid var(--color-greny)'} : {}" @click="form.level = 'branch'">
+      <div class="flex flex-col items-center justify-center h-24 w-24 max-w-[150px] max-h-[150px] rounded-3xl cursor-pointer bg-whizy dark:bg-darkiw hover:bg-whiby dark:hover:bg-darkow" :class="form.level === 'branch' ? 'border-2 border-greny' : ''" @click="form.level = 'branch'">
         <div v-html="icons['branch']" alt="meta"></div>
-        <p>
-          {{ t('subcategory') }}
-        </p>
+        <p class="text-sm">{{ t('subcategory') }}</p>
       </div>
-      <div class="btnBox" :style="form.level === 'leaf' ? {border: '2px solid var(--color-greny)'} : {}" @click="form.level = 'leaf'">
+      <div class="flex flex-col items-center justify-center h-24 w-24 max-w-[150px] max-h-[150px] rounded-3xl cursor-pointer bg-whizy dark:bg-darkiw hover:bg-whiby dark:hover:bg-darkow" :class="form.level === 'leaf' ? 'border-2 border-greny' : ''" @click="form.level = 'leaf'">
         <div v-html="icons['leaf']" alt="meta"></div>
-        <p>
-          {{ t('elements') }}
-        </p>
+        <p class="text-sm">{{ t('elements') }}</p>
       </div>
     </div>
     
-
-
-    <div class="productContent">
+    <div class="flex flex-wrap items-start justify-center w-full gap-2.5 md:flex-nowrap">
       <Selector v-if="form.level != 'meta'"
         v-model="form.parent_id"
         :img="icons['link']"
@@ -121,8 +105,6 @@
         class="dark:bg-darkiw dark:text-whitly"
       />
 
-
-
       <!-- 6. Faceted Search Attributes -->
       <Selector
         v-model="form.facets"
@@ -132,11 +114,8 @@
         :placeHolder="t('attributes')"
         :required="true"
         color="var(--color-zioly2)"
-        
       />
-
     </div>
-
 
     <!-- 7. Advanced SEO (optional) -->
     <Inputer
@@ -146,7 +125,6 @@
         :placeHolder="t('seo title')"
         holder="descriptive and informative title"
         color="var(--color-zioly2)"
-        
       />
 
     <!-- 8. Actions -->
@@ -167,9 +145,7 @@
       />
     </div>
 
-    <LoaderBlack v-else style="width: 100px;"/>
-
-
+    <LoaderBlack v-else class="w-24"/>
   </div>
 </template>
 
@@ -405,184 +381,3 @@ function cancel() {
   emit('cancel')
 }
 </script>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.catBox {
-    width: calc(100% - 20px);
-  max-width: 800px;
-  top: 50px;
-  margin: 10px;
-  border-radius: 8px;
-  padding: 5px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  background-color: var(--color-whitly);
-  box-shadow: 0 4px 8px #3b3b3b20;
-  text-align: center;
-}
-.dark .catBox {
-  background-color: var(--color-darkly);
-  box-shadow: 0 4px 8px #00000033;
-}
-
-.imageBox {
-  width: 150px;
-  height: 150px;
-  border-radius: 24px;
-  background-color: var(--color-whizy);
-  cursor: pointer;
-}
-.imageBox:hover {
-  background-color: var(--color-whiby);
-}
-.dark .imageBox {
-  background-color: var(--color-darkiw);
-}
-.dark .imageBox:hover {
-  background-color: var(--color-darkow);
-}
-
-.btnBox {
-  max-width: 150px;
-  max-height: 150px;
-  min-width: 100px;
-  min-height: 100px;
-  border-radius: 24px;
-  background-color: var(--color-whizy);
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-.btnBox p {
-  font-size: 14px;
-}
-.btnBox:hover {
-  background-color: var(--color-whiby);
-}
-.dark .btnBox {
-  background-color: var(--color-darkiw);
-}
-.dark .btnBox:hover {
-  background-color: var(--color-darkow);
-}
-
-.formLine {
-  width: calc(100% - 20px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  margin: 10px;
-  padding-inline: 5px;
-  cursor: pointer;
-}
-.dark .formLine {
-  background-color: var(--color-darkow);
-}
-
-  .productContent {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap; /* Clé pour mobile */
-  gap: 10px;
-}
-
-.imageUploadSection {
-  width: 100%;
-  max-width: 200px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 5px;
-}
-
-.productForm {
-  flex: 1;
-  min-width: 250px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.formRow {
-  width: calc(100% - 20px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  justify-content: space-between;
-  align-items: center;
-  margin: 5px;
-  padding: 10px;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  max-width: 650px;
-}
-.dark .formRow {
-  background-color: var(--color-darkow);
-}
-
-.formLine {
-  width: calc(100% - 20px);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--color-whity);
-  border-radius: 12px;
-  margin: 10px;
-  padding-inline: 5px;
-  cursor: pointer;
-}
-.dark .formLine {
-  background-color: var(--color-darkow);
-}
-
-/* Responsive pour écrans <= 768px */
-@media screen and (max-width: 768px) {
-  .productContent {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .formRow {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .productForm {
-    width: 100%;
-  }
-}
-
-.important {
-position: relative;
-bottom: 0;
-left: 0px;
-width: 20px;
-height: 20px;
-display: flex;
-align-items: center;
-border-radius: 50%;
-justify-content: center;
-cursor: pointer;
-z-index: 500;
-}
-</style>

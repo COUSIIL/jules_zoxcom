@@ -1,110 +1,72 @@
 <template>
-  <div style="
-  width: 100%;
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: space-around; ">
-    <div class="discountBox">
-      <p>
-        {{ t('discounts') }}
-      </p>
-      
-
+  <div class="flex flex-col items-center justify-around w-full">
+    <div class="flex items-center justify-between w-full max-w-3xl p-2.5 mt-2.5 rounded-t-md shadow-md bg-whitly dark:bg-darkly">
+      <p class="m-2.5">{{ t('discounts') }}</p>
       <Linker :link="'/addDiscount'" :text="t('add discount')" :svg="icons['promotion']" />
     </div>
-
-    
   
-  <div class="list"
+    <div class="flex flex-col items-center justify-center w-full max-w-3xl p-1.25 transition-all duration-300 ease-in-out rounded-md"
       v-for="(name, index) in discountName" 
       :key="index"
-  > 
-      <div v-if="!isUpdating[index]" style="width: 100%;">
-        <div class="discount" style="width: 100%; display: flex; align-items: center; justify-content: space-between;">
-          <div @click=" name.code[0].isMore = !name.code[0].isMore" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-            <div style="min-width: 30px; max-width: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-              <label>
-                {{ index + 1 }}
-              </label>
+    >
+      <div v-if="!isUpdating[index]" class="w-full">
+        <div class="flex items-center justify-between w-full h-12 p-1 mt-0 rounded-t-md shadow-md bg-whitly dark:bg-darkly">
+          <div @click=" name.code[0].isMore = !name.code[0].isMore" class="flex items-center justify-between cursor-pointer">
+            <div class="flex flex-col items-center justify-center min-w-[30px] max-w-[50px]">
+              <label>{{ index + 1 }}</label>
               <svg v-if="!name.code[0].isMore" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M18 9.00005C18 9.00005 13.5811 15 12 15C10.4188 15 6 9 6 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
               <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M17.9998 15C17.9998 15 13.5809 9.00001 11.9998 9C10.4187 8.99999 5.99985 15 5.99985 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-              
-      
+              </svg>
             </div>
-            <div style="min-width: 80px; max-width: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center min-w-[80px] max-w-[100px]">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M10.9961 10H11.0111M10.9998 16H11.0148" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M7 13H15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 <circle cx="1.5" cy="1.5" r="1.5" transform="matrix(1 0 0 -1 16 8)" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M2.77423 11.1439C1.77108 12.2643 1.7495 13.9546 2.67016 15.1437C4.49711 17.5033 6.49674 19.5029 8.85633 21.3298C10.0454 22.2505 11.7357 22.2289 12.8561 21.2258C15.8979 18.5022 18.6835 15.6559 21.3719 12.5279C21.6377 12.2187 21.8039 11.8397 21.8412 11.4336C22.0062 9.63798 22.3452 4.46467 20.9403 3.05974C19.5353 1.65481 14.362 1.99377 12.5664 2.15876C12.1603 2.19608 11.7813 2.36233 11.472 2.62811C8.34412 5.31646 5.49781 8.10211 2.77423 11.1439Z" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-              <label>
-                {{ name.code[0].name }}
-              </label>
-      
+              </svg>
+              <label class="mx-1.25 text-lg">{{ name.code[0].name }}</label>
             </div>
-            <div style="min-width: 30px; max-width: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center">
+            <div class="flex flex-col items-center justify-center min-w-[30px] max-w-[50px]">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M8.64298 3.14559L6.93816 3.93362C4.31272 5.14719 3 5.75397 3 6.75C3 7.74603 4.31272 8.35281 6.93817 9.56638L8.64298 10.3544C10.2952 11.1181 11.1214 11.5 12 11.5C12.8786 11.5 13.7048 11.1181 15.357 10.3544L17.0618 9.56638C19.6873 8.35281 21 7.74603 21 6.75C21 5.75397 19.6873 5.14719 17.0618 3.93362L15.357 3.14559C13.7048 2.38186 12.8786 2 12 2C11.1214 2 10.2952 2.38186 8.64298 3.14559Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M20.788 11.0972C20.9293 11.2959 21 11.5031 21 11.7309C21 12.7127 19.6873 13.3109 17.0618 14.5072L15.357 15.284C13.7048 16.0368 12.8786 16.4133 12 16.4133C11.1214 16.4133 10.2952 16.0368 8.64298 15.284L6.93817 14.5072C4.31272 13.3109 3 12.7127 3 11.7309C3 11.5031 3.07067 11.2959 3.212 11.0972" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M20.3767 16.2661C20.7922 16.5971 21 16.927 21 17.3176C21 18.2995 19.6873 18.8976 17.0618 20.0939L15.357 20.8707C13.7048 21.6236 12.8786 22 12 22C11.1214 22 10.2952 21.6236 8.64298 20.8707L6.93817 20.0939C4.31272 18.8976 3 18.2995 3 17.3176C3 16.927 3.20778 16.5971 3.62334 16.2661" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              <label>
-                
-                {{ name.code[0].code.length }}
-              </label>
-      
+              <label class="mx-1.25 text-lg">{{ name.code[0].code.length }}</label>
             </div>
       
-            <div style="display: flex; align-items: center; justify-content: center;">
-              <div style="min-width: 80px; max-width: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center">
-                  <span v-html="name.code[0].type.svgUser" style="display: flex; align-items: center; justify-content: center;"></span>
-                
-                <label>
-                  {{ name.code[0].type.usage }}
-                </label>
-        
+            <div class="flex items-center justify-center">
+              <div class="flex flex-col items-center justify-center min-w-[80px] max-w-[100px]">
+                  <span v-html="name.code[0].type.svgUser" class="flex items-center justify-center"></span>
+                <label class="mx-1.25 text-lg">{{ name.code[0].type.usage }}</label>
               </div>
       
-              <div style="min-width: 80px; max-width: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                <div style="min-width: 80px; max-width: 100px; display: flex; align-items: center; justify-content: center;">
-                  <span v-html="name.code[0].type.svgType" style="display: flex; align-items: center; justify-content: center;"></span>
-                  <h3 v-if="name.code[0].type.more" style="font-size: 2vh;">
-                    {{ name.code[0].type.more }}
-                  </h3>
+              <div class="flex flex-col items-center justify-center text-center min-w-[80px] max-w-[100px]">
+                <div class="flex items-center justify-center min-w-[80px] max-w-[100px]">
+                  <span v-html="name.code[0].type.svgType" class="flex items-center justify-center"></span>
+                  <h3 v-if="name.code[0].type.more" class="text-lg">{{ name.code[0].type.more }}</h3>
                 </div>
-                
-                <label>
-                  {{ name.code[0].type.limit }}
-                </label>
-        
+                <label class="mx-1.25 text-lg">{{ name.code[0].type.limit }}</label>
               </div>
             </div>
           </div>
           
-    
-          <button @click="dellDiscount(index, 0)" style="min-width: 30px; max-width: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; cursor: pointer;">
-            <svg style="color: var(--color-rady);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+          <button @click="dellDiscount(index, 0)" class="z-50 flex flex-col items-center justify-center min-w-[30px] max-w-[50px] cursor-pointer">
+            <svg class="text-rady" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
               <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
               <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
               <path d="M9.5 16.5L9.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
               <path d="M14.5 16.5L14.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-            <label>
-              
-              {{ t('delete') }}
-            </label>
-    
+            </svg>
+            <label class="mx-1.25 text-lg">{{ t('delete') }}</label>
           </button>
-    
         </div>
         <div v-if="name.code[0].isMore">
-          <button class="discount2" @click="showAll(index)">
+          <button class="flex flex-col items-center justify-center w-full h-16 max-w-3xl p-2.5 mt-1.25 rounded-t-md shadow-md cursor-pointer bg-whitly dark:bg-darkly" @click="showAll(index)">
             <svg v-if="show[index]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
               <path d="M21.544 11.045C21.848 11.4713 22 11.6845 22 12C22 12.3155 21.848 12.5287 21.544 12.955C20.1779 14.8706 16.6892 19 12 19C7.31078 19 3.8221 14.8706 2.45604 12.955C2.15201 12.5287 2 12.3155 2 12C2 11.6845 2.15201 11.4713 2.45604 11.045C3.8221 9.12944 7.31078 5 12 5C16.6892 5 20.1779 9.12944 21.544 11.045Z" stroke="currentColor" stroke-width="1.5" />
               <path d="M15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12Z" stroke="currentColor" stroke-width="1.5" />
@@ -115,23 +77,18 @@
               <path d="M20 11L22 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M2 13L4 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M9 13.5L7.5 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
-            <div style="min-width: 80px; max-width: 100px; display: flex; align-items: center; justify-content: center">
-              <label v-if="show[index]">
-                {{ t('hide all') }}
-              </label>
-              <label v-else>
-                {{ t('show all') }}
-              </label>
-      
+            </svg>
+            <div class="flex items-center justify-center min-w-[80px] max-w-[100px]">
+              <label v-if="show[index]">{{ t('hide all') }}</label>
+              <label v-else>{{ t('show all') }}</label>
             </div>
           </button>
-          <div class="list"
+          <div class="flex flex-col items-center justify-center w-full max-w-3xl p-1.25 transition-all duration-300 ease-in-out rounded-md"
               v-for="(name, i) in name.code[0].code" 
               :key="i"
           > 
-          <div class="discount3">
-            <button @click="name.show = !name.show" style="min-width: 30px; max-width: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; cursor: pointer;">
+          <div class="relative flex items-center justify-center w-11/12 h-10 max-w-3xl p-10 mt-2 text-base font-bold uppercase border-2 border-dashed rounded-lg shadow-md bg-whitly dark:bg-darkly border-darkly dark:border-whitly">
+            <button @click="name.show = !name.show" class="z-50 flex flex-col items-center justify-center min-w-[30px] max-w-[50px] cursor-pointer">
               <svg v-if="name.show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                   <path d="M21.544 11.045C21.848 11.4713 22 11.6845 22 12C22 12.3155 21.848 12.5287 21.544 12.955C20.1779 14.8706 16.6892 19 12 19C7.31078 19 3.8221 14.8706 2.45604 12.955C2.15201 12.5287 2 12.3155 2 12C2 11.6845 2.15201 11.4713 2.45604 11.045C3.8221 9.12944 7.31078 5 12 5C16.6892 5 20.1779 9.12944 21.544 11.045Z" stroke="currentColor" stroke-width="1.5" />
                   <path d="M15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12Z" stroke="currentColor" stroke-width="1.5" />
@@ -143,101 +100,46 @@
                 <path d="M2 13L4 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M9 13.5L7.5 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-      
             </button>
-            <div style="min-width: 80px; max-width: 100px; display: flex; align-items: center; justify-content: center">
-              <label v-if="name.show">
-                {{ name.code }}
-              </label>
-              <label v-else>
-                ******
-              </label>
-      
+            <div class="flex items-center justify-center min-w-[80px] max-w-[100px]">
+              <label v-if="name.show">{{ name.code }}</label>
+              <label v-else>******</label>
             </div>
     
             <div v-if="name.work === '1'">
-              <svg style="color: var(--color-rangy); fill: var(--color-rangy);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+              <svg class="text-rangy fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
                 <path d="M18.8906 12.846C18.5371 14.189 16.8667 15.138 13.5257 17.0361C10.296 18.8709 8.6812 19.7884 7.37983 19.4196C6.8418 19.2671 6.35159 18.9776 5.95624 18.5787C5 17.6139 5 15.7426 5 12C5 8.2574 5 6.3861 5.95624 5.42132C6.35159 5.02245 6.8418 4.73288 7.37983 4.58042C8.6812 4.21165 10.296 5.12907 13.5257 6.96393C16.8667 8.86197 18.5371 9.811 18.8906 11.154C19.0365 11.7084 19.0365 12.2916 18.8906 12.846Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
-            </svg>
-      
+              </svg>
             </div>
             <div v-else>
-              <svg style="color: var(--color-garry); fill: var(--color-garry);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
+              <svg class="text-garry fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
                 <path d="M4 12C4 8.72077 4 7.08116 4.81382 5.91891C5.1149 5.48891 5.48891 5.1149 5.91891 4.81382C7.08116 4 8.72077 4 12 4C15.2792 4 16.9188 4 18.0811 4.81382C18.5111 5.1149 18.8851 5.48891 19.1862 5.91891C20 7.08116 20 8.72077 20 12C20 15.2792 20 16.9188 19.1862 18.0811C18.8851 18.5111 18.5111 18.8851 18.0811 19.1862C16.9188 20 15.2792 20 12 20C8.72077 20 7.08116 20 5.91891 19.1862C5.48891 18.8851 5.1149 18.5111 4.81382 18.0811C4 16.9188 4 15.2792 4 12Z" stroke="currentColor" stroke-width="1.5" />
-            </svg>
-      
+              </svg>
             </div>
     
-            <div style="min-width: 80px; max-width: 100px; display: flex; align-items: center; justify-content: center">
-              <label>
-                {{ name.value }}
-              </label>
-              <label v-if="name.type === '1'">
-                DA
-              </label>
-              <label v-else>
-                %
-              </label>
-      
+            <div class="flex items-center justify-center min-w-[80px] max-w-[100px]">
+              <label>{{ name.value }}</label>
+              <label v-if="name.type === '1'">DA</label>
+              <label v-else>%</label>
             </div>
     
-            <button @click="dellDiscount(index, name.id)" style="min-width: 50px; max-width: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; cursor: pointer;">
-              <svg style="color: var(--color-rady);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
+            <button @click="dellDiscount(index, name.id)" class="z-50 flex flex-col items-center justify-center min-w-[50px] max-w-[50px] cursor-pointer">
+              <svg class="text-rady" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M19.5 5.5L18.8803 15.5251C18.7219 18.0864 18.6428 19.3671 18.0008 20.2879C17.6833 20.7431 17.2747 21.1273 16.8007 21.416C15.8421 22 14.559 22 11.9927 22C9.42312 22 8.1383 22 7.17905 21.4149C6.7048 21.1257 6.296 20.7408 5.97868 20.2848C5.33688 19.3626 5.25945 18.0801 5.10461 15.5152L4.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 <path d="M3 5.5H21M16.0557 5.5L15.3731 4.09173C14.9196 3.15626 14.6928 2.68852 14.3017 2.39681C14.215 2.3321 14.1231 2.27454 14.027 2.2247C13.5939 2 13.0741 2 12.0345 2C10.9688 2 10.436 2 9.99568 2.23412C9.8981 2.28601 9.80498 2.3459 9.71729 2.41317C9.32164 2.7167 9.10063 3.20155 8.65861 4.17126L8.05292 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 <path d="M9.5 16.5L9.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 <path d="M14.5 16.5L14.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-      
+              </svg>
             </button>
-            
-            
-            
           </div>
-          
           </div>
         </div>
       </div>
-      <div v-else class="discount">
-        <Loader :style="{width: '50px', height: '50px'}"/>
+      <div v-else class="flex items-center justify-center w-full h-12 max-w-3xl p-1 mt-0 rounded-t-md shadow-md bg-whitly dark:bg-darkly">
+        <Loader class="w-12 h-12"/>
       </div>
-      
   </div>
   </div>
-
-
-<!--div 
-    v-for="index in discountList.length" 
-    :key="index" 
-    :value="discountList[index - 1].name"
-> 
-    <h5>
-    {{ discountList[index - 1].name }}
-    </h5>
-
-    <h4>
-        {{ discountList[index - 1].code }}
-    </h4>
-
-</div>
-
-<form @submit.prevent="testDiscount" >
-
-<h3>
-    Discount Code
-</h3>
-
-<input type="text" v-model="test">
-
-<button type="submit">
-    test
-</button>
-
-<div v-if="disLog">
-    {{ disLog }}
-</div>
-
-</form-->
 </template>
 
 <script setup>
@@ -459,135 +361,3 @@ const response = await fetch('https://management.hoggari.com/backend/api.php?act
 
 
 </script>
-
-<style>
-
-.discountBox {
-  width: 100%;
-  display: flex;
-  max-width: 800px;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  border-radius: 6px 6px 0px 0px;
-  padding-block: 10px;
-  background-color: var(--color-whitly);
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .discountBox{
-  background-color: var(--color-darkly);
-}
-.discountBox p {
-  margin: 10px;
-}
-
-.discount{
-  width: 100%;
-  height: 50px;
-  display: flex;
-  max-width: 800px;
-  justify-content: center;
-  align-items: center;
-  margin-top: 0px;
-  border-radius: 6px 6px 0px 0px;
-  padding-inline: 5px;
-  background-color: var(--color-whitly);
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .discount{
-  background-color: var(--color-darkly);
-}
-.discount svg{
-  margin-inline: 5px;
-}
-.discount label{
-  margin-inline: 5px;
-  font-size: 1.8vh;
-}
-
-
-.discount2{
-  width: 100%;
-  height: 60px;
-  max-width: 800px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 5px;
-  border-radius: 6px 6px 0px 0px;
-  padding-inline: 10px;
-  background-color: var(--color-whitly);
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-}
-.dark .discount2{
-  background-color: var(--color-darkly);
-}
-
-.discount3 {
-  width: 90%;
-  height: 40px;
-  max-width: 800px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 8px;
-  padding-inline: 40px;
-  background-color: var(--color-whitly);
-  position: relative;
-  font-weight: bold;
-  font-size: 16px;
-  text-transform: uppercase;
-  
-  /* Style de ticket */
-  border: 2px dashed var(--color-darkly);
-  border-radius: 10px;
-  box-shadow: 0px 2px 4px var(--color-rangy);
-}
-.dark .discount3{
-  background-color: var(--color-darkly);
-  border: 2px dashed var(--color-whitly);
-  box-shadow: 0px 2px 4px var(--color-rangy);
-}
-
-
-
-
-
-
-.more{
-  display: flex;
-  align-items: center;
-  margin-block: 5px;
-}
-
-.moreD{
-  width: 100%;
-  max-width: 800px;
-  align-items: center;
-  margin-block: 5px;
-  border-radius: 6px;
-  padding: 10px;
-  background-color: var(--color-whitly);
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-.dark .moreD{
-  background-color: var(--color-darkly);
-}
-
-.list{
-  height: auto; /* Permet d'ajuster la hauteur selon le contenu */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  max-width: 800px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-  padding-block: 5px;
-}
-
-
-</style>

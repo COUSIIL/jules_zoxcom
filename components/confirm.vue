@@ -1,10 +1,10 @@
 <template>
-    <nav v-if="isVisible && isMounted" class="overlay">
-      <div class="modal">
+    <nav v-if="isVisible && isMounted" class="fixed top-0 left-0 flex items-center justify-center w-full h-full bg-black bg-opacity-50 z-1000">
+      <div class="p-5 text-center rounded-lg shadow-lg bg-whity dark:bg-darkly">
         <p>{{ message }}</p>
-        <div class="buttons">
-          <button class="confirm" @click="this.$emit('confirm')">Yes</button>
-          <button class="cancel" @click="this.$emit('cancel')">No</button>
+        <div class="flex justify-center mt-4 gap-2.5">
+          <button class="px-4 py-2 text-white bg-green-500 border-none rounded-md cursor-pointer" @click="this.$emit('confirm')">Yes</button>
+          <button class="px-4 py-2 text-white bg-red-500 border-none rounded-md cursor-pointer" @click="this.$emit('cancel')">No</button>
         </div>
       </div>
     </nav>
@@ -35,54 +35,3 @@
     },
   };
   </script>
-  
-  <style>
-  .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  
-  .modal {
-    background: var(--color-whity);
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
-  .dark .modal {
-    background: var(--color-darkly);
-  }
-  
-  .buttons {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  .buttons button {
-    padding: 10px 15px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .confirm {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .cancel {
-    background-color: #f44336;
-    color: white;
-  }
-  </style>
-  
