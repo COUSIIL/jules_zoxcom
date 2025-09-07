@@ -1,7 +1,5 @@
 <template>
-
-    <div :class="selected ? 'activated' : 'notSelected'" @click="select">
-          
+    <div :class="selected ? 'flex items-center justify-center w-3 h-3 min-w-[12px] max-w-[12px] m-2.5 rounded-full cursor-pointer bg-greny' : 'flex items-center justify-center w-3.5 h-3.5 min-w-[14px] max-w-[14px] m-2.5 border-2 rounded-full cursor-pointer border-darkly dark:border-whitly'" @click="select">
     </div>
 </template>
 
@@ -16,34 +14,3 @@
         emit('changed')
     }
 </script>
-
-<style>
-.notSelected {
-    display: flex; /* Ajout pour centrer correctement */
-    align-items: center; /* Centrage vertical */
-    justify-content: center; /* Centrage horizontal */
-    min-width: 14px;
-    max-width: 14px;
-    height: 14px;
-    margin: 10px;
-    cursor: pointer;
-    border: 2px solid var(--color-darkly); /* Correction de la propriété border */
-    border-radius: 50%; /* Correction pour un cercle parfait */
-}
-.dark .notSelected{
-    border: 2px solid var(--color-whitly);
-}
-
-.activated {
-    display: flex; /* Ajout pour centrer correctement */
-    align-items: center; /* Centrage vertical */
-    justify-content: center; /* Centrage horizontal */
-    min-width: 12px;
-    max-width: 12px;
-    height: 12px;
-    margin: 11px;
-    cursor: pointer;
-    background-color: var(--color-greny);
-    border-radius: 50%; /* Correction pour un cercle parfait */
-}
-</style>

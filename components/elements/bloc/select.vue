@@ -1,67 +1,49 @@
 <template>
-    <div v-if="showDropdown" class="backClaque" @click="showDropdown = false"></div>
+    <div v-if="showDropdown" class="fixed top-0 right-0 w-full h-full bg-black bg-opacity-15 backdrop-blur-sm z-1000" @click="showDropdown = false"></div>
 
-    <div class="floating-input3" :class="props.class">
-      <div class="dropdown1" :style="{ backgroundColor: color }">
-        <div class="selected1" @click="toggleDropdown" :class="{ disabled: props.disabled }">
-          <img v-if="!selectedImage && props.modelImage" :src="`/${props.modelImage}`" alt="icon" />
-          <div
-            v-else-if="selectedImage && isSvgString(selectedImage)" 
-            v-html="selectedImage">
-          </div> 
-          <img v-else-if="selectedImage" :src="`/${selectedImage}`" alt="icon" />
-          <p v-if="!selectedLabel && props.modelValue">{{ modelValue || t('select') }}</p>
-          <p v-else-if="selectedLabel">{{ selectedLabel || t('select') }}</p>
-          <p style="width: 20px;">
-
-          </p>
+    <div class="relative w-full max-w-xs min-w-[100px] my-2.5 mx-1.25" :class="props.class">
+      <div class="relative w-full max-w-xs min-w-[100px] p-0.5 rounded-3xl cursor-pointer" :style="{ backgroundColor: color }">
+        <div class="flex items-center justify-between w-full h-10 p-1 text-sm rounded-3xl outline-none bg-gradient-to-r from-whity to-whiby dark:from-darky dark:to-darkiw border-2 border-zioly2" @click="toggleDropdown" :class="{ 'bg-gray-200 cursor-not-allowed text-gray-500': props.disabled }">
+          <img v-if="!selectedImage && props.modelImage" :src="`/${props.modelImage}`" alt="icon" class="w-5 h-5" />
+          <div v-else-if="selectedImage && isSvgString(selectedImage)" v-html="selectedImage"></div>
+          <img v-else-if="selectedImage" :src="`/${selectedImage}`" alt="icon" class="w-5 h-5" />
+          <p v-if="!selectedLabel && props.modelValue" class="w-5">{{ modelValue || t('select') }}</p>
+          <p v-else-if="selectedLabel" class="w-5">{{ selectedLabel || t('select') }}</p>
+          <p class="w-5"></p>
         </div>
 
-        <span class="lock-icon" @click="emit('toggleLock')">
-          <div v-if="props.disabled" v-html="resizeSvg(icons['lock'], 18, 18)">
-
-          </div>
-          <div v-else v-html="resizeSvg(icons['unLock'], 18, 18)">
-
-          </div>
+        <span class="absolute z-10 -translate-y-1/2 cursor-pointer top-1/2 right-2.5 text-zioly2" @click="emit('toggleLock')">
+          <div v-if="props.disabled" v-html="resizeSvg(icons['lock'], 18, 18)"></div>
+          <div v-else v-html="resizeSvg(icons['unLock'], 18, 18)"></div>
         </span>
 
-        <ul v-if="showDropdown" class="dropdown-list1">
+        <ul v-if="showDropdown" class="absolute top-1/2 left-1/2 z-1100 w-11/12 max-w-md max-h-48 p-1 m-0 -translate-x-1/2 -translate-y-1/2 overflow-y-auto list-none bg-white rounded-3xl shadow-lg dark:bg-darky dark:shadow-2xl">
           <li
             v-for="option in props.options"
-            class="dropdown-item1"
+            class="flex items-center justify-between px-2 py-1 hover:bg-whizy dark:hover:bg-zioly1 rounded-3xl"
             @click="() => selectOption(option)"
           >
-            <span class="option-label">
-
+            <span class="flex items-center justify-center gap-2.5">
               <img v-if="option.img && !isSvgString(option.img)" :src="`/${option.img}`" alt="icon" />
-              
-              <div v-else-if="option.img" class="img-circle" v-html="option.img">
-
-              </div>
-
+              <div v-else-if="option.img" class="flex items-center justify-center w-8 h-8 rounded-full bg-whiby dark:bg-darkow" v-html="option.img"></div>
               <div
                 v-if="typeof option.value === 'string' && option.value.startsWith('#')"
-                class="color-circle"
+                class="w-8 h-8 rounded-full"
                 :style="{ backgroundColor: option.value }"
               ></div>
-
-              <div v-if="typeof option.value === 'number'">
-                {{ option.value }}
-              </div>
-
+              <div v-if="typeof option.value === 'number'">{{ option.value }}</div>
               {{ option.label }}
             </span>
           </li>
         </ul>
       </div>
 
-      <label class="floated">
-        <div class="iconSelect" v-html="resizedImg"></div>
+      <label class="absolute top-0 left-2.5 flex items-center justify-center h-4 px-1 text-xs -translate-y-1/2 rounded-full pointer-events-none transition-all duration-200 ease-in-out text-whity bg-zioly2">
+        <div class="mx-0.5" v-html="resizedImg"></div>
         {{ t(placeHolder) }}
-        <div v-if="required" style="margin-inline: 2px;">
+        <div v-if="required" class="mx-0.5">
           <DotLottieVue
-            style="height: 16px; width: 16px"
+            class="w-4 h-4"
             src="/animations/important.lottie"
             autoplay
             loop
@@ -145,186 +127,3 @@ function selectOption(option) {
   props.options = []
 }
 </script>
-
-<style scoped>
-
-.option-label {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-
-.img-circle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block; /* ou inline-block selon ton contexte */
-  background-color: var(--color-whiby);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.dark .img-circle {
-  background-color: var(--color-darkow);
-}
-
-.color-circle {
-  width: 30px; height: 30px; border-radius: 50%;
-}
-
-
-.iconSelect {
-  margin-inline: 2px;
-}
-
-.backClaque {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(2px);         /* flou principal */
-  -webkit-backdrop-filter: blur(2px); /* compatibilité Safari */
-  z-index: 1000;
-}
-
-
-.dropdown1 {
-  position: relative;
-  border-radius: 22px;
-  cursor: pointer;
-  width: 100%;
-  min-width: 100px;
-  max-width: 250px;
-}
-
-.selected1 {
-  width: 100%;
-  font-size: 16px;
-  height: 40px;
-  border-radius: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  outline: none;
-  background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
-  border: 2px solid var(--color-zioly2);
-  font-size: 14px;
-  align-content: center;
-  padding-inline: 5px;
-}
-.selected1.disabled {
-  background-color: #f3f3f3;
-  cursor: not-allowed;
-  color: #666;
-}
-.dark .selected1 {
-  background: linear-gradient(to right, var(--color-darky), var(--color-darkiw));
-  border-radius: 24px;
-}
-
-.selected1 img {
-  width: 20px;
-  height: 20px;
-}
-
-.dropdown-list1 {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* Centrage parfait */
-  background: var(--color-whitly);
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  border-radius: 22px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-  width: 90%;          /* ou max-width pour adaptatif */
-  max-width: 400px;    /* empêche que ce soit trop large */
-  z-index: 1100;
-  max-height: 200px;   /* limite la hauteur */
-  overflow-y: auto;    /* scroll si besoin */
-}
-
-.dark .dropdown-list1 {
-  background: var(--color-darky);
-  box-shadow: 0 0 6px rgba(0,0,0,0.8);
-}
-
-.dropdown-item1 {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 8px;
-  align-items: center;
-}
-
-.dropdown-item1:hover {
-  background: var(--color-whizy);
-  border-radius: 22px;
-}
-.dark .dropdown-item1:hover {
-  background: var(--color-zioly1);
-  border-radius: 22px;
-}
-
-.floating-input3 {
-  position: relative;
-  width: 100%;
-  margin-inline: 5px;
-  margin-block: 10px;
-  min-width: 100px;
-  max-width: 250px;
-}
-
-
-.floating-input3 label {
-  position: absolute;
-  height: 18px;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  background: var(--color-zioly2);
-  padding: 0 4px;
-  color: var(--color-whitly);
-  font-size: 14px;
-  pointer-events: none;
-  transition: all 0.2s ease;
-  border-radius: 12px;
-}
-
-
-.floating-input3 label.floated {
-  top: 0;
-  left: 10px;
-  font-size: 12px;
-  color: var(--color-whity);
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.floating-input3 input.locked {
-  background-color: #f3f3f3;
-  cursor: not-allowed;
-  color: #666;
-}
-
-.floating-input3 .lock-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  
-  color: var(--color-zioly2);
-  cursor: pointer;
-  z-index: 2;
-}
-
-
-
-/* Réutilise le style du label flottant et du conteneur .gBtn */
-</style>

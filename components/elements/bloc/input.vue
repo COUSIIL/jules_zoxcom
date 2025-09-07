@@ -1,5 +1,5 @@
 <template>
-  <div class="floating-input2">
+  <div class="relative w-full max-w-md my-2.5 mx-1.25">
     <input
       :type="type"
       :value="inputValue"
@@ -8,22 +8,19 @@
       :required="required"
       :placeholder="holder"
       :readonly="props.lock"
-      :class="{ locked: props.lock }"
+      class="w-full h-10 px-3 py-3 text-sm border-2 rounded-lg outline-none appearance-none bg-gradient-to-r from-whity to-whiby border-zioly2 dark:from-darky dark:to-darkiw"
+      :class="{ 'bg-gray-200 cursor-not-allowed text-gray-500': props.lock }"
     />
-    <span class="lock-icon" @click="emit('toggleLock')">
-      <div v-if="props.lock" v-html="resizeSvg(icons['lock'], 18, 18)">
-
-      </div>
-      <div v-else v-html="resizeSvg(icons['unLock'], 18, 18)">
-
-      </div>
+    <span class="absolute z-10 -translate-y-1/2 cursor-pointer top-1/2 right-2.5 text-zioly2" @click="emit('toggleLock')">
+      <div v-if="props.lock" v-html="resizeSvg(icons['lock'], 18, 18)"></div>
+      <div v-else v-html="resizeSvg(icons['unLock'], 18, 18)"></div>
     </span>
-    <label class="floated">
-      <div v-html="resizedImg" style="margin-inline: 2px;"></div>
+    <label class="absolute flex items-center justify-center h-4 px-1 text-xs transition-all duration-200 ease-in-out -translate-y-1/2 rounded-full pointer-events-none top-0 left-2.5 text-whity bg-zioly2">
+      <div v-html="resizedImg" class="mx-0.5"></div>
       {{ t(placeHolder) }}
-      <div v-if="required" style="margin-inline: 2px;">
+      <div v-if="required" class="mx-0.5">
         <DotLottieVue
-          style="height: 16px; width: 16px"
+          class="w-4 h-4"
           src="/animations/important.lottie"
           autoplay
           loop
@@ -85,84 +82,3 @@
   }
 
 </script>
-
-<style scoped>
-
-
-.floating-input2 {
-  position: relative;
-  width: calc(100% - 10px);
-  margin-inline: 5px;
-  margin-block: 10px;
-}
-
-.floating-input2 input.locked {
-  background-color: #f3f3f3;
-  cursor: not-allowed;
-  color: #666;
-}
-
-.floating-input2 .lock-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-zioly2);
-  cursor: pointer;
-  z-index: 2;
-}
-
-.floating-input2 input {
-  width: 100%;
-  padding: 12px 12px 8px;
-  font-size: 16px;
-  height: 40px;
-  border-radius: 8px;
-  outline: none;
-  background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
-  border: 2px solid var(--color-zioly2);
-  font-size: 14px;
-}
-
-.dark .floating-input2 input {
-  background: linear-gradient(to right, var(--color-darky), var(--color-darkiw));
-}
-
-/* Supprime les flèches des champs number */
-.floating-input2 input[type="number"]::-webkit-inner-spin-button,
-.floating-input2 input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.floating-input2 input[type="number"] {
-  -moz-appearance: textfield;
-}
-
-.floating-input2 label {
-  position: absolute;
-  height: 18px;
-  top: 50%;
-  left: 12px;
-  transform: translateY(-50%);
-  background: var(--color-zioly2);
-  padding: 0 4px;
-  color: var(--color-whitly);
-  font-size: 14px;
-  pointer-events: none;
-  transition: all 0.2s ease;
-  border-radius: 12px;
-}
-
-
-.floating-input2 label.floated {
-  top: 0;
-  left: 10px;
-  font-size: 12px;
-  color: var(--color-whity);
-  transform: translateY(-50%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-</style>

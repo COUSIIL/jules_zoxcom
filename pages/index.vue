@@ -1,56 +1,54 @@
 <template>
   <LoaderBlack v-if="!isMounted" width="80px"/>
-  <div style="display: flex; flex-direction: column; align-items: center;">
-
-  
-    <div v-if="isMounted" class="orders-dashboard">
-      <div class="order-box">
-        <h3>{{ t('all orders') }}</h3>
-        <p>{{ t('today') }}: <span>{{ ordersByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ ordersByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ ordersByMonth[currentMonth]?.length || 0 }}</span></p>
+  <div class="flex flex-col items-center">
+    <div v-if="isMounted" class="grid w-11/12 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4 p-5">
+      <div class="p-4 transition-transform duration-200 transform rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('all orders') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ ordersByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ ordersByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ ordersByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box confirmed">
-        <h3>{{ t('confirmed') }}</h3>
-        <p>{{ t('today') }}: <span>{{ confirmByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ confirmByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ confirmByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-green-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('confirmed') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ confirmByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ confirmByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ confirmByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box canceled">
-        <h3>{{ t('canceled') }}</h3>
-        <p>{{ t('today') }}: <span>{{ cancelByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ cancelByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ cancelByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-red-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('canceled') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ cancelByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ cancelByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ cancelByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box unreachable">
-        <h3>{{ t('unreachable') }}</h3>
-        <p>{{ t('today') }}: <span>{{ unreachableByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ unreachableByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ unreachableByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-purple-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('unreachable') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ unreachableByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ unreachableByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ unreachableByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box awaiting">
-        <h3>{{ t('awaiting') }}</h3>
-        <p>{{ t('today') }}: <span>{{ awaitByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ awaitByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ awaitByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-yellow-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('awaiting') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ awaitByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ awaitByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ awaitByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box delivered">
-        <h3>{{ t('delivered') }}</h3>
-        <p>{{ t('today') }}: <span>{{ deliverByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ deliverByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ deliverByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-blue-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('delivered') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ deliverByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ deliverByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ deliverByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
 
-      <div class="order-box completed">
-        <h3>{{ t('completed') }}</h3>
-        <p>{{ t('today') }}: <span>{{ completedByDay[currentDay]?.length || 0 }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ completedByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ completedByMonth[currentMonth]?.length || 0 }}</span></p>
+      <div class="p-4 transition-transform duration-200 transform border-l-4 border-teal-500 rounded-lg shadow-md bg-whitly dark:bg-darkow hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg font-semibold">{{ t('completed') }}</h3>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('today') }}:</span> <strong>{{ completedByDay[currentDay]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this week') }}:</span> <strong>{{ completedByWeek[currentWeek]?.length || 0 }}</strong></p>
+        <p class="flex justify-between my-1.5 text-sm"><span>{{ t('this month') }}:</span> <strong>{{ completedByMonth[currentMonth]?.length || 0 }}</strong></p>
       </div>
     </div>
   </div>
@@ -280,52 +278,3 @@ async function chatGemini() {
     console.log('result: ', result)
 }*/
 </script>
-
-<style scoped>
-.orders-dashboard {
-  width: 90%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 20px;
-}
-
-.order-box {
-  background: var(--color-whitly);
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform .2s;
-}
-.dark .order-box {
-  background: var(--color-darkow);
-}
-.order-box:hover {
-  transform: translateY(-3px);
-}
-
-.order-box h3 {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.order-box p {
-  font-size: 0.9rem;
-  margin: 6px 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.order-box span {
-  font-weight: bold;
-}
-
-/* Couleurs par type */
-.confirmed { border-left: 5px solid #2ecc71; }
-.canceled { border-left: 5px solid #e74c3c; }
-.unreachable { border-left: 5px solid #9b59b6; }
-.awaiting { border-left: 5px solid #f39c12; }
-.delivered { border-left: 5px solid #3498db; }
-.completed { border-left: 5px solid #16a085; }
-</style>

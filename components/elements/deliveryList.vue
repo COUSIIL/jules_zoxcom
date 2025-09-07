@@ -4,108 +4,77 @@
     <Confirm :isVisible="toConfirm" @confirm="deleteDeliveryMethod(parseInt(deliverId))" @cancel="toConfirm = false" />
     <Confirm :isVisible="toSave" @confirm="save(saveId)" @cancel="toSave = false" />
     
-
-    <div v-if="isMounted" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-        <div class="boxDelivery" v-for="(delivery, index) in deliveryList" :key="index">
-            <div class="boxDeliveryTitle">
-                <div class="bigBox">
-                    <div class="directBox">
+    <div v-if="isMounted" class="flex flex-col items-center justify-center w-full">
+        <div class="flex flex-col items-center justify-between w-full max-w-3xl min-w-[300px] my-1.25 transition-all duration-300 ease-in-out rounded-md shadow-md" v-for="(delivery, index) in deliveryList" :key="index">
+            <div class="flex items-center justify-between w-full my-1.25">
+                <div class="p-1.25 items-start">
+                    <div class="flex items-center justify-between text-base font-bold">
                         {{ delivery.delivery_name }}
                         <Radio :selected="parseInt(delivery.active)" @changed="updateActiveDelivery(parseInt(delivery.id),delivery.active, index)" />
                     </div>
-                    <div class="miniBox">
+                    <div class="m-1.25 text-sm text-start text-zioly1 dark:text-garry">
                         {{ delivery.created_at }}
                     </div>
-                    
                 </div>
                 
-                
-                
-                <div class="bigBox">
-                    <div class="directBox">
+                <div class="p-1.25 items-start">
+                    <div class="flex items-center justify-between text-base font-bold">
                         {{ t('drop area') }}
                     </div>
-                    <div class="miniBox">
+                    <div class="m-1.25 text-sm text-start text-zioly1 dark:text-garry">
                         {{ delivery.drop_area_id }} {{ delivery.drop_area_name }}
                     </div>
                 </div>
 
-                <div class="rowBox">
-                    
-                    <button class="directBtn" @click="edit(index)">
-                        <div v-html="resizeSvg(icons['edit'], 20, 20)" >
-
-                        </div>
+                <div class="flex items-center justify-between">
+                    <button class="flex items-center justify-between p-0.5 m-1.25 text-base bg-whizy dark:bg-darkow rounded-lg gap-0.5 cursor-pointer" @click="edit(index)">
+                        <div v-html="resizeSvg(icons['edit'], 20, 20)" ></div>
                         {{ t('edit') }}
                     </button>
 
-                    <button class="directBtn" style="background-color: var(--color-greny)" type="button" @click="toSaving(index)">
-                        <div v-html="resizeSvg(icons['check'], 20, 20)" >
-
-                        </div>
+                    <button class="flex items-center justify-between p-0.5 m-1.25 text-base bg-greny rounded-lg gap-0.5 cursor-pointer" type="button" @click="toSaving(index)">
+                        <div v-html="resizeSvg(icons['check'], 20, 20)" ></div>
                     </button>
 
-                    <button class="directBtn" type="button" @click="toConfirm = true, deliverId = parseInt(delivery.id)">
-                        <div v-html="resizedImgDelete" >
-
-                        </div>
+                    <button class="flex items-center justify-between p-0.5 m-1.25 text-base bg-whizy dark:bg-darkow rounded-lg gap-0.5 cursor-pointer" type="button" @click="toConfirm = true, deliverId = parseInt(delivery.id)">
+                        <div v-html="resizedImgDelete" ></div>
                     </button>
-
-                    
                 </div>
             </div>
 
-            <div v-if="delivery.isMore && delivery.wilaya" class="contentDelivery">
-                <div style="width: 100%;" v-for="(wilaya, index2) in delivery.delivery_info" :key="index2">
-                    <div class="wilayaBox" @click="wilaya.wilaya_active = !wilaya.wilaya_active" style="cursor: pointer;">
+            <div v-if="delivery.isMore && delivery.wilaya" class="flex flex-col items-center justify-center w-full p-1.25 my-1.25">
+                <div class="w-full" v-for="(wilaya, index2) in delivery.delivery_info" :key="index2">
+                    <div class="flex items-center justify-between w-full max-w-2xl min-w-[300px] p-0.5 m-1.25 rounded-lg cursor-pointer bg-whizy dark:bg-darkow" @click="wilaya.wilaya_active = !wilaya.wilaya_active">
                         <p
                         :title="`${wilaya.wilaya_id} ${wilaya.wilaya_name}`"
-                        style="max-width: 200px; min-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px;"
+                        class="max-w-xs min-w-[120px] m-0.5 overflow-hidden text-ellipsis whitespace-nowrap"
                         >
                             {{ wilaya.wilaya_id }} {{ wilaya.wilaya_name }}
                         </p>
 
                         <Radio :selected="wilaya.wilaya_active" @changed="wilaya.wilaya_active = !wilaya.wilaya_active" />
                     </div>
-                    <div class="wilayaBox">
-                        <div style="width: 50%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-                            <div style="display: flex; justify-content: center; align-items: center;">
-                                <Inputer style="max-width: 200px;" type="number" :lock="false" :placeHolder="t('house')" :holder="t('price')" v-model="wilaya.home_price"/>
+                    <div class="flex items-center justify-between w-full max-w-2xl min-w-[300px] p-0.5 m-1.25 rounded-lg bg-whizy dark:bg-darkow">
+                        <div class="flex flex-col items-center justify-center w-1/2">
+                            <div class="flex items-center justify-center">
+                                <Inputer class="max-w-xs" type="number" :lock="false" :placeHolder="t('house')" :holder="t('price')" v-model="wilaya.home_price"/>
                                 <Radio :selected="wilaya.home_active" @changed="wilaya.home_active = !wilaya.home_active" />
                             </div>
                             <Selector :options="deliveryListed" :placeHolder="t('delivery')" :img="icons['delivery']" :modelValue="wilaya.delivery_home" :modelImage="resolvedImage(index, index2, 'home')" :disabled="false" @update:modelLabel="val => wilaya.delivery_home = val"/>
                         </div>
                         
-                        <div style="width: 50%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-                            <div style="display: flex; justify-content: center; align-items: center;">
-                                <Inputer style="max-width: 200px;" type="number" :lock="false" :placeHolder="t('desk')" :holder="t('price')" v-model="wilaya.desk_price"/>
+                        <div class="flex flex-col items-center justify-center w-1/2">
+                            <div class="flex items-center justify-center">
+                                <Inputer class="max-w-xs" type="number" :lock="false" :placeHolder="t('desk')" :holder="t('price')" v-model="wilaya.desk_price"/>
                                 <Radio :selected="wilaya.desk_active" @changed="wilaya.desk_active = !wilaya.desk_active" />
                             </div>
                             <Selector :options="deliveryListed" :placeHolder="t('delivery')" :img="icons['delivery']" :modelValue="wilaya.delivery_desk" :modelImage="resolvedImage(index, index2, 'desk')" :disabled="false" @update:modelLabel="val => wilaya.delivery_desk = val" @update:modelImage="val => delivery.delivery_content.img = val"/>
                         </div>
-                        
-                        
-
-                        
                     </div>
-
-                        
-                        
-                    
-                    
                 </div>
-                
-
             </div>
-            
-
-            
         </div>
-        
     </div>
-
-
-
 </template>
 
 <script setup>
@@ -553,102 +522,3 @@ onMounted (async() => {
 
 
 </script>
-
-<style>
-
-.bigBox {
-    padding: 5px;
-    align-items: start;
-}
-
-.directBtn {
-    
-    font-size: 16px;
-    margin: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px;
-    border-radius: 8px;
-    background-color: var(--color-whizy);
-    gap: 2px;
-    cursor: pointer;
-
-}
-.dark .directBtn {
-    background-color: var(--color-darkow);
-}
-
-.directBox {
-    font-size: 16px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-}
-
-.rowBox {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.wilayaBox {
-    width: calc(100% - 10px);
-    margin: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 8px;
-    padding: 2px;
-    background-color: var(--color-whizy);
-}
-.dark .wilayaBox{
-    background-color: var(--color-darkow);
-}
-
-.miniBox {
-    font-size: 14px;
-    margin: 5px;
-    color: var(--color-zioly1);
-    text-align: start;
-}
-.dark .miniBox {
-    color: var(--color-garry);
-}
-
-.contentDelivery {
-    width: 100%; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    flex-direction: column;
-    padding-block: 5px;
-    margin-block: 5px;
-}
-
-
-.boxDelivery {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    min-width: 300px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    margin-block: 5px;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-}
-
-.boxDeliveryTitle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-block: 5px;
-}
-
-</style>

@@ -1,47 +1,39 @@
 <template>
-  <div style="width: 100px; position: relative;">
-    <div class="id">
+  <div class="relative w-24">
+    <div class="flex items-center justify-between w-full mx-1.25 overflow-hidden text-xs text-left whitespace-nowrap text-ellipsis">
       id:{{ image.id }}
       <div
-          class="toggle-delete"
-          :class="image.markedForDelete ? 'selected1' : 'notSelected1'"
+          class="flex items-center justify-center"
+          :class="image.markedForDelete ? 'w-3.5 h-3.5 cursor-pointer bg-rady rounded-full' : 'flex items-center justify-center w-3.5 h-3.5 cursor-pointer border-2 rounded-full bg-transparent border-darkly dark:border-whitly'"
           @click.stop="emitToggleDelete"
           title="Marquer pour suppression"
           @click="emitToggle"
       ></div>
-      
     </div>
 
-    <div class="image-box relative">
-
-
+    <div class="relative flex items-center justify-center w-24 h-24 overflow-hidden rounded-2xl bg-whizy dark:bg-darky text-darky dark:text-whizy">
         <img
           ref="imageRef"
           :src="thumbSrc"
           loading="lazy"
           decoding="async"
           alt="preview"
-          class="preview-image"
+          class="object-cover w-full h-full"
           @load="onImageLoad"
           v-show="imageLoaded"
         />
-
-        
     </div>
     
-
-    <div class="floating-label">
-      
+    <div class="flex items-center justify-center w-full h-8 gap-1 px-1.5 py-0.5 mx-auto mt-1.25 text-xs rounded-lg shadow-md bg-zioly4 text-whitly backdrop-blur-sm dark:bg-whizy dark:text-darky">
       <input
         type="text"
         :title="inputName"
         v-model="inputName"
-        class="input-name"
+        class="w-full text-xs text-center bg-transparent border-none outline-none text-inherit overflow-hidden text-ellipsis whitespace-nowrap placeholder-whitly"
         :required="required"
         @blur="emitRename(inputName)"
       />
-
-      <div v-if="required" class="required-icon">
+      <div v-if="required" class="flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none">
           <path d="M10.7962 2.91338C11.4188 2.29077 12.2756 1.96039 13.1551 2.0038L18.7587 2.28039C20.3601 2.35944 21.6406 3.63993 21.7196 5.24131L21.9962 10.8449C22.0396 11.7244 21.7092 12.5811 21.0866 13.2037L13.5082 20.7822C11.8844 22.4059 9.25177 22.4059 7.62799 20.7822L3.21783 16.372C1.59406 14.7482 1.59406 12.1156 3.21783 10.4918L10.7962 2.91338Z" stroke="currentColor" stroke-width="1.5"/>
           <path d="M17.5002 6.5L17.4912 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -150,155 +142,3 @@ const editImage = async () => {
 }
 */
 </script>
-
-<style scoped>
-
-.edit {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.toggle-delete {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.notSelected1 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  border: 2px solid var(--color-darkly);
-  border-radius: 50%;
-  background-color: transparent;
-}
-.dark .notSelected1 {
-  border: 2px solid var(--color-whitly);
-}
-
-.selected1 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 14px;
-  height: 14px;
-  cursor: pointer;
-  background-color: var(--color-rady);
-  border-radius: 50%;
-}
-
-.image-box {
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border-radius: 16px;
-  overflow: hidden;
-  background-color: var(--color-whizy);
-  color: var(--color-darky);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.dark .image-box {
-  background-color: var(--color-darky);
-  color: var(--color-whizy);
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.floating-label {
-  height: 30px;
-  width: 100%;
-  margin: 5px auto 0;
-  background-color: var(--color-zioly4);
-  color: var(--color-whitly);
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* centre contenu horizontalement */
-  gap: 4px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.dark .floating-label {
-  background-color: var(--color-whizy);
-  color: var(--color-darky);
-}
-
-.input-name {
-  border: none;
-  background: transparent;
-  color: inherit;
-  font-size: 12px;
-  outline: none;
-  width: 100%;          /* prend toute la largeur */
-  text-align: center;   /* centre le texte */
-  white-space: nowrap;  /* texte sur une ligne */
-  overflow: hidden;     /* cache débordement */
-  text-overflow: ellipsis; /* "..." si trop long */
-}
-
-.input-name::placeholder {
-  color: var(--color-whitly);
-}
-
-.id {
-  width: 100%;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;    
-  text-overflow: ellipsis;
-  font-size: 12px;
-  margin-inline: 5px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.required-icon {
-  display: flex;
-  align-items: center;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.download-overlay {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(0,0,0,0.4);
-  border: none;
-  color: white;
-  padding: 4px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-.download-overlay:hover {
-  background: rgba(0,0,0,0.6);
-}
-</style>

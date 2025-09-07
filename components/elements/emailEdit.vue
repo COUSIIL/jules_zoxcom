@@ -1,9 +1,7 @@
 <template>
-  <div class="emailMenu">
-    <div style="width: 100%; display: flex; justify-content: start; align-items: center; padding: 5px; gap: 10px;">
-      <div v-html="Icons['email']"> 
-
-      </div>
+  <div class="flex flex-col items-center justify-center w-11/12 p-2.5 m-2.5 text-center rounded-lg shadow-lg bg-whitly dark:bg-darkly">
+    <div class="flex items-center justify-start w-full gap-2.5 p-1.25">
+      <div v-html="Icons['email']"></div>
       {{ t('store email') }}
     </div>
 
@@ -12,16 +10,10 @@
     <Gbtn v-if="!isEmail" text="save" :svg="Icons['check']" color="var(--color-zioly2)" @click="createEmail"/>
     <Loader v-else width="100px"/>
 
-    <div v-if="log" style="font-weight: bold; color: var(--color-zioly2); font-size: 14px;">
+    <div v-if="log" class="text-sm font-bold text-zioly2">
       {{ log }}
     </div>
-
-
-
   </div>
-
-    
-
 </template>
 
 <script setup>
@@ -129,24 +121,3 @@ onMounted(() => {
 
 
 </script>
-
-<style>
-
-  .emailMenu {
-    width: 90%;
-    margin: 10px;
-    border-radius: 8px;
-    padding-block: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    box-shadow: 0 4px 8px #3b3b3b20;
-    text-align: center;
-  }
-  .dark .emailMenu {
-    background-color: var(--color-darkly);
-  }
-
-</style>

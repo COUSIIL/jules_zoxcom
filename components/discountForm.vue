@@ -1,12 +1,12 @@
 <template>
-  <form v-if="isMounted" @submit.prevent="saveDiscount" style="width: 50%;">
-    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+  <form v-if="isMounted" @submit.prevent="saveDiscount" class="w-1/2">
+    <div class="flex flex-col items-center justify-center">
       <h2>{{ t('discount name') }}</h2>
       <input class="input" v-model="name" type="text">
       
     </div>
 
-    <div style="display: flex; justify-content: center; align-items: center;">
+    <div class="flex items-center justify-center">
       <button type="button" :class="percentage === true ? 'btn1' : 'btn2'" @click="percentage = true; fixedValue = false">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="25" fill="none">
           <path d="M8 16L16 8M10 9C10 9.55228 9.55228 10 9 10C8.44772 10 8 9.55228 8 9C8 8.44772 8.44772 8 9 8C9.55228 8 10 8.44772 10 9ZM16 14.8284C16 15.3807 15.5523 15.8284 15 15.8284C14.4477 15.8284 14 15.3807 14 14.8284C14 14.2761 14.4477 13.8284 15 13.8284C15.5523 13.8284 16 14.2761 16 14.8284Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -22,29 +22,29 @@
       </button>
     </div>
     
-    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <div class="flex flex-col items-center justify-center">
       <input v-if="percentage === true" class="input" v-model="percentValue" type="number" :disabled="!percentage">
 
       <input v-else class="input" v-model="countValue" type="number" :disabled="!fixedValue">
     </div>
 
 
-    <div v-if="usage" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <div v-if="usage" class="flex flex-col items-center justify-center">
       <h3>{{ t('quantity') }}</h3>
       <input class="input" v-model="qty" type="number">
     </div>
 
-    <div v-if="!usage && !limitation" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <div v-if="!usage && !limitation" class="flex flex-col items-center justify-center">
       <h3>{{ t('usage') }}</h3>
       <input class="input" v-model="usages" type="number">
     </div>
 
-    <div v-if="limitation" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <div v-if="limitation" class="flex flex-col items-center justify-center">
       <h3>{{ t('valid until') }}</h3>
       <input class="input" v-model="validUntil" type="date">
     </div>
 
-    <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <div class="flex flex-col items-center justify-center">
       <button class="btn3" style="width: 100%;" @click.prevent="generateCode">
         {{ t('generate') }}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
@@ -53,7 +53,7 @@
       </svg>
       </button>
     
-      <div v-for="(code, index) in codes" :key="index" style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+      <div v-for="(code, index) in codes" :key="index" class="flex flex-col items-center justify-center">
         <input 
           class="discountInput" 
           :value="code"
@@ -69,12 +69,10 @@
           <path d="M8 2.5V9.82621C8 11.0733 8 11.6969 8.38642 11.9201C9.13473 12.3523 10.5384 10.9103 11.205 10.4761C11.5916 10.2243 11.7849 10.0984 12 10.0984C12.2151 10.0984 12.4084 10.2243 12.795 10.4761C13.4616 10.9103 14.8653 12.3523 15.6136 11.9201C16 11.6969 16 11.0733 16 9.82621V2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
       </button>
-      <div v-if="disLog" style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
+      <div v-if="disLog" class="flex flex-col items-center justify-center w-full">
         {{ disLog }}
       </div>
     </div>
-    
-
   </form>
 </template>
 

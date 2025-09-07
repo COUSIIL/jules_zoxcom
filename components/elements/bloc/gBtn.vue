@@ -1,18 +1,18 @@
 <template>
   <button
-    class="m-[5px] flex h-8 cursor-pointer items-center justify-center overflow-visible rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-    :style="{ backgroundColor: color }"
+    class="m-[5px] flex h-8 cursor-pointer items-center justify-center overflow-visible rounded-full shadow-md"
+    :class="`bg-${color}`"
     :id="value"
     type="button"
   >
     <div
       v-if="text"
-      class="mx-0.5 flex h-7 items-center rounded-full bg-[--color-whitly] p-2.5 text-sm dark:bg-[--color-darkly]"
+      class="mx-0.5 flex h-7 items-center rounded-full bg-whitly p-2.5 text-sm dark:bg-darkly"
     >
       {{ t(text) }}
     </div>
     <div
-      class="pointer-events-none flex h-[30px] w-[30px] items-center justify-center rounded-full text-[--color-whitly]"
+      class="pointer-events-none flex h-[30px] w-[30px] items-center justify-center rounded-full text-whitly"
       v-html="resizedImg"
     />
   </button>

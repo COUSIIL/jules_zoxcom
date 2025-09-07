@@ -1,86 +1,68 @@
 <template>
-  <div class="storeMenu">
+  <div class="flex flex-col items-center justify-center w-11/12 p-2.5 m-2.5 text-center rounded-lg shadow-lg bg-whitly dark:bg-darkly">
     <div v-if="loading">{{ t('loading...') }}</div>
 
-    <div v-if="!loading" class="spaceBox">
-      <div class="alignBox">
-        <img :src="faviconUrl" alt="Logo" class="logo" v-if="faviconUrl" />
-        <div class="stackStart">
+    <div v-if="!loading" class="flex items-center justify-between w-full">
+      <div class="flex items-center justify-center">
+        <img :src="faviconUrl" alt="Logo" class="object-contain w-8 h-8 m-2.5 rounded-full" v-if="faviconUrl" />
+        <div class="flex flex-col items-start justify-center w-36">
           <h4>{{ title }}</h4>
-          <p>{{ webUrl }}</p>
+          <p class="text-xs text-gray-500">{{ webUrl }}</p>
         </div>
       </div>
 
       <Linker :link="`/store/${title}`" :text="t('manage')" :svg="icons['settings']" />
-        
     </div>
 
-    <div v-if="!loading" class="seo-score-container">
-      <h2>{{ t('seo score') }}</h2>
-      <div class="progress-bar">
-        <div class="progress" ref="progress">{{ progressText }}</div>
+    <div v-if="!loading" class="w-full max-w-md mx-auto my-5 text-center">
+      <h2 class="text-2xl">{{ t('seo score') }}</h2>
+      <div class="w-full h-8 mx-auto mt-2.5 overflow-hidden bg-gray-200 rounded-2xl">
+        <div class="h-full text-center text-white transition-all duration-500 ease-in-out bg-gradient-to-r from-green-400 to-lime-400" ref="progress">{{ progressText }}</div>
       </div>
     </div>
 
-    <button class="alignDrop" @click="drop = !drop">
+    <button class="flex items-center justify-center w-full h-5 cursor-pointer" @click="drop = !drop">
       <div v-if="drop">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="#000000" fill="none">
           <path d="M17.9998 15C17.9998 15 13.5809 9.00001 11.9998 9C10.4187 8.99999 5.99985 15 5.99985 15" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
         </svg>
-        
       </div>
-
       <div v-else>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" color="#000000" fill="none">
           <path d="M18 9.00005C18 9.00005 13.5811 15 12 15C10.4188 15 6 9 6 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </div>
-
-
-      
     </button>
 
-    <div v-if="!loading && drop" class="audit-results">
-      <div class="audit-card">
-        <h3>{{ t('seo ready') }}</h3>
-        <p :style="{ color: seoReady ? 'green' : 'red' }">
-          {{ seoReady ? t('yes, your website is seo-ready.') : t('no, improvements are needed for seo readiness.') }}
-        </p>
+    <div v-if="!loading && drop" class="grid w-full grid-cols-[repeat(auto-fit,minmax(100px,3fr))] gap-5 p-1.25">
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('seo ready') }}</h3>
+        <p :class="seoReady ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ seoReady ? t('yes, your website is seo-ready.') : t('no, improvements are needed for seo readiness.') }}</p>
       </div>
     
-      <div class="audit-card">
-        <h3>{{ t('facebook pixel') }}</h3>
-        <p :style="{ color: facebookPixelInstalled ? 'green' : 'red' }">
-          {{ facebookPixelInstalled ? t('facebook pixel is installed.') : t('facebook pixel is not detected.') }}
-        </p>
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('facebook pixel') }}</h3>
+        <p :class="facebookPixelInstalled ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ facebookPixelInstalled ? t('facebook pixel is installed.') : t('facebook pixel is not detected.') }}</p>
       </div>
     
-      <div class="audit-card">
-        <h3>{{ t('google analytics') }}</h3>
-        <p :style="{ color: googleAnalyticsInstalled ? 'green' : 'red' }">
-          {{ googleAnalyticsInstalled ? t('google analytics is active.') : t('google analytics is missing.') }}
-        </p>
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('google analytics') }}</h3>
+        <p :class="googleAnalyticsInstalled ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ googleAnalyticsInstalled ? t('google analytics is active.') : t('google analytics is missing.') }}</p>
       </div>
     
-      <div class="audit-card">
-        <h3>{{ t('google ads') }}</h3>
-        <p :style="{ color: googleAdsInstalled ? 'green' : 'red' }">
-          {{ googleAdsInstalled ? t('google ads tag is detected.') : t('google ads tag not found.') }}
-        </p>
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('google ads') }}</h3>
+        <p :class="googleAdsInstalled ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ googleAdsInstalled ? t('google ads tag is detected.') : t('google ads tag not found.') }}</p>
       </div>
     
-      <div class="audit-card">
-        <h3>{{ t('structured data') }}</h3>
-        <p :style="{ color: structuredDataPresent ? 'green' : 'red' }">
-          {{ structuredDataPresent ? t('structured data (schema.org) is present.') : t('no structured data detected.') }}
-        </p>
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('structured data') }}</h3>
+        <p :class="structuredDataPresent ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ structuredDataPresent ? t('structured data (schema.org) is present.') : t('no structured data detected.') }}</p>
       </div>
     
-      <div class="audit-card">
-        <h3>{{ t('speed optimization') }}</h3>
-        <p :style="{ color: fastLoadingPractices ? 'green' : 'red' }">
-          {{ fastLoadingPractices ? t('async/defer practices are applied.') : t('no async/defer found, speed could improve.') }}
-        </p>
+      <div class="p-5 transition-transform duration-300 ease-in-out bg-white border border-gray-200 rounded-2xl shadow-lg hover:-translate-y-1">
+        <h3 class="mb-2.5 text-lg text-gray-800">{{ t('speed optimization') }}</h3>
+        <p :class="fastLoadingPractices ? 'text-green-500' : 'text-red-500'" class="text-sm">{{ fastLoadingPractices ? t('async/defer practices are applied.') : t('no async/defer found, speed could improve.') }}</p>
       </div>
     </div>
   </div>
@@ -198,133 +180,3 @@ onMounted(() => {
 
 
 </script>
-  
-  
-  
-<style scoped>
-  .storeMenu {
-    width: 90%;
-    margin: 10px;
-    border-radius: 8px;
-    padding-block: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    box-shadow: 0 4px 8px #3b3b3b20;
-    text-align: center;
-  }
-  .dark .storeMenu {
-    background-color: var(--color-darkly);
-  }
-
-  .spaceBox{
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .alignBox{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .alignDrop{
-    width: 100%;
-    height: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-  .stackStart{
-    width: 150px; 
-    max-width: 150px;
-    display: flex; 
-    justify-content: center; 
-    align-items: start; 
-    flex-direction: column;
-  }
-
-  .logo {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    border-radius: 50%;
-    margin: 10px;
-  }
-  h2 {
-    font-size: 1.5rem;
-    margin: 0;
-  }
-  p {
-    font-size: 0.7rem;
-    color: gray;
-  }
-
-  .audit-results {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 3fr));
-    gap: 20px;
-    padding: 5px;
-  }
-  
-  .audit-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease;
-  }
-  
-  .audit-card:hover {
-    transform: translateY(-4px);
-  }
-  
-  .audit-card h3 {
-    margin-bottom: 10px;
-    font-size: 2.5vh;
-    color: #222;
-  }
-  
-  .audit-card p {
-    font-size: 2vh;
-    color: #444;
-  }
-  
-  
-
-  .seo-score-container {
-    width: 100%;
-    max-width: 400px;
-    margin: 20px auto;
-    text-align: center;
-  }
-  
-  .progress-bar {
-    width: 100%;
-    height: 30px;
-    background-color: #e0e0e0;
-    border-radius: 15px;
-    overflow: hidden;
-    margin-top: 10px;
-  }
-  
-  .progress {
-    height: 100%;
-    background: linear-gradient(90deg, #00c853, #b2ff59);
-    color: #fff;
-    text-align: center;
-    line-height: 30px;
-    font-weight: bold;
-    transition: width 0.5s ease;
-  }
-
-  
-  
-  </style>
-  

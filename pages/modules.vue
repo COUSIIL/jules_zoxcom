@@ -1,16 +1,16 @@
 <template>
-    <div style="width: 100%; display: flex; justify-content: center; align-items: center; flex-direction: column;">
-        <div class="boxContainer">
+    <div class="flex flex-col items-center justify-center w-full">
+        <div class="w-11/12 my-2.5 rounded-lg p-2.5 flex justify-center items-center flex-col bg-whitly shadow-[0_4px_8px_rgba(59,59,59,0.125)] text-center dark:bg-darkly">
             <Ups/>
         </div>
-        <div class="boxContainer">
+        <div class="w-11/12 my-2.5 rounded-lg p-2.5 flex justify-center items-center flex-col bg-whitly shadow-[0_4px_8px_rgba(59,59,59,0.125)] text-center dark:bg-darkly">
             <Anderson/>
         </div>
-        <div class="boxContainer">
+        <div class="w-11/12 my-2.5 rounded-lg p-2.5 flex justify-center items-center flex-col bg-whitly shadow-[0_4px_8px_rgba(59,59,59,0.125)] text-center dark:bg-darkly">
             <Yalidine/>
         </div>
 
-        <div class="boxContainer">
+        <div class="w-11/12 my-2.5 rounded-lg p-2.5 flex justify-center items-center flex-col bg-whitly shadow-[0_4px_8px_rgba(59,59,59,0.125)] text-center dark:bg-darkly">
             <Guepex/>
         </div>
     </div>
@@ -29,22 +29,3 @@ import Guepex from '../components/modules/guepex.vue';
 
 
 </script>
-
-<style>
-.boxContainer {
-    width: 90%;
-    margin: 10px;
-    border-radius: 8px;
-    padding-block: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    box-shadow: 0 4px 8px #3b3b3b20;
-    text-align: center;
-  }
-  .dark .boxContainer {
-    background-color: var(--color-darkly);
-  }
-</style>

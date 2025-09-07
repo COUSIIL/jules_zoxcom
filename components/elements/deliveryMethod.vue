@@ -1,29 +1,18 @@
 <template>
-
   <LoaderBlack v-if="isSaving" width="100px" />
   <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
 
-  <div class="emailMenu">
-    <div style="width: 100%; display: flex; justify-content: start; align-items: center; padding: 5px; gap: 10px;">
-      <div v-html="Icons['delivery']"> 
-
-      </div>
+  <div class="flex flex-col items-center justify-center w-11/12 p-2.5 m-2.5 text-center rounded-lg shadow-lg bg-whitly dark:bg-darkly">
+    <div class="flex items-center justify-start w-full gap-2.5 p-1.25">
+      <div v-html="Icons['delivery']"></div>
       {{ t('delivery method') }}
     </div>
     
-
     <Selector :placeHolder="t('method')" :img="Icons['action']" v-if="!isSaving" :options="deliveryList" @update:modelLabel="setMethod" :modelValue="newDelivery" :modelImage="deliveryImage" />
 
     <Gbtn v-if="!isSaving" text="save" :svg="resizeSvg(Icons['check'], 20, 20)" color="var(--color-zioly2)" @click="setDelivery"/>
     <Loader v-else width="100px"/>
-
-
-
-
   </div>
-
-    
-
 </template>
 
 <script setup>
@@ -202,24 +191,3 @@ onMounted(() => {
 
 
 </script>
-
-<style>
-
-  .deliveryMenu {
-    width: 90%;
-    margin: 10px;
-    border-radius: 8px;
-    padding-block: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: var(--color-whitly);
-    box-shadow: 0 4px 8px #3b3b3b20;
-    text-align: center;
-  }
-  .dark .deliveryMenu {
-    background-color: var(--color-darkly);
-  }
-
-</style>

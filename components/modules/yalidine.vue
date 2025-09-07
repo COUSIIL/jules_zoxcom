@@ -1,36 +1,27 @@
 <template>
-  <div style="width: 90%; display: flex; justify-content: space-between; align-items: center;">
-      <li>
-          <div style="width: 30px; height: 30px; border-radius: 8px; display: flex; justify-content: center; align-items: center;">
+  <div class="flex items-center justify-between w-11/12">
+      <li class="flex items-center justify-around gap-2.5 p-1.25 m-0.5">
+          <div class="flex items-center justify-center w-8 h-8 rounded-lg">
               <img src="https://management.hoggari.com/yalidine.png" alt="">
           </div>
-        
           <h3 class="title">{{ t('yalidine api key') }}</h3>
       </li>
       
       <Toggle v-if="!loading" :toggle="work" @toggle="activator('yal_module')"/>
-
   </div>
 
-
-  <div style="width: 300px; min-width: 5px; display: flex; justify-content: center; align-items: center;">
-      <h3>
-          {{ t('api_id :') }}
-      </h3>
-      
+  <div class="flex items-center justify-center w-48 min-w-[5px]">
+      <h3>{{ t('api_id :') }}</h3>
   </div>
 
   <input class="input" v-model="yalidineId" type="text">
 
-  <div style="width: 300px; min-width: 5px; display: flex; justify-content: center; align-items: center;">
-      <h3>
-          {{ t('api_token :') }}
-      </h3>
-      
+  <div class="flex items-center justify-center w-48 min-w-[5px]">
+      <h3>{{ t('api_token :') }}</h3>
   </div>
   <input class="input" v-model="yalidineToken" type="text">
 
-  <button v-if="!saving" class="btn2" style="width: 50%;" @click="applyyalidine" type="button">
+  <button v-if="!saving" class="w-1/2 btn2" @click="applyyalidine" type="button">
     {{ t('save') }}
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
       <path d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z" stroke="currentColor" stroke-width="1.5" />
@@ -40,11 +31,9 @@
   </svg>
   </button>
   <div v-else>
-    <Loader :style="{width: '80px', height: '80px'}"/>
+    <Loader class="w-20 h-20"/>
   </div>
-  <h3>
-    {{ disLog }}
-  </h3>
+  <h3>{{ disLog }}</h3>
 </template>
 
 <script>
@@ -188,14 +177,3 @@ methods: {
 },
 };
 </script>
-
-<style>
-li {
-  padding: 5px;
-  margin: 2px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  gap: 10px;
-}
-</style>
