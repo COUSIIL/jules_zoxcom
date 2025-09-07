@@ -7,11 +7,11 @@
   justify-content: space-around; ">
     <div class="discountBox">
       <p>
-        Discount
+        {{ t('discounts') }}
       </p>
       
 
-      <Linker :link="'/addDiscount'" text="Add Discount" :svg="icons['promotion']" />
+      <Linker :link="'/addDiscount'" :text="t('add discount')" :svg="icons['promotion']" />
     </div>
 
     
@@ -97,7 +97,7 @@
           </svg>
             <label>
               
-              delete
+              {{ t('delete') }}
             </label>
     
           </button>
@@ -118,10 +118,10 @@
           </svg>
             <div style="min-width: 80px; max-width: 100px; display: flex; align-items: center; justify-content: center">
               <label v-if="show[index]">
-                Hide All
+                {{ t('hide all') }}
               </label>
               <label v-else>
-                Show All
+                {{ t('show all') }}
               </label>
       
             </div>
@@ -296,7 +296,7 @@ async function dellDiscount(index, ids) {
         body: deleteDiscount,
         });
         if(!response2.ok){
-            deLog.value = "error in response";
+            deLog.value = t("error in response");
             console.error('this.deLog: ', this.deLog);
             isUpdating.value[index] = false;
             return;

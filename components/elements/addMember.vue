@@ -73,15 +73,15 @@ function onImageSelected(event) {
 const submitForm = async () => {
   emit('saving', true)
   if(!form.value.username) {
-    emit('message', 'enter a valid username')
+    emit('message', t('enter a valid username'))
     return
   }
   if(!form.value.email) {
-    emit('message', 'enter a valid email')
+    emit('message', t('enter a valid email'))
     return
   }
   if(!form.value.password) {
-    emit('message', 'enter a valid password')
+    emit('message', t('enter a valid password'))
     return
   }
   const formData = new FormData()

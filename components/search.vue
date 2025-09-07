@@ -4,7 +4,7 @@
           class="searchBar" 
           :value="searcher" 
           @input="$emit('update:searcher', $event.target.value)" 
-          placeholder="Search by | order-id | phone | name">
+          :placeholder="t('Search by | order-id | phone | name')">
         </textarea>
     
         <button @click="sendSearch">
@@ -20,8 +20,14 @@
 
 
 <script>
+import { useLang } from '~/composables/useLang';
+
 export default {
   name: "Search",
+  setup() {
+    const { t } = useLang();
+    return { t };
+  },
   props: {
     searcher: {
       type: String,

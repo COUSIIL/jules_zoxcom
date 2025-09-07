@@ -15,7 +15,7 @@
 
           </div>
           <h1>
-          {{ membersLength }} Members
+          {{ membersLength }} {{ t('members') }}
           </h1>
           
       </div>
@@ -137,7 +137,7 @@
     })
 
     if(!response.ok) {
-      console.error('error')
+      console.error(t('error'))
       return
     }
 

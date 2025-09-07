@@ -135,7 +135,7 @@ async function getCustomers() {
     );
 
     if (!response.ok) {
-      console.error('error in getting view page response');
+      console.error(t('error in getting view page response'));
       return;
     }
 
@@ -172,7 +172,7 @@ async function deleteCustomer(id, index) {
     );
     
     if (!response.ok) {
-      console.error('error in getting view page response');
+      console.error(t('error in getting view page response'));
       isUpdating.value = false;
       return;
     }

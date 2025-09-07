@@ -15,7 +15,7 @@
 
           </div>
           <h1>
-          {{ banksLength }} Banks
+          {{ banksLength }} {{ t('banks') }}
           </h1>
           
       </div>
@@ -161,11 +161,11 @@
 
           banksLength.value = banks.value.length
         } else {
-        messager(data.message || 'Failed to load banks')
+        messager(data.message || t('failed to load banks'))
         }
     } catch (err) {
         console.error(err)
-        messager('Error while fetching banks')
+        messager(t('error while fetching banks'))
     } finally {
         isSaving.value = false
     }

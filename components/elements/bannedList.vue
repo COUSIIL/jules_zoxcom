@@ -87,7 +87,7 @@ const deleteIp = async () => {
 
   // 1. Validations
   if (ipIndex.value < 0 || ipIndex.value >= props.data.length) {
-    message.value = "Please select a valid IP"
+    message.value = t("Please select a valid IP")
     isMessage.value = true
     isSaving.value = false
     return
@@ -111,7 +111,7 @@ const deleteIp = async () => {
     )
 
     if (!response.ok) {
-      message.value   = "error in response"
+      message.value   = t("error in response")
       isMessage.value = true
       isSaving.value  = false
       return   // <<-- Interrompt ici pour ne pas continuer

@@ -18,37 +18,43 @@
             </option>
         </select>
         <div>
-            Name
+            {{ t('Name') }}
             <input class="input" type="text" v-model="name" @blur="_name[index] = name">
         </div>
         <div>
-            Phone
+            {{ t('Phone') }}
             <input class="input" type="text" v-model="phone1" @blur="_phone1[index] = phone1">
         </div>
         <div>
-            2nd phone
+            {{ t('2nd phone') }}
             <input class="input" type="text" v-model="phone2" @blur="_phone2[index] = phone2">
         </div>
         <div>
-            Give note
+            {{ t('Give note') }}
             <input class="input" type="text" v-model="note" @blur="_note[index] = note">
         </div>
         <div>
-            Total
+            {{ t('Total') }}
             <input class="input" type="text" v-model="total" @blur="_total[index] = total">
         </div>
-        <p>{{ message }}</p>
+        <p>{{ t(message) }}</p>
         <div class="buttons">
-          <button class="confirm" @click="confirm()">Yes</button>
-          <button class="cancel" @click="this.$emit('cancel')">No</button>
+          <button class="confirm" @click="confirm()">{{ t('Yes') }}</button>
+          <button class="cancel" @click="this.$emit('cancel')">{{ t('No') }}</button>
         </div>
       </div>
 
 </template>
   
   <script>
+  import { useLang } from '~/composables/useLang';
+
   export default {
     name: 'Deliver',
+    setup() {
+      const { t } = useLang();
+      return { t };
+    },
     data() {
       return {
         isMounted: false,

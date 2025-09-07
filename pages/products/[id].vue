@@ -20,7 +20,7 @@
                 />
           </div>
           <label class="inputImg">
-            <span v-if="!previewImage && !productImg">optimale 1:1</span>
+            <span v-if="!previewImage && !productImg">{{ t('optimal 1:1') }}</span>
             <img v-else-if="productImg" :src="productImg" alt="Preview" />
             <img v-else-if="previewImage" :src="previewImage" alt="Preview" />
           </label>
@@ -32,21 +32,21 @@
             <Radio :selected="prodActive"/>
           </div>
 
-          <Inputer :placeHolder="'product name'" :img="productSvg" :required="true" v-model="productName" @blur:modelValue="generateSlug"/>
-          <Inputer :placeHolder="'slug'" :img="icons['link']" :required="true" v-model="slug"/>
-          <Inputer :placeHolder="'label'" :img="labelSvg" :required="false" v-model="label"/>
+          <Inputer :placeHolder="t('product name')" :img="productSvg" :required="true" v-model="productName" @blur:modelValue="generateSlug"/>
+          <Inputer :placeHolder="t('slug')" :img="icons['link']" :required="true" v-model="slug"/>
+          <Inputer :placeHolder="t('label')" :img="labelSvg" :required="false" v-model="label"/>
 
           
         </div>
         <div class="productForm">
           <div class="formRow">
-            <InputBtn :placeHolder="'color'" type="color" color="var(--color-zioly2)" :img="colorSvg" :required="false" v-model="color"/>
-            <InputBtn :placeHolder="'color name'" type="text" :img="icons['colorName']" :required="false" v-model="colorName" :svg="addSvg" color="var(--color-zioly2)" @clicked="addColor(color, colorName)"/>
+            <InputBtn :placeHolder="t('color')" type="color" color="var(--color-zioly2)" :img="colorSvg" :required="false" v-model="color"/>
+            <InputBtn :placeHolder="t('color name')" type="text" :img="icons['colorName']" :required="false" v-model="colorName" :svg="addSvg" color="var(--color-zioly2)" @clicked="addColor(color, colorName)"/>
             <Lister :options="colors" color="var(--color-zioly2)" @update:options="removeColor"/>
           </div>
 
           <div class="formRow">
-            <InputBtn :placeHolder="'size'" type="text" :img="icons['size']" :required="false" v-model="size" :svg="addSvg" color="var(--color-zioly2)" @clicked="addSize(size)"/>
+            <InputBtn :placeHolder="t('size')" type="text" :img="icons['size']" :required="false" v-model="size" :svg="addSvg" color="var(--color-zioly2)" @clicked="addSize(size)"/>
             <Lister :options="sizes" color="var(--color-zioly2)" @update:options="removeSize"/>
           </div>
         </div>
@@ -56,7 +56,7 @@
 
     <div class="boxProduct">
       <div :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '80%', maxWidth: '800px', minWidth: '200px' }">
-        <Inputer :placeHolder="'youtube link'" :img="ytbSvg" :required="false" v-model="youtubeLink" @blur:modelValue="updateVideoId"/>
+        <Inputer :placeHolder="t('youtube link')" :img="ytbSvg" :required="false" v-model="youtubeLink" @blur:modelValue="updateVideoId"/>
 
         <Radio :selected="ytbActive" @click="ytbActive = !ytbActive"/>
 
@@ -79,13 +79,13 @@
     
     <div v-if="!newCat" class="boxProduct">
       <div v-if="categories" class="formRow">
-        <Selector :options="categories" @update:modelValue="setCat" color="var(--color-zioly2)" placeHolder="categorie" :modelValue="categoryName" v-model="categoryName"/>
-        <Selector v-if="categoryName && subCategories" :options="subCategories" @update:modelValue="setSubCat" color="var(--color-zioly2)" placeHolder="sub categorie" :modelValue="categoryName2" v-model="categoryName2"/>
-        <Selector v-if="categoryName2 && categoriesElements" :options="categoriesElements" @update:modelValue="setCatElements" color="var(--color-zioly2)" placeHolder="categorie element" :modelValue="categoryName3" v-model="categoryName3"/>
+        <Selector :options="categories" @update:modelValue="setCat" color="var(--color-zioly2)" :placeHolder="t('categorie')" :modelValue="categoryName" v-model="categoryName"/>
+        <Selector v-if="categoryName && subCategories" :options="subCategories" @update:modelValue="setSubCat" color="var(--color-zioly2)" :placeHolder="t('sub categorie')" :modelValue="categoryName2" v-model="categoryName2"/>
+        <Selector v-if="categoryName2 && categoriesElements" :options="categoriesElements" @update:modelValue="setCatElements" color="var(--color-zioly2)" :placeHolder="t('categorie element')" :modelValue="categoryName3" v-model="categoryName3"/>
         
       </div>
       <p v-else >
-        {{ t('no categorie yet') }}
+        {{ t('no category yet') }}
       </p>
       
 
@@ -119,7 +119,7 @@
             <button type="button" class="folder-item" @click="openExplorer3(index)">
               <h3 style="font-size: 14px;">id: {{ index + 1 }}</h3>
               <label class="inputImg2">
-                <span v-if="!ref.previewImage">1:1</span>
+                <span v-if="!ref.previewImage">{{ t('optimal 1:1') }}</span>
                 <img v-else-if="ref.previewImage" :src="ref.previewImage" alt="Preview" />
               </label>
             </button>
@@ -176,7 +176,7 @@
             </div>
             <label class="inputImg">
               
-              <span v-if="!ref.previewImage">optimale 1:1</span>
+              <span v-if="!ref.previewImage">{{ t('optimal 1:1') }}</span>
               <img v-else-if="ref.previewImage" :src="ref.previewImage" alt="Preview" />
             </label>
           </button>
@@ -186,17 +186,17 @@
           <div class="productForm">
             
 
-            <Inputer :placeHolder="'model name'" :img="productSvg" :required="true" v-model="ref.name"/>
-            <Inputer :placeHolder="'buy price'" type="number" :img="icons['invoice']" :required="false" @input="validatePrice(index)" v-model="ref.buyPrice"/>
-            <Inputer :placeHolder="'sell price'" type="number" :img="icons['moneyTag']" :required="true" v-model="ref.sellPrice"/>
-            <Inputer :placeHolder="'promo price'" type="number" :img="icons['promotion']" :required="false" v-model="ref.promo"/>
+            <Inputer :placeHolder="t('model name')" :img="productSvg" :required="true" v-model="ref.name"/>
+            <Inputer :placeHolder="t('buy price')" type="number" :img="icons['invoice']" :required="false" @input="validatePrice(index)" v-model="ref.buyPrice"/>
+            <Inputer :placeHolder="t('sell price')" type="number" :img="icons['moneyTag']" :required="true" v-model="ref.sellPrice"/>
+            <Inputer :placeHolder="t('promo price')" type="number" :img="icons['promotion']" :required="false" v-model="ref.promo"/>
             
             
           </div>
 
           
-          <Inputer :placeHolder="'model reference'" :img="icons['reference']" :required="false" v-model="ref.reference"/>
-          <Inputer :placeHolder="'model sku'" :img="icons['barcode1']" :required="false" v-model="ref.sku"/>
+          <Inputer :placeHolder="t('model reference')" :img="icons['reference']" :required="false" v-model="ref.reference"/>
+          <Inputer :placeHolder="t('model sku')" :img="icons['barcode1']" :required="false" v-model="ref.sku"/>
           
           <div class="formRow">
             <div type="button" @click="activeStock(index)" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
@@ -226,14 +226,14 @@
 
         <!--Add Details-->
         <div v-if="ref.activeColor || ref.activeSize" class="formRow">
-          <Inputer style="max-width: 100px;" type="number" :placeHolder="'id cataloge image'" :img="icons[image]" :required="true" v-model="catalog_index" v-on="{ 'blur:modelValue': val => catalog_image = catalogImage[val].previewImage }"/>
+          <Inputer style="max-width: 100px;" type="number" :placeHolder="t('id catalog image')" :img="icons[image]" :required="true" v-model="catalog_index" v-on="{ 'blur:modelValue': val => catalog_image = catalogImage[val].previewImage }"/>
           <label class="inputImg">
-            <span v-if="!catalog_image">optimale 1:1</span>
+            <span v-if="!catalog_image">{{ t('optimal 1:1') }}</span>
             <img v-else-if="catalog_image" :src="catalog_image" alt="Preview" />
           </label>
-          <Selector v-if="ref.activeColor" :options="colors" color="var(--color-zioly2)" placeHolder="color" @update:modelValue="getColor" />
-          <Selector v-if="ref.activeSize" :options="sizes" color="var(--color-zioly2)" placeHolder="size" @update:modelValue="getSize" />
-          <Inputer v-if="!ref.infinit_stock" style="max-width: 100px;" type="number" :placeHolder="'qty'" :img="labelSvg" :required="true" v-model="ref.quantity"/>
+          <Selector v-if="ref.activeColor" :options="colors" color="var(--color-zioly2)" :placeHolder="t('color')" @update:modelValue="getColor" />
+          <Selector v-if="ref.activeSize" :options="sizes" color="var(--color-zioly2)" :placeHolder="t('size')" @update:modelValue="getSize" />
+          <Inputer v-if="!ref.infinit_stock" style="max-width: 100px;" type="number" :placeHolder="t('qty')" :img="labelSvg" :required="true" v-model="ref.quantity"/>
           <Gbtn :text="t('add detail')" @click="addDetail(ref.quantity, index, catalog_index)" color="var(--color-zioly2)" :svg="icons['add']"/>
         </div>
 
@@ -266,7 +266,7 @@
 
         <div class="formRow">
           <p style="font-size: 3vh; font-weight: bold;">
-            {{ t('delevery packaging details') }}
+            {{ t('delivery packaging details') }}
           </p>
           <div class="formRow">
             <div type="button" @click="ref.breakable = !ref.breakable" style="width: 100%; height: 50px; margin: 5px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
@@ -275,8 +275,8 @@
 
             </div>
           </div>
-          <Inputer style="max-width: 200px;" type="number" :placeHolder="'weight'" :img="icons['weight']" v-model="ref.weight" holder="KG"/>
-          <Inputer style="max-width: 200px;" type="number" :placeHolder="'volume'" :img="icons['volume']" v-model="ref.volume" holder="m2"/>
+          <Inputer style="max-width: 200px;" type="number" :placeHolder="t('weight')" :img="icons['weight']" v-model="ref.weight" holder="KG"/>
+          <Inputer style="max-width: 200px;" type="number" :placeHolder="t('volume')" :img="icons['volume']" v-model="ref.volume" holder="m2"/>
         </div>
 
         <Gbtn :text="t('remove')" @click="clearRef(index)" color="#ff5555" :svg="icons['x']"/>
@@ -290,7 +290,7 @@
 
     <div class="boxProduct">
       <div class="formLine" @click="activeDes = !activeDes">
-            {{ t('activate discription') }}
+            {{ t('activate description') }}
             <Radio :selected="activeDes"/>
       </div>
       
@@ -506,7 +506,7 @@ const addColor = (color, name) => {
     colors.value.push({ value: color, label: name })
   } else {
     isMessage.value = true
-    message.value = 'you can not have the same color twice'
+    message.value = t('you cannot have the same color twice')
   }
 }
 
@@ -523,20 +523,20 @@ const validateForm = () => {
   // Vérifier l'image principale
   if (!productImg.value && !previewImage.value) {
     isMessage.value = true;
-    message.value = "image principale manquante"
+    message.value = t("main image is missing")
     return false;
   }
 
   // Vérifier le nom du produit
   if (!productName.value || productName.value.trim() === "") {
     isMessage.value = true;
-    message.value = "nom du produit requis"
+    message.value = t("product name is required")
     return false;
   }
 
   if (!slug.value || slug.value.trim() === "") {
     isMessage.value = true;
-    message.value = "slug du produit requis"
+    message.value = t("product slug is required")
     return false;
   }
 
@@ -557,7 +557,7 @@ const validateForm = () => {
   // Vérifier au moins un modèle
   if (!modal.value.length) {
     isMessage.value = true;
-    message.value = "Au moins un modèle est requis"
+    message.value = t("at least one model is required")
     return false;
   }
 
@@ -565,17 +565,17 @@ const validateForm = () => {
   modal.value.forEach((ref, index) => {
     if (!ref.previewImage) {
       isMessage.value = true;
-      message.value = `Image manquante pour le modèle ${index + 1}`
+      message.value = `${t('missing image for model')} ${index + 1}`
       return false;
     }
     if (!ref.name || ref.name.trim() === "") {
       isMessage.value = true;
-      message.value = `Nom requis pour le modèle ${index + 1}`
+      message.value = `${t('name required for model')} ${index + 1}`
       return false;
     }
     if (!ref.sellPrice || isNaN(parseFloat(ref.sellPrice))) {
       isMessage.value = true;
-      message.value = `Prix de vente invalide pour le modèle ${index + 1}`
+      message.value = `${t('invalid selling price for model')} ${index + 1}`
       return false;
 
     }
@@ -583,7 +583,7 @@ const validateForm = () => {
     // Vérifier les détails si taille/couleur activées
     if ((ref.activeColor || ref.activeSize) && (!ref.details || !ref.details.length)) {
       isMessage.value = true;
-      message.value = `Aucun détail ajouté pour le modèle ${index + 1} avec tailles/couleurs activées`
+      message.value = `${t('no details added for the model')} ${index + 1} ${t('with sizes/colors activated')}`
       return false;
     }
 
@@ -592,7 +592,7 @@ const validateForm = () => {
       ref.details.forEach((detail, dIdx) => {
         if (!detail.qty || isNaN(parseInt(detail.qty))) {
           isMessage.value = true;
-          message.value = `Quantité manquante dans le détail ${dIdx + 1} du modèle ${index + 1}.`
+          message.value = `${t('missing quantity in detail')} ${dIdx + 1} ${t('of model')} ${index + 1}.`
           return false;
         }
       });
@@ -624,7 +624,7 @@ const addDetail = (qty, index, val) => {
       modal.value[index].details.push(selectedDetail);
     } else {
       isMessage.value = true
-      message.value = 'you can not add the same detail twice'
+      message.value = t('you cannot add the same detail twice')
     }
     
   } else {
@@ -657,7 +657,7 @@ const addSize = (name) => {
     sizes.value.push({ value: name, label: name })
   } else {
     isMessage.value = true
-    message.value = 'you can not have the same size twice'
+    message.value = t('you cannot have the same size twice')
   }
 }
 
@@ -1007,7 +1007,7 @@ async function saveProduct(models, desUrls, catalogUrls, productUrl) {
     const response = await fetch('https://management.hoggari.com/backend/api.php?action=postProducts', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'  // <- Obligatoire pour indiquer du JSON
+          'Content-Type': 'application/json'
         },
         body: postProduct,
       });
@@ -1035,7 +1035,7 @@ async function saveProduct(models, desUrls, catalogUrls, productUrl) {
       
   } catch (e) {
     isMessage.value = true;
-    message.value = `error in saving product: ${e}`
+    message.value = `${t('error in saving product:')} ${e}`
     uploading.value = false;
   }
 
@@ -1251,7 +1251,7 @@ function clearRef(index) {
     isModal.value = modal.value.length > 0;
   } else {
     isMessage.value = true
-    message.value = 'you can not remove this'
+    message.value = t('you cannot remove this')
   }
 }
 

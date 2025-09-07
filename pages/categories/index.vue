@@ -244,7 +244,7 @@
         });
         if (!response.ok) {
             isMessage.value = true
-            message.value = 'error in getting data'
+            message.value = t('error in getting data')
             return
         }
         result.value = await response.json();
@@ -276,20 +276,20 @@ async function deleteCategory(id) {
 
         if (!response.ok) {
             isMessage.value = true;
-            message.value = 'Erreur de connexion au serveur';
+            message.value = t('server connection error');
             return;
         }
 
         const res = await response.json();
 
         isMessage.value = true;
-        message.value = res.message || 'Erreur inconnue';
+        message.value = res.message || t('unknown error');
 
         getCategory()
         
     } catch (error) {
         isMessage.value = true;
-        message.value = 'Erreur réseau ou serveur';
+        message.value = t('network or server error');
         console.error(error);
     }
 }

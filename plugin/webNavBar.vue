@@ -17,13 +17,14 @@
 import { ref, onMounted } from "vue";
 import Nav from '../components/elements/nav1.vue';
 import SideBar from '../components/elements/sideBar.vue'
+import { useLang } from '~/composables/useLang';
 
-
+const { t } = useLang();
 
 const isMounted = ref(false);
 const isVisible = ref(false);
 const isDark = ref();
-const user = ref('Connexion');
+const user = ref(t('connexion'));
 const isAuthenticated = ref(false);
 const isDeasy = ref(true);
 const logoDark = ref("/zoxcom.svg");

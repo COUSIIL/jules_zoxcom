@@ -7,7 +7,7 @@
       </div>
   
       <div class="input-box">
-        <input v-model="userInput" @keyup.enter="sendMessage" placeholder="Écrivez un message..." />
+        <input v-model="userInput" @keyup.enter="sendMessage" :placeholder="t('write a message...')" />
         <button @click="sendMessage">➤</button>
       </div>
     </div>
@@ -15,11 +15,13 @@
   
   <script>
   import { ref } from 'vue';
+  import { useLang } from '~/composables/useLang';
   
   export default {
     setup() {
+      const { t } = useLang();
       const messages = ref([
-        { role: 'bot', content: 'Bonjour ! Comment puis-je vous aider ?' }
+        { role: 'bot', content: t('hello! how can i help you?') }
       ]);
       const userInput = ref('');
   
@@ -36,18 +38,18 @@
           });
 
           const data = await response.json();
-          const reply = data.reply || 'Réponse indisponible.';
+          const reply = data.reply || t('response unavailable.');
           messages.value.push({ role: 'bot', content: reply });
 
         } catch (error) {
-          messages.value.push({ role: 'bot', content: 'Erreur de connexion avec l’IA.' });
+          messages.value.push({ role: 'bot', content: t('connection error with the ia.') });
         }
 
         userInput.value = '';
       };
 
   
-      return { messages, userInput, sendMessage };
+      return { messages, userInput, sendMessage, t };
     }
   };
   </script>

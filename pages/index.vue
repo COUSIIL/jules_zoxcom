@@ -5,52 +5,52 @@
   
     <div v-if="isMounted" class="orders-dashboard">
       <div class="order-box">
-        <h3>All Orders</h3>
-        <p>Today: <span>{{ ordersByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ ordersByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ ordersByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('all orders') }}</h3>
+        <p>{{ t('today') }}: <span>{{ ordersByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ ordersByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ ordersByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box confirmed">
-        <h3>Confirmed</h3>
-        <p>Today: <span>{{ confirmByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ confirmByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ confirmByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('confirmed') }}</h3>
+        <p>{{ t('today') }}: <span>{{ confirmByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ confirmByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ confirmByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box canceled">
-        <h3>Canceled</h3>
-        <p>Today: <span>{{ cancelByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ cancelByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ cancelByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('canceled') }}</h3>
+        <p>{{ t('today') }}: <span>{{ cancelByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ cancelByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ cancelByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box unreachable">
-        <h3>Unreachable</h3>
-        <p>Today: <span>{{ unreachableByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ unreachableByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ unreachableByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('unreachable') }}</h3>
+        <p>{{ t('today') }}: <span>{{ unreachableByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ unreachableByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ unreachableByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box awaiting">
-        <h3>Awaiting</h3>
-        <p>Today: <span>{{ awaitByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ awaitByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ awaitByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('awaiting') }}</h3>
+        <p>{{ t('today') }}: <span>{{ awaitByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ awaitByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ awaitByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box delivered">
-        <h3>Delivered</h3>
-        <p>Today: <span>{{ deliverByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ deliverByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ deliverByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('delivered') }}</h3>
+        <p>{{ t('today') }}: <span>{{ deliverByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ deliverByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ deliverByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
 
       <div class="order-box completed">
-        <h3>Completed</h3>
-        <p>Today: <span>{{ completedByDay[currentDay]?.length || 0 }}</span></p>
-        <p>This Week: <span>{{ completedByWeek[currentWeek]?.length || 0 }}</span></p>
-        <p>This Month: <span>{{ completedByMonth[currentMonth]?.length || 0 }}</span></p>
+        <h3>{{ t('completed') }}</h3>
+        <p>{{ t('today') }}: <span>{{ completedByDay[currentDay]?.length || 0 }}</span></p>
+        <p>{{ t('this week') }}: <span>{{ completedByWeek[currentWeek]?.length || 0 }}</span></p>
+        <p>{{ t('this month') }}: <span>{{ completedByMonth[currentMonth]?.length || 0 }}</span></p>
       </div>
     </div>
   </div>
@@ -58,9 +58,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-
+import { useLang } from '~/composables/useLang'
 import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
 
+const { t } = useLang()
 const isMounted = ref(false)
 const log = ref('')
 

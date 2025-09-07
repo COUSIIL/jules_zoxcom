@@ -13,5 +13,394 @@
   "discounts": "التخفيضات",
   "add deliverys": "إضافة خدمات التوصيل",
   "modules": "الوحدات",
-  "disconnect": "تسجيل الخروج"
+  "disconnect": "تسجيل الخروج",
+  "connexion": "تسجيل الدخول",
+  "site logo": "شعار الموقع",
+  "valid until: ": "صالح حتى :",
+  "store": "متجر",
+  "team": "الفريق",
+  "categories": "فئات",
+  "customers": "العملاء",
+  "delivery": "توصيل",
+  "banks": "بنوك",
+  "transaction": "تحويل",
+  "settings": "إعدادات",
+  "black list": "القائمة السوداء",
+  "all orders": "كل الطلبات",
+  "today": "اليوم",
+  "this week": "هذا الأسبوع",
+  "this month": "هذا الشهر",
+  "confirmed": "مؤكد",
+  "canceled": "ملغى",
+  "unreachable": "لا يمكن الوصول إليه",
+  "awaiting": "في انتظار",
+  "delivered": "تم التوصيل",
+  "completed": "مكتمل",
+  "hide password": "إخفاء كلمة المرور",
+  "show password": "إظهار كلمة المرور",
+  "recaptcha not charged": "لم يتم تحميل reCAPTCHA",
+  "error server": "خطأ في الخادم",
+  "identitie not correct": "المعرفات غير صحيحة",
+  "error connexion": "خطأ في الاتصال",
+  "pleas fill all the inputs": "يرجى ملء جميع الحقول",
+  "user name": "اسم المستخدم",
+  "password": "كلمة المرور",
+  "loading...": "جار التحميل...",
+  "log in": "تسجيل الدخول",
+  "create new delivery country methode": "إنشاء طريقة توصيل جديدة للبلد",
+  "country name": "اسم البلد",
+  "administrative division name": "اسم القسم الإداري",
+  "local administrative unit name": "اسم الوحدة الإدارية المحلية",
+  "adresse name": "اسم العنوان",
+  "ups method": "طريقة Ups",
+  "fast method": "الطريقة السريعة",
+  "yalidine method": "طريقة Yalidine",
+  "delivery method name": "اسم طريقة التوصيل",
+  "edit - show more": "تعديل - إظهار المزيد",
+  "close - show less": "إغلاق - إظهار أقل",
+  "home delivery price": "سعر التوصيل للمنزل",
+  "stop-desk delivery price": "سعر التوصيل إلى المكتب",
+  "remove methode": "إزالة الطريقة",
+  "add methode": "إضافة طريقة",
+  "save": "حفظ",
+  "waiting response...": "في انتظار الرد...",
+  "error in response": "خطأ في الاستجابة",
+  "waiting data...": "في انتظار البيانات...",
+  "add discount": "إضافة خصم",
+  "one usage code": "رمز استخدام واحد",
+  "create a time-limited code": "إنشاء رمز محدود بوقت",
+  "create a time-unlimited code": "إنشاء رمز غير محدود بوقت",
+  "multy usage code": "رمز استخدام متعدد",
+  "create a limited usage code": "إنشاء رمز استخدام محدود",
+  "discount name": "اسم الخصم",
+  "percentage": "نسبة مئوية",
+  "fixed value": "قيمة ثابتة",
+  "quantity": "الكمية",
+  "usage": "استخدام",
+  "valid until": "صالح حتى",
+  "generate": "توليد",
+  "save discount": "حفظ الخصم",
+  "saving discount...": "جاري حفظ الخصم ...",
+  "add order": "إضافة طلب",
+  "waiting products": "في انتظار المنتجات",
+  "choose products": "اختر المنتجات",
+  "total:": "المجموع:",
+  "remove product": "إزالة المنتج",
+  "articles for": "مقالات ل",
+  "phone": "هاتف",
+  "chose country": "اختر دولة",
+  "chose method": "اختر الطريقة",
+  "delivery zone": "منطقة التوصيل",
+  "stop-desk": "مكتب التوقف",
+  "adresse": "عنوان",
+  "discount code": "رمز الخصم",
+  "take note": "خذ ملاحظة",
+  "total": "المجموع",
+  "order it now": "اطلبه الآن",
+  "saving order, please wait...": "جاري حفظ الطلب ، يرجى الانتظار ...",
+  "please fill in all required fields.": "يرجى ملء جميع الحقول المطلوبة.",
+  "saving order, please wait for response...": "جاري حفظ الطلب ، يرجى انتظار الرد ...",
+  "order saved successfully.": "تم حفظ الطلب بنجاح.",
+  "the validity period has expired": "انتهت فترة الصلاحية",
+  "you have used the code with your phone": "لقد استخدمت الرمز مع هاتفك",
+  "the validity of the code has expired": "انتهت صلاحية الرمز",
+  "invalid code": "رمز غير صالح",
+  "code not available": "الرمز غير متوفر",
+  "phone number is important": "رقم الهاتف مهم",
+  "sorry there is no promotional code": "عذرا لا يوجد رمز ترويجي",
+  "there is no code": "لا يوجد رمز",
+  "ip": "IP",
+  "reason": "السبب",
+  "ex: abuse": "مثال: إساءة",
+  "add new ip to black list": "إضافة IP جديد إلى القائمة السوداء",
+  "please choose ip": "الرجاء اختيار IP",
+  "please enter reason": "الرجاء إدخال السبب",
+  "error in request get wilaya": "خطأ في طلب الحصول على الولاية",
+  "add bank": "إضافة بنك",
+  "current capital": "رأس المال الحالي",
+  "capital started with": "رأس المال المبدئي",
+  "failed to load banks": "فشل تحميل البنوك",
+  "error while fetching banks": "خطأ أثناء جلب البنوك",
+  "bank name": "اسم البنك",
+  "ex: products": "مثال: منتجات",
+  "currency": "عملة",
+  "initial balance": "الرصيد المبدئي",
+  "cancel": "إلغاء",
+  "add": "إضافة",
+  "enter a valid bank name": "أدخل اسم بنك صالح",
+  "server error": "خطأ في الخادم",
+  "bank account created successfully": "تم إنشاء الحساب المصرفي بنجاح",
+  "failed to create bank account": "فشل إنشاء الحساب المصرفي",
+  "unexpected error": "خطأ غير متوقع",
+  "add category": "إضافة فئة",
+  "category": "الفئة",
+  "sub category": "فئة فرعية",
+  "sub category element": "عنصر الفئة الفرعية",
+  "error in getting data": "خطأ في الحصول على البيانات",
+  "server connection error": "خطأ في الاتصال بالخادم",
+  "unknown error": "خطأ غير معروف",
+  "network or server error": "خطأ في الشبكة أو الخادم",
+  "edit category": "تعديل الفئة",
+  "new category": "فئة جديدة",
+  "activate this categorie": "تفعيل هذه الفئة",
+  "click to choose": "انقر للاختيار",
+  "category name": "اسم الفئة",
+  "seo slug": "سيو Slug",
+  "slug": "Slug",
+  "meta description": "وصف ميتا",
+  "description": "الوصف",
+  "chose categorie type": "اختر نوع الفئة",
+  "categorie": "فئة",
+  "subcategory": "فئة فرعية",
+  "elements": "عناصر",
+  "parent category": "الفئة الرئيسية",
+  "subcategorie": "فئة فرعية",
+  "parent": "الأب",
+  "filter attributes": "سمات التصفية",
+  "attributes": "السمات",
+  "meta title": "عنوان ميتا",
+  "seo title": "عنوان SEO",
+  "descriptive and informative title": "عنوان وصفي وغني بالمعلومات",
+  "save category": "حفظ الفئة",
+  "create category": "إنشاء فئة",
+  "color": "اللون",
+  "size": "الحجم",
+  "brand": "العلامة التجارية",
+  "price range": "نطاق السعر",
+  "availability": "التوفر",
+  "rating": "التقييم",
+  "delivery option": "خيار التوصيل",
+  "style": "النمط",
+  "material": "المادة",
+  "occasion": "المناسبة",
+  "season": "الموسم",
+  "fit": "المقاس",
+  "gender": "الجنس",
+  "age group": "الفئة العمرية",
+  "pattern": "النمط",
+  "feature": "الميزة",
+  "collection": "المجموعة",
+  "origin": "الأصل",
+  "eco responsibility": "المسؤولية البيئية",
+  "bestseller": "الأكثر مبيعًا",
+  "new arrival": "وصل حديثًا",
+  "customizable": "قابل للتخصيص",
+  "compatibility": "التوافق",
+  "warranty": "الضمان",
+  "stock level": "مستوى المخزون",
+  "please fill categorie name": "يرجى ملء اسم الفئة",
+  "please fill categorie type": "يرجى ملء نوع الفئة",
+  "please fill add image categorie": "يرجى إضافة صورة للفئة",
+  "please fill categorie slug": "يرجى ملء slug الفئة",
+  "please fill link parrent categorie": "يرجى ربط الفئة الأصل",
+  "please fill categorie description": "يرجى ملء وصف الفئة",
+  "please fill categorie facets": "يرجى ملء جوانب الفئة",
+  "please fill meta title categorie": "يرجى ملء عنوان ميتا للفئة",
+  "an error occurred": "حدث خطأ",
+  "show more": "إظهار المزيد",
+  "error in getting view page response": "خطأ في الحصول على استجابة صفحة العرض",
+  "method": "طريقة",
+  "delivery name": "اسم التسليم",
+  "label": "ملصق",
+  "drop-off area": "منطقة الإنزال",
+  "free return": "إرجاع مجاني",
+  "include shipping fees in delivery form": "تضمين رسوم الشحن في نموذج التسليم",
+  "please choose method": "الرجاء اختيار الطريقة",
+  "please enter delivery name": "الرجاء إدخال اسم التسليم",
+  "please choose wilaya drop area": "الرجاء اختيار منطقة إنزال الولاية",
+  "invalide format": "تنسيق غير صالح",
+  "write a message...": "اكتب رسالة...",
+  "hello! how can i help you?": "مرحبا! كيف يمكنني مساعدتك؟",
+  "response unavailable.": "الرد غير متوفر.",
+  "connection error with the ia.": "خطأ في الاتصال مع الذكاء الاصطناعي.",
+  "delete": "حذف",
+  "hide all": "إخفاء الكل",
+  "show all": "إظهار الكل",
+  "ups api key": "مفتاح API لـ UPS",
+  "key :": "المفتاح :",
+  "request failed: ": "فشل الطلب: ",
+  "anderson api key": "مفتاح API لـ Anderson",
+  "yalidine api key": "Yalidine API KEY",
+  "api_id :": "API_ID :",
+  "api_token :": "API_TOKEN :",
+  "guepex api key": "Guepex API KEY",
+  "filter": "تصفية",
+  "actes": "أفعال",
+  "wait": "انتظر",
+  "confirm": "تأكيد",
+  "deliver": "توصيل",
+  "return": "إرجاع",
+  "accomplish": "إنجاز",
+  "reverse": "عكس",
+  "day": "يوم",
+  "week": "أسبوع",
+  "month": "شهر",
+  "edit": "تعديل",
+  "change status": "تغيير الحالة",
+  "ip copied : ": "تم نسخ IP:",
+  "error on trying to copy": "خطأ أثناء محاولة النسخ",
+  "initialising...": "جار التهيئة ...",
+  "no recent orders for now.": "لا توجد طلبات حديثة في الوقت الحالي.",
+  "request send, wiating responce...": "تم إرسال الطلب ، في انتظار الرد ...",
+  "error in getting request ": "خطأ في الحصول على الطلب",
+  "error in fetching: ": "خطأ في الجلب:",
+  "wilaya: ": "ولاية:",
+  "error: no center found": "خطأ: لم يتم العثور على مركز",
+  "error: ": "خطأ:",
+  "add product": "إضافة منتج",
+  "active": "نشط",
+  "disabled": "معطل",
+  "error fetching products:": "خطأ في جلب المنتجات:",
+  "an error occurred:": "حدث خطأ:",
+  "setings": "إعدادات",
+  "manage": "إدارة",
+  "seo score": "درجة SEO",
+  "seo ready": "جاهز للسيو",
+  "yes, your website is seo-ready.": "نعم ، موقع الويب الخاص بك جاهز للسيو.",
+  "no, improvements are needed for seo readiness.": "لا ، هناك حاجة إلى تحسينات للاستعداد للسيو.",
+  "facebook pixel": "بكسل الفيسبوك",
+  "facebook pixel is installed.": "تم تثبيت بكسل الفيسبوك.",
+  "facebook pixel is not detected.": "لم يتم الكشف عن بكسل الفيسبوك.",
+  "google analytics": "تحليلات جوجل",
+  "google analytics is active.": "تحليلات جوجل نشطة.",
+  "google analytics is missing.": "تحليلات جوجل مفقودة.",
+  "google ads": "إعلانات جوجل",
+  "google ads tag is detected.": "تم الكشف عن علامة إعلانات جوجل.",
+  "google ads tag not found.": "لم يتم العثور على علامة إعلانات جوجل.",
+  "structured data": "البيانات المنظمة",
+  "structured data (schema.org) is present.": "البيانات المنظمة (Schema.org) موجودة.",
+  "no structured data detected.": "لم يتم الكشف عن بيانات منظمة.",
+  "speed optimization": "تحسين السرعة",
+  "async/defer practices are applied.": "يتم تطبيق ممارسات async/defer.",
+  "no async/defer found, speed could improve.": "لم يتم العثور على async/defer ، يمكن تحسين السرعة.",
+  "store email": "البريد الإلكتروني للمتجر",
+  "orders email": "البريد الإلكتروني للطلبات",
+  "add delivery": "إضافة توصيل",
+  "house": "منزل",
+  "price": "السعر",
+  "desk": "مكتب",
+  "error in request get test dilivery": "خطأ في طلب الحصول على اختبار التسليم",
+  "error in update activator": "خطأ في تحديث المنشط",
+  "error in request get products": "خطأ في طلب الحصول على المنتجات",
+  "members": "أعضاء",
+  "add member": "إضافة عضو",
+  "error": "خطأ",
+  "profile picture": "صورة الملف الشخصي",
+  "choose an image": "اختر صورة",
+  "fammily name": "اسم العائلة",
+  "enter a valid username": "أدخل اسم مستخدم صالح",
+  "enter a valid email": "أدخل بريد إلكتروني صالح",
+  "enter a valid password": "أدخل كلمة مرور صالحة",
+  "transactions": "المعاملات",
+  "add transaction": "إضافة معاملة",
+  "failed to load transactions": "فشل تحميل المعاملات",
+  "error while fetching transactions": "خطأ أثناء جلب المعاملات",
+  "transfer": "تحويل",
+  "to": "إلى",
+  "ex: transfer": "مثال: تحويل",
+  "amount": "المبلغ",
+  "please select a bank from account": "الرجاء تحديد حساب بنكي من",
+  "please select a bank to account": "الرجاء تحديد حساب بنكي إلى",
+  "please enter a valid amount": "الرجاء إدخال مبلغ صالح",
+  "transfert entre comptes": "تحويل بين الحسابات",
+  "transfer created successfully": "تم إنشاء التحويل بنجاح",
+  "failed to create transfer": "فشل إنشاء التحويل",
+  "please select a bank account": "الرجاء تحديد حساب بنكي",
+  "please choose a valid transaction direction": "الرجاء اختيار اتجاه معاملة صالح",
+  "transaction created successfully": "تم إنشاء المعاملة بنجاح",
+  "failed to create transaction": "فشل إنشاء المعاملة",
+  "yes": "نعم",
+  "no": "لا",
+  "you confirm this action ?": "هل تؤكد هذا الإجراء؟",
+  "optimal 1:1": "الأمثل 1:1",
+  "product name": "اسم المنتج",
+  "color name": "اسم اللون",
+  "youtube link": "رابط يوتيوب",
+  "category element": "عنصر الفئة",
+  "no category yet": "لا توجد فئة حتى الآن",
+  "add new category": "إضافة فئة جديدة",
+  "activate catalogue": "تفعيل الكتالوج",
+  "add image": "إضافة صورة",
+  "acivate modal": "تفعيل الوسائط",
+  "model name": "اسم الموديل",
+  "buy price": "سعر الشراء",
+  "sell price": "سعر البيع",
+  "promo price": "سعر العرض",
+  "model reference": "مرجع الموديل",
+  "model sku": "SKU الموديل",
+  "Infinite stock": "مخزون لا نهائي",
+  "Activate color": "تفعيل اللون",
+  "Activate Size": "تفعيل الحجم",
+  "id catalog image": "معرف صورة الكتالوج",
+  "qty": "الكمية",
+  "add detail": "إضافة تفصيل",
+  "delivery packaging details": "تفاصيل تغليف التوصيل",
+  "product breakable": "منتج قابل للكسر",
+  "weight": "الوزن",
+  "volume": "الحجم",
+  "remove": "إزالة",
+  "add model": "إضافة موديل",
+  "activate discription": "تفعيل الوصف",
+  "clear": "مسح",
+  "you cannot have the same color twice": "لا يمكنك الحصول على نفس اللون مرتين",
+  "main image is missing": "الصورة الرئيسية مفقودة",
+  "product name is required": "اسم المنتج مطلوب",
+  "product slug is required": "سلوج المنتج مطلوب",
+  "at least one model is required": "مطلوب موديل واحد على الأقل",
+  "missing image for model": "صورة مفقودة للموديل",
+  "name required for model": "الاسم مطلوب للموديل",
+  "invalid selling price for model": "سعر بيع غير صالح للموديل",
+  "no details added for the model": "لم تتم إضافة تفاصيل للموديل",
+  "missing quantity in detail": "كمية مفقودة في التفاصيل",
+  "you cannot add the same detail twice": "لا يمكنك إضافة نفس التفصيل مرتين",
+  "invalid index": "فهرس غير صالح",
+  "error saving product in response": "خطأ في حفظ المنتج في الاستجابة",
+  "error in saving product:": "خطأ في حفظ المنتج:",
+  "you cannot remove this": "لا يمكنك إزالة هذا",
+  "product informations": "معلومات المنتج",
+  "publish this product": "نشر هذا المنتج",
+  "with sizes/colors activated": "مع تفعيل الأحجام / الألوان",
+  "of model": "من موديل",
+  "you cannot have the same size twice": "لا يمكنك الحصول على نفس الحجم مرتين",
+  "Change photo": "تغيير الصورة",
+  "Username": "اسم المستخدم",
+  "First name": "الاسم الأول",
+  "Enter your first name": "أدخل اسمك الأول",
+  "Last name": "الاسم الأخير",
+  "Enter your last name": "أدخل اسمك الأخير",
+  "Email": "البريد الإلكتروني",
+  "Enter your email": "أدخل بريدك الإلكتروني",
+  "IP Address": "عنوان IP",
+  "💾 Save": "💾 حفظ",
+  "Error retrieving users": "خطأ في استرداد المستخدمين",
+  "Error updating image": "خطأ في تحديث الصورة",
+  "Network error:": "خطأ في الشبكة:",
+  "User not found": "المستخدم غير موجود",
+  "Profile updated successfully!": "تم تحديث الملف الشخصي بنجاح!",
+  "Error during update.": "خطأ أثناء التحديث.",
+  "2nd phone": "الهاتف الثاني",
+  "Give note": "إعطاء ملاحظة",
+  "Welcome to your enhanced Tiptap editor! 🚀": "أهلاً بك في محرر Tiptap المحسن! 🚀",
+  "Search by | order-id | phone | name": "البحث عن طريق | معرف الطلب | الهاتف | الاسم",
+  "Showcase Category image": "عرض صورة الفئة",
+  "Place square image here": "ضع الصورة المربعة هنا",
+  "Upload & Place it": "تحميل ووضعها",
+  "rejected, Invalid image type. Only WebP, PNG, and JPG are allowed.": "مرفوض ، نوع صورة غير صالح. يُسمح فقط بـ WebP و PNG و JPG.",
+  "No file selected.": "لم يتم تحديد أي ملف.",
+  "The selected file is not a valid Blob.": "الملف المحدد ليس كائن ثنائي كبير صالح.",
+  "Please upload an image.": "الرجاء تحميل صورة.",
+  "The uploaded file is not a valid image.": "الملف الذي تم تحميله ليس صورة صالحة.",
+  "Processing image, please wait...": "جاري معالجة الصورة ، يرجى الانتظار ...",
+  "Uploading image, please wait...": "جاري تحميل الصورة ، يرجى الانتظار ...",
+  "Error uploading image.": "خطأ في تحميل الصورة.",
+  "Response received, waiting for result...": "تم استلام الرد ، في انتظار النتيجة ...",
+  "Please select a valid IP": "الرجاء تحديد IP صالح",
+  "Mark for deletion": "وضع علامة للحذف",
+  "delivery method": "طريقة التوصيل",
+  "no method or name selected": "لم يتم تحديد أي طريقة أو اسم",
+  "error in parsing data": "خطأ في تحليل البيانات",
+  "no image selected": "لم يتم تحديد أي صورة",
+  "error fetching data": "خطأ في جلب البيانات",
+  "error in delete images": "خطأ في حذف الصور",
+  "error in delete folders": "خطأ في حذف المجلدات"
 }

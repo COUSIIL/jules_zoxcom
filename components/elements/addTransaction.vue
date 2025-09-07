@@ -168,19 +168,19 @@ const submitForm = async () => {
   if(is_transfer.value) {
     // Validation côté client
     if (!form.value.from_account_id) {
-      emit('message', t('Please select a bank from account'))
+      emit('message', t('please select a bank from account'))
       emit('saving', false)
       return
     }
 
     if (!form.value.to_account_id) {
-      emit('message', t('Please select a bank to account'))
+      emit('message', t('please select a bank to account'))
       emit('saving', false)
       return
     }
 
     if (!form.value.amount || isNaN(form.value.amount) || form.value.amount <= 0) {
-      emit('message', t('Please enter a valid amount'))
+      emit('message', t('please enter a valid amount'))
       emit('saving', false)
       return
     }
@@ -191,7 +191,7 @@ const submitForm = async () => {
         from_account_id: Number(form.value.from_account_id),
         to_account_id: Number(form.value.to_account_id),
         amount: Number(form.value.amount),
-        description: form.value.description || 'Transfert entre comptes',
+        description: form.value.description || t('transfert entre comptes'),
         reference: form.value.reference || 'TRANSFER',
         date: form.value.date || '' // optionnel
       }
@@ -222,30 +222,30 @@ const submitForm = async () => {
           result.message || t('transfer created successfully')
         )
       } else {
-        emit('message', result.message || t('Failed to create transfer'))
+        emit('message', result.message || t('failed to create transfer'))
         emit('cancel', true)
       }
     } catch (error) {
-      emit('message', error.message || 'Unexpected error')
+      emit('message', error.message || t('unexpected error'))
     } finally {
       emit('saving', false)
     }
   } else {
     // Validation côté client
     if (!form.value.account_id) {
-      emit('message', t('Please select a bank account'))
+      emit('message', t('please select a bank account'))
       emit('saving', false)
       return
     }
 
     if (!form.value.direction || !['in', 'out'].includes(form.value.direction)) {
-      emit('message', t('Please choose a valid transaction direction'))
+      emit('message', t('please choose a valid transaction direction'))
       emit('saving', false)
       return
     }
 
     if (!form.value.amount || isNaN(form.value.amount) || form.value.amount <= 0) {
-      emit('message', t('Please enter a valid amount'))
+      emit('message', t('please enter a valid amount'))
       emit('saving', false)
       return
     }
@@ -294,14 +294,14 @@ const submitForm = async () => {
         emit('success', result)
         emit(
           'message',
-          result.message || t('Transaction created successfully')
+          result.message || t('transaction created successfully')
         )
       } else {
-        emit('message', result.message || t('Failed to create transaction'))
+        emit('message', result.message || t('failed to create transaction'))
         emit('cancel', true)
       }
     } catch (error) {
-      emit('message', error.message || 'Unexpected error')
+      emit('message', error.message || t('unexpected error'))
     } finally {
       emit('saving', false)
     }
