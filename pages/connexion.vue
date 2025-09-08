@@ -1,6 +1,6 @@
 <template>
-  <div class="login-container">
-    <div class="login-box">
+  <div class="login-form-container">
+    <div class="login-form">
       <h2>{{ t('connexion') }}</h2>
 
       <form @submit.prevent="handleLogin">
@@ -15,7 +15,7 @@
         />
 
         <!-- Champ mot de passe avec toggle -->
-        <div class="password-wrapper">
+        <div class="login-form__password-wrapper">
           <input
             :type="showPassword ? 'text' : 'password'"
             v-model.trim="password"
@@ -26,7 +26,7 @@
           />
           <button 
             type="button" 
-            class="toggle-password" 
+            class="login-form__toggle-password"
             @click="showPassword = !showPassword"
             :aria-label="showPassword ? t('hide password') : t('show password')"
             v-html="showPassword ? resizeSvg(icons['hide'], 18, 18) : resizeSvg(icons['view'], 18, 18)"
@@ -34,18 +34,18 @@
           </button>
         </div>
 
-        <button type="submit" :disabled="loading">
+        <button type="submit" :disabled="loading" class="login-form__submit-btn">
           {{ loading ? t('loading...') : t('log in') }}
         </button>
 
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="login-form__error">{{ errorMessage }}</p>
       </form>
     </div>
   </div>
 </template>
   
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const siteKey = '6LeAL7QrAAAAABSuiOr3Thi0S_c13dxTzt0R6FKT'
@@ -92,8 +92,6 @@ const testLogin = async () => {
       })
     }
   }
-
-
 }
 
 const handleLogin = async () => {
@@ -169,87 +167,3 @@ const handleLogin = async () => {
   }
 }
 </script>
-  
-<style scoped>
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
-.login-box {
-  background: var(--color-whitly);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 360px;
-}
-.dark .login-box {
-  background: var(--color-darkly);
-}
-
-h2 {
-  margin-bottom: 1.5rem;
-  font-size: 24px;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid var(--color-whity);
-}
-.dark input {
-  border: 1px solid var(--color-darky);
-}
-
-input:focus {
-  border-color: #6a5acd;
-  outline: none;
-}
-
-/* Wrapper pour mot de passe + bouton toggle */
-.password-wrapper {
-  position: relative;
-}
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: calc(50% - 5px);
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-button[type="submit"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  background-color: #6a5acd;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-button[disabled] {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-button[type="submit"]:hover:not([disabled]) {
-  background-color: #5a4abc;
-}
-
-.error {
-  color: red;
-  margin-top: 10px;
-}
-</style>
