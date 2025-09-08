@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+/*
+  This file will contain small, single-purpose utility classes that can be
+  reused throughout the project. These are helpers for things like text
+  alignment, margins, padding, flexbox, etc., where creating a full-blown
+  component class isn't necessary.
+
+  Example:
+  .text-center { text-align: center; }
+  .margin-top-md { margin-top: var(--space-md); }
+  .d-flex { display: flex; }
+*/
+
+/* --------------------
+   Display
+   -------------------- */
+.d-block { display: block; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.d-none { display: none; }
+
+/* --------------------
+   Flexbox
+   -------------------- */
+.flex-row { flex-direction: row; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.items-baseline { align-items: baseline; }
+
+/* --------------------
+   Text
+   -------------------- */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.font-bold { font-weight: var(--font-weight-bold); }
+.font-normal { font-weight: var(--font-weight-normal); }
+
+/* --------------------
+   Sizing
+   -------------------- */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+
+/* --------------------
+   Spacing (Margins & Padding)
+   -------------------- */
+.m-0 { margin: 0; }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+
+.ml-sm { margin-left: var(--space-sm); }
+.mr-sm { margin-right: var(--space-sm); }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+.p-0 { padding: 0; }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
