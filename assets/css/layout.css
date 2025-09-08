@@ -1,0 +1,58 @@
+/* ==========================================================================
+   Layout Styles
+   ========================================================================== */
+
+/*
+  This file will contain styles for major page elements like:
+  - The main grid structure
+  - Header, footer, main, aside, section positioning
+  - Container classes
+*/
+
+/* ==========================================================================
+   Global Styles
+   ========================================================================== */
+html {
+  font-family: var(--font-primary);
+  background-color: var(--color-whity);
+  color: var(--color-darkly);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  user-select: text; /* From main.css */
+}
+
+html.dark {
+  background-color: var(--color-darky);
+  color: var(--color-whitly);
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px; /* Example value */
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+}
+
+/* ==========================================================================
+   Main Navigation (was .navMob)
+   ========================================================================== */
+.main-nav {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px var(--color-tioly);
+  z-index: 5000;
+  background-color: var(--color-whitly);
+}
+
+.dark .main-nav {
+  box-shadow: 0 0px 8px var(--color-darky);
+  background-color: var(--color-darkly);
+}
