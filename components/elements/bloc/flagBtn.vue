@@ -25,48 +25,45 @@
 </template>
 
 <script setup>
-
 import { ref, onMounted } from "vue";
 
 const { t, setLocale } = useLang()
 
 const btn = ref(false)
 const flagSrc = ref('')
+
+// toutes les langues disponibles
 const allStatus = ref([
-    {name: t('fr'),
-    flag: '/svg/fr.svg',
-    value: 'fr'},
-    {name: t('en'),
-    flag: '/svg/en.svg',
-    value: 'en'},
-    {name: t('ar'),
-    flag: '/svg/dz.svg',
-    value: 'ar'},
+  { name: 'Français', flag: '/svg/fr.svg', value: 'fr' },
+  { name: 'English', flag: '/svg/en.svg', value: 'en' },
+  { name: 'العربية', flag: '/svg/dz.svg', value: 'ar' },
 ])
 
+// au montage, on restaure la langue
 onMounted(() => {
-    if(t('lg') === 'العربية') {
-        flagSrc.value = '/svg/dz.svg'
-    } else if(t('lg') === 'Français') {
-        flagSrc.value = '/svg/fr.svg'
-    } else {
-        flagSrc.value = '/svg/en.svg'
-    }
+  const saved = localStorage.getItem('lg') || 'fr'
+  setLocale(saved)
+
+  // retrouver le flag correspondant
+  const found = allStatus.value.find(l => l.value === saved)
+  flagSrc.value = found ? found.flag : '/svg/fr.svg'
 })
 
-
+// bouton toggle
 const clicker = () => {
-    btn.value = !btn.value;
+  btn.value = !btn.value
 }
 
+// changement de langue
 const setLg = (value, flag) => {
-    setLocale(value)
-    btn.value = false
-    flagSrc.value = flag
+  setLocale(value)
+  btn.value = false
+  flagSrc.value = flag
 
+  localStorage.setItem('lg', value) // ✅ on sauvegarde bien le code langue
 }
-
 </script>
+
 
 <style>
 .flag{
