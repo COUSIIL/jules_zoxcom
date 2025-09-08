@@ -1,80 +1,59 @@
 <template>
   <div>
-    <div v-if="isAuthenticated">
-          <!-- En-tête global (facultatif, si nécessaire sur toutes les pages) -->
-      <Header />
-
-      <!-- Le routeur Nuxt insère les pages ici -->
-
-      <NuxtPage />
-    </div>
-    <div v-else>
-      
-      <Header />
-      
-      <NuxtPage />
-    </div>
-    
-
+    <Header />
+    <NuxtPage />
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
+import { onMounted, onBeforeUnmount } from 'vue';
+import Header from '~/plugin/webNavBar.vue';
 
-import { useRouter } from 'vue-router'
-import { onMounted, onBeforeUnmount, computed } from 'vue'
-import Header from '~/plugin/webNavBar.vue'
-//import LoaderBlack from '~/components/elements/animations/loaderBlack.vue'
-//import LoaderWhite from '~/components/elements/animations/loaderWhite.vue'
-
-//const isLargeScreen = useState('isLargeScreen')
-
-
-// Variable globale partagée
-const isLargeScreen = useState('isLargeScreen', () => false)
-const isAuth = useState('isAuth', () => false)
-
+// Global shared state
+const isLargeScreen = useState('isLargeScreen', () => false);
+const isAuth = useState('isAuth', () => false);
 const loading = ref(true);
 
-const router = useRouter()
+const router = useRouter();
 
 function checkScreenSize() {
-  isLargeScreen.value = window.matchMedia('(min-width: 1024px)').matches
+  // window is only available on the client
+  if (process.client) {
+    isLargeScreen.value = window.matchMedia('(min-width: 1024px)').matches;
+  }
 }
 
-const isAuthenticated = computed(() => {
-  if(JSON.parse(localStorage.getItem('auth'))) {
-    loading.value = false;
-    isAuth.value = true;
-    return true
-  } else {
-    loading.value = false;
-    isAuth.value = false;
-    router.push('/connexion') // remplace "/login" par ta route de destination
-    
-    return false
-  }
-  // Exemple : retourne false pour déclencher la redirection
-  
-})
-
-
 onMounted(() => {
-  checkScreenSize()
-  window.addEventListener('resize', checkScreenSize)
+  // This code runs only on the client, so window and localStorage are available
+  try {
+    const auth = JSON.parse(localStorage.getItem('auth'));
+    if (auth) {
+      isAuth.value = true;
+    } else {
+      isAuth.value = false;
+      router.push('/connexion');
+    }
+  } catch (e) {
+    console.error("Failed to parse auth status from localStorage", e);
+    isAuth.value = false;
+    router.push('/connexion');
+  } finally {
+    loading.value = false;
+  }
 
-  
-})
-
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+});
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', checkScreenSize)
-})
+  if (process.client) {
+    window.removeEventListener('resize', checkScreenSize);
+  }
+});
 </script>
 
 <style scoped>
-
-
 div {
   text-align: center;
 }
