@@ -249,6 +249,7 @@ import Confirm from '../components/elements/bloc/confirm.vue';
 import Linker from '../components/elements/bloc/classBtn.vue';
 import icons from '~/public/icons.json'
   
+const { t } = useLang()
 
 
 const discountList = ref([]);
