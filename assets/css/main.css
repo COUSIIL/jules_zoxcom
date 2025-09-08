@@ -1,91 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300..800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
 
-@import "tailwindcss";
-
-
-@custom-variant dark (&:where(.dark, .dark *));
-
-
-
-@theme {
-  --color-whitly: #fefaff;
-  --color-wagly: #f3edf7;
-  --color-whiby: #e9f4f2;
-  --color-whity: #f8eeff;
-  --color-darky: #0e0812;
-  --color-darkly: #2a222f;
-  --color-darkow: #131212;
-  --color-darkiw: #311a2f;
-  --color-garry: #69626e;
-  --color-gorry: #8c8391;
-  --color-yelly: #ffd103;
-  --color-rangy: #f39204;
-  --color-hoggari: #ff5800;
-  --color-rady: #ff5555;
-  --color-greny: #5bac1c;
-  --color-ioly: #aa72c6;
-  --color-tioly: #aa72c660;
-  
-  --color-zioly1: #C9B1CC;
-  --color-zioly2: #7D698E;
-  --color-zioly3: #002654;
-  --color-zioly4: #2D0460;
-  --color-whizy: #ebdcee;
-}
-
-
-.navMob {
-    position: -webkit-sticky; /* Nécessaire pour certains navigateurs comme Safari */
-    position: sticky; /* Nécessaire pour certains navigateurs comme Safari */
-    top: 0; /* Assure que le menu colle en haut lorsqu'on fait défiler */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    width: 100%;
-    backdrop-filter: blur(10px); /* Flou d'arrière-plan */
-    box-shadow: 0 4px 8px var(--color-tioly); /* Ombre en bas */
-    z-index: 5000; /* Place le menu au premier plan */
-    background-color: var(--color-whitly);
-  }
-
-.dark .navMob{
-  box-shadow: 0 0px 8px var(--color-darky); 
-  background-color: var(--color-darkly);
-}
-  
-
-
-
-
-html {
-  font-family: 'Funnel Display', IBM Plex Sans Arabic, sans-serif;
-  background-color: var(--color-whity); /* Couleur de base */
-  color: var(--color-darkly);
-}
-
-html, body {
-  user-select: text;
-}
-
-html.dark {
-  background-color: var(--color-darky); /* Mode sombre */
-  color: var(--color-whitly);
-}
-
-/* Refactored component classes using @apply */
-.btn1 {
-    @apply flex justify-around items-center w-[90%] cursor-pointer rounded-[6px] min-w-[100px] m-[10px] p-[5px] border border-[--color-rangy] shadow-[0px_2px_5px_var(--color-rangy)] bg-[--color-whity] dark:bg-[--color-darky];
-}
-.btn1 svg {
-    @apply min-w-[20px] mx-[5px] text-[--color-darkly] dark:text-[--color-whitly];
-}
-
-.btn2 {
-    @apply flex justify-around items-center w-[90%] min-w-[100px] max-w-[400px] m-[10px] p-[5px] cursor-pointer bg-[--color-whity] rounded-[6px] border border-[--color-rangy] dark:bg-[--color-darky];
-}
-
-.btn3 {
-    @apply flex justify-around items-center m-[10px] w-[90%] min-w-[100px] max-w-[400px] p-[5px] cursor-pointer border border-[--color-rangy] bg-[--color-whity] rounded-[6px] shadow-[0px_2px_5px_var(--color-hoggari)] text-[--color-darkly] dark:bg-[--color-darky] dark:text-[--color-whitly];
-}
+/*
+  This file is kept primarily for importing external assets like fonts.
+  All project-specific CSS has been moved to the new modular structure:
+  - reset.css
+  - variables.css
+  - layout.css
+  - components.css
+  - utilities.css
+*/
