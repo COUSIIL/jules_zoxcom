@@ -369,6 +369,43 @@ function chatGemini() {
     return json_decode($output, true);
 }
 
+// --- diniChat Endpoints ---
+function diniChat_create_conversation() {
+    ob_start();
+    include __DIR__ . '/diniChat/create_conversation.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function diniChat_get_conversations() {
+    ob_start();
+    include __DIR__ . '/diniChat/get_conversations.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function diniChat_get_conversation_messages() {
+    ob_start();
+    include __DIR__ . '/diniChat/get_conversation_messages.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function diniChat_delete_conversation() {
+    ob_start();
+    include __DIR__ . '/diniChat/delete_conversation.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
+function diniChat_rename_conversation() {
+    ob_start();
+    include __DIR__ . '/diniChat/rename_conversation.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+// --- End diniChat Endpoints ---
+
 function deleteOrder() {
     ob_start();
     include '../backend/sql/delete/order.php';
@@ -894,6 +931,21 @@ if (isset($_GET['action'])) {
             break;
         case 'chatGemini':
             $response = chatGemini();
+            break;
+        case 'diniChat_create_conversation':
+            $response = diniChat_create_conversation();
+            break;
+        case 'diniChat_get_conversations':
+            $response = diniChat_get_conversations();
+            break;
+        case 'diniChat_get_conversation_messages':
+            $response = diniChat_get_conversation_messages();
+            break;
+        case 'diniChat_delete_conversation':
+            $response = diniChat_delete_conversation();
+            break;
+        case 'diniChat_rename_conversation':
+            $response = diniChat_rename_conversation();
             break;
         case 'chatGPT':
             $response = chatGPT();

@@ -23,7 +23,14 @@ export default defineNuxtConfig({
   vite: {
     css: {
       devSourcemap: true,
+    },
+    server: {
+      proxy: {
+        '/backend': {
+          target: 'http://localhost:3000',
+          changeOrigin: true
+        }
+      }
     }
-  },
-
+  }
 })
