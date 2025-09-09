@@ -7,17 +7,16 @@
 
     <div 
         v-if="btn" 
-        class="absolute mt-2 w-52 bg-whitly dark:bg-darkly border rounded-lg shadow-lg"
+        class="flagDrop"
         
         >
             <button
                 v-for="(status) in allStatus" 
                 :key="status.name"
                 @click="setLg(status.value, status.flag)"
-                class="flex items-center w-48 px-4 py-1 text-left hover:bg-gorry"
-                :style="{margin: '5px'}"
+                class="falgElements"
                 >
-                <img v-if="status.flag" :src="status.flag" class="w-6 h-6 mr-2" />
+                <img v-if="status.flag" :src="status.flag" class="flagImg" />
                 <span>{{ status.name }}</span>
             </button>
     </div>

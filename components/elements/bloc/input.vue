@@ -1,5 +1,5 @@
 <template>
-  <div class="floating-input">
+  <div class="floating-input2">
     <input
       :type="type"
       :value="inputValue"
@@ -18,7 +18,7 @@
 
       </div>
     </span>
-    <label>
+    <label class="floated">
       <div v-html="resizedImg" style="margin-inline: 2px;"></div>
       {{ t(placeHolder) }}
       <div v-if="required" style="margin-inline: 2px;">
