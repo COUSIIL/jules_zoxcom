@@ -2,6 +2,7 @@
 header("Content-Type: application/json; charset=UTF-8");
 
 require_once __DIR__ . '/../config/dbConfig.php';
+require_once __DIR__ . '/../config/init_db.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 

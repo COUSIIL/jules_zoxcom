@@ -38,6 +38,9 @@ const allStatus = ref([
   { name: 'العربية', flag: '/svg/dz.svg', value: 'ar' },
 ])
 
+const emit = defineEmits(['click'])
+
+
 // au montage, on restaure la langue
 onMounted(() => {
   const saved = localStorage.getItem('lg') || 'fr'
@@ -58,36 +61,8 @@ const setLg = (value, flag) => {
   setLocale(value)
   btn.value = false
   flagSrc.value = flag
-
+  
   localStorage.setItem('lg', value) // ✅ on sauvegarde bien le code langue
+  emit('click')
 }
 </script>
-
-
-<style>
-.flag{
- border-radius: 12px;
- width: 28px;
- height: 28px;
- margin-inline: 10px;
-}
-
-.flagBtn {
-    width: calc(100% - 10px);
-    height: 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-inline: 5px;
-    margin-block: 10px;
-    border-radius: 8px;
-    background-color: var(--color-zioly2);
-    cursor: pointer;
-}
-.flagBtn p {
-    margin-inline: 10px;
-    font-weight: bold;
-    font-size: 12px;
-    color: var(--color-whizy);
-}
-</style>

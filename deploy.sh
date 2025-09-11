@@ -33,7 +33,7 @@ EOF
 
 # 🔥 Étape 4 : Déployer le frontend
 echo "Deploying frontend..."
-scp -i $SSH_KEY -P $REMOTE_PORT -r ./dist/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH
+scp -i $SSH_KEY -P $REMOTE_PORT -r ./.output/public/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH
 
 # 🔥 Étape 5 : Déployer le backend (sauf les fichiers sensibles)
 echo "Deploying backend..."

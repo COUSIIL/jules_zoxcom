@@ -2,6 +2,10 @@
   <LoaderBlack v-if="!isMounted" width="80px"/>
   <div style="display: flex; flex-direction: column; align-items: center;">
 
+    <div>
+      <Donut :data="fullData"/>
+    </div>
+
   
     <div v-if="isMounted" class="orders-dashboard">
       <div class="order-box">
@@ -60,6 +64,7 @@
 import { ref, onMounted } from 'vue'
 import { useLang } from '~/composables/useLang'
 import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
+import Donut from '../components/elements/graphDonut.vue';
 
 const { t } = useLang()
 const isMounted = ref(false)
@@ -90,6 +95,12 @@ const unreachableByMonth = ref({})
 const awaitByMonth = ref({})
 const completedByMonth = ref({})
 
+const fullData = ref({})
+
+const perDay = ref({})
+const perWeek = ref({})
+const perMonth = ref({})
+
 // --- clés actuelles
 const now = new Date()
 const currentDay = now.toISOString().split("T")[0]
@@ -118,6 +129,8 @@ async function getOrder() {
       ...order,
       date: new Date(order.create)
     }))
+
+    
 
     orders.forEach(order => {
       const d = order.date
@@ -196,7 +209,75 @@ async function getOrder() {
         if (!confirmByMonth.value[monthKey]) confirmByMonth.value[monthKey] = []
         confirmByMonth.value[monthKey].push(order)
       }
+
+      
+      const total1 = getTotal([
+        completedByDay.value[dayKey],
+        awaitByDay.value[dayKey],
+        cancelByDay.value[dayKey],
+        deliverByDay.value[dayKey],
+        unreachableByDay.value[dayKey],
+        confirmByDay.value[dayKey]
+      ])
+
+      const total2 = getTotal([
+        completedByWeek.value[weekKey],
+        awaitByWeek.value[weekKey],
+        cancelByWeek.value[weekKey],
+        deliverByWeek.value[weekKey],
+        unreachableByWeek.value[weekKey],
+        confirmByWeek.value[weekKey]
+      ])
+
+      const total3 = getTotal([
+        completedByMonth.value[monthKey],
+        awaitByMonth.value[monthKey],
+        cancelByMonth.value[monthKey],
+        deliverByMonth.value[monthKey],
+        unreachableByMonth.value[monthKey],
+        confirmByMonth.value[monthKey]
+      ])
+
+    perDay.value = resolveCssVars(
+      {time: dayKey,
+        label: 'perDay',
+        total: total1,
+        data: [completedByDay.value[dayKey]?.length || 0, awaitByDay.value[dayKey]?.length || 0, cancelByDay.value[dayKey]?.length || 0, deliverByDay.value[dayKey]?.length || 0, unreachableByDay.value[dayKey]?.length || 0, confirmByDay.value[dayKey]?.length || 0, 0],
+      backgroundColor: ["var(--color-greny)", "var(--color-rangy)", "var(--color-rady)", "var(--color-tioly)", "var(--color-garry)", "var(--color-zioly3)"]
+      },
+
+    )
+
+    perWeek.value = resolveCssVars(
+      {time: weekKey,
+        label: 'perWeek',
+        total: total2,
+        data: [completedByWeek.value[weekKey]?.length || 0, awaitByWeek.value[weekKey]?.length || 0, cancelByWeek.value[weekKey]?.length || 0, deliverByWeek.value[weekKey]?.length || 0, unreachableByWeek.value[weekKey]?.length || 0, confirmByWeek.value[weekKey]?.length || 0, 0],
+        backgroundColor: ["var(--color-greny)", "var(--color-rangy)", "var(--color-rady)", "var(--color-tioly)", "var(--color-garry)", "var(--color-zioly3)"]
+      },
+
+    )
+
+    perMonth.value = resolveCssVars(
+      {time: monthKey,
+        label: 'perMonth',
+        total: total3,
+        data: [completedByMonth.value[monthKey]?.length || 0, awaitByMonth.value[monthKey]?.length || 0, cancelByMonth.value[monthKey]?.length || 0, deliverByMonth.value[monthKey]?.length || 0, unreachableByMonth.value[monthKey]?.length || 0, confirmByMonth.value[monthKey]?.length || 0, 0],
+        backgroundColor: ["var(--color-greny)", "var(--color-rangy)", "var(--color-rady)", "var(--color-tioly)", "var(--color-garry)", "var(--color-zioly3)"]
+      },
+
+    )
+
     })
+
+    const listStatus = ['completed', 'await', 'cancel', 'deliver', 'unreachable', 'confirm', 'return']
+    const listDataSet = [perDay.value, perWeek.value, perMonth.value]
+    console.log('listDataSet: ', listDataSet)
+
+    
+
+    fullData.value = [{labels: listStatus, datasets: listDataSet}]
+    
 
     log.value = "✅ Orders classified successfully"
   } catch (err) {
@@ -208,13 +289,36 @@ async function getOrder() {
 
 }
 
-function getWeekNumber(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
-  const dayNum = date.getUTCDay() || 7
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum)
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7)
+function getTotal(values) {
+  return values.reduce((sum, v) => sum + (v?.length || 0), 0)
 }
+
+function resolveCssVars(item) {
+  if (item.backgroundColor) {
+    item.backgroundColor = item.backgroundColor.map(color => {
+      if (color.startsWith("var(")) {
+        const varName = color.match(/var\((--[^)]+)\)/)?.[1]
+        if (varName) {
+          return getComputedStyle(document.documentElement)
+            .getPropertyValue(varName)
+            .trim()
+        }
+      }
+      return color
+    })
+  }
+  return item
+}
+
+
+
+
+function getWeekNumber(d) {
+  const start = new Date(d.getFullYear(), 0, 1) // 1er janvier
+  const diff = Math.floor((d - start) / 86400000) // nb de jours depuis début année
+  return Math.floor(diff / 7) + 1 // semaine = jours écoulés / 7
+}
+
 
 
 

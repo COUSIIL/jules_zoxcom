@@ -4,7 +4,12 @@
 $apiKey = getenv("API_GEMINI"); 
 
 // URL Gemini avec la clé dans l'URL
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$api_key";
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+$headers = [
+  "Content-Type: application/json",
+  "X-goog-api-key: $apiKey"
+];
+
 
 // Récupère le message depuis une requête POST JSON
 $value = json_decode(file_get_contents('php://input'), true);

@@ -20,6 +20,14 @@ export default defineNuxtConfig({
     '~/assets/css/main.css' // Keep for font imports
   ],
 
+  postcss: {
+    plugins: {
+      "@tailwindcss/postcss": {},  // ✅ Nouveau plugin pour Tailwind v4
+      autoprefixer: {}
+    }
+  },
+
+
   vite: {
     css: {
       devSourcemap: true,

@@ -102,10 +102,12 @@ html.dark {
   height: 24px; /* h-6 */
 }
 
+
+
 /* ==========================================================================
-   Sidebar
+   sidebar1
    ========================================================================== */
-.sidebar {
+.sidebar1 {
   height: 100%;
   position: fixed;
   top: 50px;
@@ -119,78 +121,77 @@ html.dark {
   scrollbar-width: thin;
 }
 
-.sidebar--large {
+.sidebar1--large {
   width: 250px;
   transform: translateX(80%);
 }
 
-.sidebar--small {
+.sidebar1--small {
   width: 200px;
 }
 
-.sidebar.is-open {
+.sidebar1.is-open {
   transform: translateX(0);
 }
 
-.dark .sidebar {
+.dark .sidebar1 {
   background: var(--color-darkly);
   box-shadow: 0px 8px 6px var(--color-darky);
 }
 
-.sidebar::-webkit-scrollbar {
+.sidebar1::-webkit-scrollbar {
   width: 6px;
 }
-.sidebar::-webkit-scrollbar-thumb {
+.sidebar1::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0.3);
   border-radius: 3px;
 }
-.sidebar::-webkit-scrollbar-track {
+.sidebar1::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.sidebar__link-list {
+.sidebar1__link-list {
   list-style: none;
-  padding: 0;
   margin: 0;
 }
 
-.sidebar__item {
-  margin: 5px;
+.sidebar1__item {
   border-radius: 8px;
 }
 
-.sidebar__link {
-  height: 40px;
+.sidebar1__link {
+  height: 35px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: var(--color-zioly4);
   text-decoration: none;
   width: 100%;
+  padding: 5px;
 }
 
-.sidebar__link.is-active {
+.sidebar1__link.is-active {
   background-color: var(--color-whizy);
 }
 
-.dark .sidebar__link {
+.dark .sidebar1__link {
   color: var(--color-whizy);
 }
 
-.dark .sidebar__link.is-active {
+.dark .sidebar1__link.is-active {
   background-color: var(--color-darky);
 }
 
-.sidebar__icon {
+.sidebar1__icon {
   padding-inline: 0;
 }
 
-.sidebar__icon svg {
-  width: 20px;
-  height: 20px;
+.sidebar1__icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-.sidebar__text {
+.sidebar1__text {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -199,20 +200,20 @@ html.dark {
   margin-inline: 5px;
 }
 
-.sidebar__footer-spacer {
+.sidebar1__footer-spacer {
   height: 50px;
 }
 
-.sidebar-overlay {
+.sidebar1-overlay {
   position: fixed;
   width: 100%;
   height: 100%;
-  z-index: 4999; /* Below the sidebar */
+  z-index: 4999; /* Below the sidebar1 */
   top: 0;
   left: 0;
 }
 
-.sidebar__version-info {
+.sidebar1__version-info {
   font-size: 14px;
   font-weight: bold;
   padding: 15px;

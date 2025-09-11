@@ -1,40 +1,40 @@
 import { ref } from 'vue'
 
-const user = ref(null) // Stocker l'utilisateur
+const auth = ref(null) // Stocker l'utilisateur
 
 export const useAuth = () => {
   // ➡️ Fonction pour se connecter
-  const login = (userData) => {
-    user.value = userData
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = (authData) => {
+    auth.value = authData
+    localStorage.setItem('auth', JSON.stringify(authData));
   }
 
   // ➡️ Fonction pour récupérer l'utilisateur connecté
-  const getUser = () => {
-    if (!user.value) {
-      const storedUser = localStorage.getItem('user');
+  const getauth = () => {
+    if (!auth.value) {
+      const storedUser = localStorage.getItem('auth');
       if (storedUser) {
-        user.value = JSON.parse(storedUser)
+        auth.value = JSON.parse(storedUser)
       }
     }
-    return user.value
+    return auth.value
   }
 
   // ➡️ Fonction pour vérifier si l'utilisateur est connecté
   const isAuthenticated = () => {
-    return !!getUser()
+    return !!getauth()
   }
 
   // ➡️ Fonction pour se déconnecter
   const logout = () => {
-    user.value = null
-    localStorage.removeItem('user')
+    auth.value = null
+    localStorage.removeItem('auth')
   }
 
   return {
-    user,
+    auth,
     login,
-    getUser,
+    getauth,
     isAuthenticated,
     logout
   }

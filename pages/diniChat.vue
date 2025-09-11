@@ -1,6 +1,7 @@
 <template>
-  <div :class="['dini-chat-layout', { 'dark-mode': isDarkMode }]">
+  <div class="dini-chat-layout">
     <!-- Sidebar for conversations -->
+
     <div class="sidebar">
       <div class="sidebar-header">
         <button class="new-chat-btn" @click="startNewConversation">
@@ -34,7 +35,7 @@
     <div class="chat-panel">
       <div class="chat-messages" ref="chatMessagesContainer">
         <div v-for="(message, index) in messages" :key="index" :class="['message-bubble', message.role]">
-          <img :src="message.role === 'user' ? (user?.profile_image || '/z.svg') : '/dini.svg'" class="avatar" />
+          <img :src="message.role === 'user' ? (`https://management.hoggari.com/uploads/profile/${user?.profile_image}` || '/z.svg') : '/dini.svg'" class="avatar" />
           <div class="message-content">
             <p v-html="formatMessage(message.content)"></p>
             <button v-if="message.role === 'assistant'" @click="copyToClipboard(message.content)" class="copy-btn">
@@ -75,8 +76,8 @@ import { useLang } from '~/composables/useLang';
 import { marked } from 'marked';
 
 const { t } = useLang();
-const { getUser } = useAuth();
-const user = computed(() => getUser());
+const { getauth } = useAuth();
+const user = computed(() => getauth());
 
 const conversations = ref([]);
 const messages = ref([]);
@@ -87,7 +88,7 @@ const isDarkMode = ref(false);
 const inputBox = ref(null);
 const chatMessagesContainer = ref(null);
 
-const API_URL = '/backend/api.php';
+const API_URL = 'https://management.hoggari.com/backend/api.php';
 const STREAM_URL = '/backend/diniChat/chat_stream.php';
 
 // --- Lifecycle ---
@@ -101,23 +102,37 @@ onMounted(() => {
 
 // --- API Calls ---
 async function fetchApi(action, options = {}) {
-    const url = `${API_URL}?action=${action}`;
-    const response = await fetch(url, options);
-    if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`);
-    }
-    return response.json();
+  let url = API_URL;
+
+  url += `?action=${action}`;
+
+  console.log({url})
+
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    throw new Error(`API Error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  
+  
+
+  return data;
 }
 
+
 async function loadConversations() {
+  
     if (!user.value) return;
     try {
         const data = await fetchApi(`diniChat_get_conversations&user_id=${user.value.id}`);
+        
         if (data.success) {
             conversations.value = data.conversations;
             if (conversations.value.length > 0) {
                 selectConversation(conversations.value[0].id);
             }
+            
         }
     } catch (error) {
         console.error('Failed to load conversations:', error);
@@ -139,16 +154,24 @@ async function selectConversation(id) {
 }
 
 async function startNewConversation() {
+
     if (!user.value) return;
     try {
+
         const data = await fetchApi('diniChat_create_conversation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.value.id, title: t('new_chat') })
+          method: 'POST',
+          body: JSON.stringify({ 
+            user_id: user.value.id, 
+            title: t('new_chat') 
+          })
         });
+
         if (data.success) {
             await loadConversations();
             selectConversation(data.conversation_id);
+
+        } else {
+
         }
     } catch (error) {
         console.error('Failed to create new conversation:', error);
@@ -290,7 +313,7 @@ function toggleDarkMode() {
 
 </script>
 
-<style scoped>
+<style>
 :root {
   --primary-bg: #ffffff;
   --secondary-bg: #f7f7f8;
@@ -319,16 +342,15 @@ function toggleDarkMode() {
 
 .dini-chat-layout {
   display: flex;
-  height: 100vh;
+  margin: 20px;
   background-color: var(--primary-bg);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* --- Sidebar --- */
 .sidebar {
   width: 280px;
-  background-color: var(--sidebar-bg);
+  background-color: var(--color-whitly);
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -337,8 +359,7 @@ function toggleDarkMode() {
 .sidebar-header .new-chat-btn {
   width: 100%;
   padding: 12px;
-  background-color: var(--accent-color);
-  color: var(--accent-text);
+  background-color: var(--color-garry);
   border: none;
   border-radius: 8px;
   font-size: 16px;

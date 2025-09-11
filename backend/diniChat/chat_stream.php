@@ -5,6 +5,7 @@ header('Connection: keep-alive');
 header('X-Accel-Buffering: no'); // Disable buffering for Nginx
 
 require_once __DIR__ . '/../config/dbConfig.php';
+require_once __DIR__ . '/../config/init_db.php';
 
 // --- 1. Get Input Data ---
 $input = json_decode(file_get_contents('php://input'), true);
@@ -34,7 +35,11 @@ if (!$apiKey) {
     exit;
 }
 // Note: Using a specific streaming endpoint. And fixed model name.
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:streamGenerateContent?key=$apiKey";
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+$headers = [
+  "Content-Type: application/json",
+  "X-goog-api-key: $apiKey"
+];
 
 $data = [
     "contents" => [

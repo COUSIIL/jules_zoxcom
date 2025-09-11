@@ -6,15 +6,12 @@
 
 </template>
 
-<script>
+<script setup>
 import { useLang } from '~/composables/useLang';
 
-export default {
-    setup() {
-        const { t } = useLang();
-        return { t };
-    }
-}
+const { t } = useLang()
+
+
 </script>
 
 <style>
