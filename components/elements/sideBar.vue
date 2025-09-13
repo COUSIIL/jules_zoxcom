@@ -84,6 +84,13 @@
       </li>
 
       <li class="sidebar1__item" @click="close">
+        <NuxtLink class="sidebar1__link" to="/imageToHtml" exact-active-class="is-active">
+          <div class="sidebar1__icon" v-html="icons['cloud']"></div>
+          <h3 class="sidebar1__text">Image to HTML</h3>
+        </NuxtLink>
+      </li>
+
+      <li class="sidebar1__item" @click="close">
         <NuxtLink class="sidebar1__link" to="/ban" exact-active-class="is-active">
           <div class="sidebar1__icon" v-html="icons['unautorized']"></div>
           <h3 class="sidebar1__text">{{ t('black list') }}</h3>
