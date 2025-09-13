@@ -105,11 +105,19 @@
       </li>
 
       <li class="sidebar1__item" @click="close">
+        <NuxtLink class="sidebar1__link" to="/tm" exact-active-class="is-active">
+          <div class="sidebar1__icon" v-html="icons['partition']"></div>
+          <h3 class="sidebar1__text">{{ t('transaction model') }}</h3>
+        </NuxtLink>
+      </li>
+
+      <li class="sidebar1__item" @click="close">
         <NuxtLink class="sidebar1__link" to="/setings" exact-active-class="is-active">
           <div class="sidebar1__icon" v-html="icons['settings']"></div>
           <h3 class="sidebar1__text">{{ t('settings') }}</h3>
         </NuxtLink>
       </li>
+
 
       <li class="sidebar1__item" @click="close">
         <button class="sidebar1__link" style="cursor: pointer;" @click="handleLogout">

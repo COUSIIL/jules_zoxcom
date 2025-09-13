@@ -43,6 +43,7 @@ function response($success, $message = '', $data = null, $code = 200) {
     exit;
 }
 
+
 function read_json_input() {
     $raw = file_get_contents("php://input");
     if (!$raw) return [];

@@ -33,6 +33,13 @@ function banIP() {
     return json_decode($output, true);
 }
 
+function addTransactionModel() {
+    ob_start();
+    include '../backend/sql/post/transactionModel.php';
+    $output = ob_get_clean();
+    return json_decode($output, true);
+}
+
 function selectStoreDelivery() {
     ob_start();
     include '../backend/sql/post/storeDelivery.php';
@@ -705,7 +712,11 @@ if ($method === 'OPTIONS') {
 if (isset($_GET['action'])) {
     $action = $_GET['action'];
     
+    
     switch($action) {
+        case 'addTransactionModel':
+            $response = addTransactionModel();
+            break;
         case 'getBanks':
             $response = getBanks();
             break;

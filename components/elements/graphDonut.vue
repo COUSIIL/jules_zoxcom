@@ -43,10 +43,6 @@ const props = defineProps({
 })
 
 
-const thisDay = ref()
-
-
-
 const datasets = ref({
     // These labels appear in the legend and in the tooltips when hovering different arcs
     labels: [
@@ -85,20 +81,11 @@ watch(
         for(let i in txs[0].datasets) {
             newData.push(txs[0].datasets[i])
         }
-    
 
-    
-    
         datasets.value = {labels: txs[0].labels, datasets: newData}
 
-        console.log('newData: ', newData)
     }
     
-
-    
-    
-    
-
 
   },
   { immediate: true, deep: true }
@@ -134,7 +121,7 @@ watch(
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -197,7 +184,7 @@ watch(
   font-size: 2rem;
   font-weight: 800;
   color: #111;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 10px rgb(255, 255, 255);
   pointer-events: none;
   z-index: 2;
 }
@@ -206,7 +193,7 @@ watch(
 .dark .card {
   background: rgba(0, 0, 0, 0.25);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 25px rgb(0, 0, 0);
 }
 
 .dark .card::before {

@@ -120,103 +120,120 @@
                 <path d="M20.9991 3V4.27816C20.9991 6.47004 20.9991 7.56599 20.2918 8.16512C19.5846 8.76425 18.5036 8.58408 16.3415 8.22373L14.9991 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
         </button>
+
+        <button type="button" @click="insertRawHtml()">Insert HTML</button>
       </div>
   
       <editor-content :editor="editor" class="editor" />
     </div>
   </template>
   
-  <script setup>
-  import { ref, onBeforeUnmount, onMounted } from 'vue'
-  import { Editor, EditorContent } from '@tiptap/vue-3'
-  import StarterKit from '@tiptap/starter-kit'
-  import Image from '@tiptap/extension-image'
-  import TextAlign from '@tiptap/extension-text-align'
-  import Link from '@tiptap/extension-link'
-  import Underline from '@tiptap/extension-underline'
-  import Strike from '@tiptap/extension-strike'
-  import Blockquote from '@tiptap/extension-blockquote'
-  import CodeBlock from '@tiptap/extension-code-block'
-  import ImageResize from 'tiptap-extension-resize-image'
+<script setup>
+import { ref, onBeforeUnmount, onMounted } from 'vue'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import Image from '@tiptap/extension-image'
+import TextAlign from '@tiptap/extension-text-align'
+import Underline from '@tiptap/extension-underline'
+import Strike from '@tiptap/extension-strike'
+import Blockquote from '@tiptap/extension-blockquote'
+import ImageResize from 'tiptap-extension-resize-image'
+import { Node } from '@tiptap/core'
 
-  import Explorer from '../components/elements/explorer.vue';
-  const { t } = useLang();
+// ✅ Extension custom pour HTML brut
+const RawHTML = Node.create({
+  name: 'rawHTML',
+  group: 'block',
+  atom: true,
 
-  // 🔥 Props pour récupérer la valeur de description
-  const props = defineProps({
-    modelValue: {
-      type: String,
-      default: ''
+  addAttributes() {
+    return {
+      html: {
+        default: '',
+      },
     }
-  })
+  },
 
-  const imageUrls = ref([])
+  parseHTML() {
+    return [{ tag: 'raw-html' }]
+  },
 
-  const showUploader = ref(false);
-  const emit = defineEmits(['update:modelValue']);
-  const isMounted = ref(false);
+  // ✅ On insère directement le code HTML brut
+  renderHTML({ HTMLAttributes }) {
+    return ['raw-html', HTMLAttributes, 0]
+  },
 
-  
-  const editor = new Editor({
-    extensions: [
-      StarterKit,
-      Image,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      Link.configure({ openOnClick: false }),
-      Underline,
-      Strike,
-      Blockquote,
-      CodeBlock,
-      ImageResize.configure({
-      allowBase64: true,
-      sizes: ['small', 'medium', 'large'],
-      resizable: true,
-    }),
-    ],
-    content: props.modelValue ||  `<p>${t('Welcome to your enhanced Tiptap editor! 🚀')}</p>`,
-    onBlur: () => {
-    emit('update:modelValue', editor.getHTML()) // 🔥 Émet le contenu lors du blur
-  }
-  })
-  
-  function addImage(url) {
-
-
-    
-    
-    if (url) {
-      imageUrls.value.push(url);
-
-      editor.chain().focus().insertContent([
-        {
-          type: 'image',
-          attrs: { src: url }
-        },
-        {
-          type: 'paragraph'
-        }
-      ]).run();
+  addNodeView() {
+    return ({ node }) => {
+      const dom = document.createElement('div')
+      dom.innerHTML = node.attrs.html || ''
+      return { dom }
     }
+  },
+})
 
-    console.log(editor['options']['content'])
-    
-    showUploader.value = false;
+// ---- PROPS / EMIT ----
+const props = defineProps({
+  modelValue: { type: String, default: '' }
+})
+const emit = defineEmits(['update:modelValue'])
+
+const isMounted = ref(false)
+const showUploader = ref(false)
+
+// ---- INITIAL CONTENT ----
+let initialContent = `<p>Bienvenue 🚀</p>`
+try {
+  if (props.modelValue) {
+    initialContent = JSON.parse(props.modelValue) // JSON valide
   }
+} catch (e) {
+  initialContent = props.modelValue // sinon HTML
+}
 
-  function showIt(value) {
-    showUploader.value = value;
-    console.log('show: ', showUploader.value);
+// ---- EDITOR ----
+const editor = new Editor({
+  extensions: [
+    StarterKit.configure({ codeBlock: false }),
+    Image,
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    Underline,
+    Strike,
+    Blockquote,
+    ImageResize.configure({ allowBase64: true, resizable: true }),
+    RawHTML,
+  ],
+  content: initialContent,
+  onBlur: () => {
+    // ✅ Sauvegarde toujours en JSON
+    emit('update:modelValue', JSON.stringify(editor.getJSON()))
   }
+})
 
-  onMounted(() => {
-    isMounted.value = true;
-  })
+// ---- FUNCTIONS ----
+function insertRawHtml() {
+  const html = prompt('Colle ton HTML/CSS/JS ici :', '<div class="box">Hello World</div>')
+  if (html) {
+    editor.chain().focus().insertContent({
+      type: 'rawHTML',
+      attrs: { html }
+    }).run()
+  }
+}
 
-  
-  onBeforeUnmount(() => {
-    editor.destroy()
-  })
-  </script>
+function addImage(url) {
+  if (!url) return
+  editor.chain().focus().insertContent({
+    type: 'image',
+    attrs: { src: url }
+  }).run()
+  showUploader.value = false
+}
+
+onMounted(() => { isMounted.value = true })
+onBeforeUnmount(() => editor.destroy())
+</script>
+
   
   <style scoped>
   .toolbar {
