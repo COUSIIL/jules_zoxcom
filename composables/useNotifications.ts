@@ -1,4 +1,5 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useAuth } from './useAuth';
 
 // --- Interfaces TypeScript pour la robustesse du code ---
 
@@ -41,35 +42,43 @@ export const useNotifications = () => {
   const unreadCount = ref<number>(0);
   const isLoading = ref<boolean>(false);
   const error = ref<string | null>(null);
+  const currentNotification = ref<Notification | null>(null);
 
-  const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
+  const { $api } = useNuxtApp();
+  const { getauth } = useAuth();
+  const authUser = getauth();
 
   let eventSource: EventSource | null = null;
 
   // --- Actions ---
 
-  /**
-   * Récupère les notifications depuis l'API.
-   * Cette fonction met à jour l'état local.
-   */
-  const fetchNotifications = async () => {
-    if (isLoading.value) return;
+  const dismissNotification = () => {
+    currentNotification.value = null;
+  };
+
+  const fetchNotifications = async (isTriggeredByPing = false) => {
+    if (isLoading.value || !authUser) return;
     isLoading.value = true;
     error.value = null;
 
     try {
-      // Note: l'user_id est géré côté backend via la session ou le token JWT
       const response = await $api<ApiResponse<ListNotificationsData>>(
-        `/api.php?action=listNotifications&user_id=2`,
+        `/backend/notificationApi.php?action=listNotifications`,
         { method: 'GET' }
       );
 
-      console.log("API notifications response:", response);
-
-
       if (response.success && response.data) {
+        const oldNotifications = notifications.value;
         notifications.value = response.data.notifications;
         unreadCount.value = response.data.unread_count;
+
+        if (isTriggeredByPing && notifications.value.length > 0) {
+          const oldIdSet = new Set(oldNotifications.map(n => n.id));
+          const newNotification = notifications.value.find(n => !oldIdSet.has(n.id));
+          if (newNotification) {
+            currentNotification.value = newNotification;
+          }
+        }
       } else {
         throw new Error(response.error || 'Failed to fetch notifications.');
       }
@@ -81,105 +90,65 @@ export const useNotifications = () => {
     }
   };
 
-  /**
-   * Marque une notification comme lue (avec mise à jour optimiste).
-   * @param notificationId - L'ID de la notification à marquer comme lue.
-   */
   const markAsRead = async (notificationId: number) => {
     const notification = notifications.value.find(n => n.id === notificationId);
     if (!notification || notification.is_read) return;
 
-    // Mise à jour optimiste
     const originalStatus = notification.is_read;
     notification.is_read = 1;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
 
     try {
-      const response = await $api<ApiResponse<any>>('/api.php?action=markRead', {
+      await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markRead', {
         method: 'POST',
         body: { notification_id: notificationId },
       });
-
-      if (!response.success) {
-        // Annuler la mise à jour si l'API échoue
-        notification.is_read = originalStatus;
-        unreadCount.value++;
-        throw new Error(response.error || 'Failed to mark notification as read.');
-      }
     } catch (e: any) {
+      notification.is_read = originalStatus;
+      unreadCount.value++;
       error.value = e.message;
       console.error(e);
     }
   };
 
-  /**
-   * Marque toutes les notifications comme lues.
-   */
   const markAllAsRead = async () => {
     const originalNotifications = JSON.parse(JSON.stringify(notifications.value));
     const originalUnreadCount = unreadCount.value;
 
-    // Mise à jour optimiste
     notifications.value.forEach(n => n.is_read = 1);
     unreadCount.value = 0;
 
     try {
-      const response = await $api<ApiResponse<any>>('/api.php?action=markAllRead', {
+      await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markAllAsRead', {
         method: 'POST',
-        // Le user_id est géré par le backend
       });
-
-      if (!response.success) {
-        // Annuler si l'API échoue
-        notifications.value = originalNotifications;
-        unreadCount.value = originalUnreadCount;
-        throw new Error(response.error || 'Failed to mark all as read.');
-      }
     } catch (e: any) {
+      notifications.value = originalNotifications;
+      unreadCount.value = originalUnreadCount;
       error.value = e.message;
       console.error(e);
     }
   };
 
-
-  // --- Real-time (SSE) ---
-
   const connectToSse = () => {
-    if (eventSource) {
-      eventSource.close();
+    if (eventSource || !authUser) {
+      return;
     }
 
-    // Note: Le chemin est relatif à la racine du site.
-    // Assurez-vous que le serveur web sert bien ce fichier PHP.
-    eventSource = new EventSource('/backend/sse_notifications.php');
+    eventSource = new EventSource('/backend/notificationApi.php?action=sse', { withCredentials: true });
 
     eventSource.onopen = () => {
       console.log('SSE connection established.');
       error.value = null;
     };
 
-    eventSource.addEventListener('notification', (event) => {
-      try {
-        const newNotification: Notification = JSON.parse(event.data);
-
-        // Ajoute la nouvelle notification en haut de la liste
-        notifications.value.unshift(newNotification);
-
-        // Incrémente le compteur de non-lus
-        if (!newNotification.is_read) {
-            unreadCount.value++;
-        }
-
-      } catch (e) {
-        console.error('Failed to parse SSE notification event:', e);
-      }
+    eventSource.addEventListener('new-notification', (event) => {
+      fetchNotifications(true);
     });
 
     eventSource.onerror = (err) => {
       console.error('SSE Error:', err);
-      error.value = "Real-time connection to the server failed. Reconnecting...";
-      // EventSource réessaie de se connecter automatiquement.
-      // On pourrait vouloir fermer après N tentatives.
+      error.value = "Real-time connection failed.";
     };
   };
 
@@ -191,27 +160,26 @@ export const useNotifications = () => {
     }
   };
 
-
-  // --- Hooks de cycle de vie ---
   onMounted(() => {
-    fetchNotifications(); // Premier fetch pour l'historique
-    connectToSse();       // Connexion temps réel pour les nouvelles
+    if (authUser) {
+        fetchNotifications();
+        connectToSse();
+    }
   });
 
   onUnmounted(() => {
-    disconnectFromSse(); // Nettoyage pour éviter les fuites de mémoire
+    disconnectFromSse();
   });
 
-
-  // --- Exportations ---
   return {
     notifications: computed(() => notifications.value),
     unreadCount: computed(() => unreadCount.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
-
+    currentNotification: computed(() => currentNotification.value),
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    dismissNotification,
   };
 };

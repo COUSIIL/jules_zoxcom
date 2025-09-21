@@ -2,6 +2,10 @@
   <div>
     <Header />
     <NuxtPage />
+    <NotificationBar
+      :notification="currentNotification"
+      @dismiss="dismissNotification"
+    />
   </div>
 </template>
 
@@ -9,6 +13,8 @@
 import { useRouter } from 'vue-router';
 import { onMounted, onBeforeUnmount } from 'vue';
 import Header from '~/plugin/webNavBar.vue';
+import NotificationBar from '~/components/notificationBar.vue';
+import { useNotifications } from '~/composables/useNotifications';
 
 // Global shared state
 const isLargeScreen = useState('isLargeScreen', () => false);
@@ -16,6 +22,7 @@ const isAuth = useState('isAuth', () => false);
 const loading = ref(true);
 
 const router = useRouter();
+const { currentNotification, dismissNotification } = useNotifications();
 
 function checkScreenSize() {
   // window is only available on the client
