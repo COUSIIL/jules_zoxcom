@@ -60,7 +60,7 @@ export const useNotifications = () => {
     try {
       // Note: l'user_id est géré côté backend via la session ou le token JWT
       const response = await $api<ApiResponse<ListNotificationsData>>(
-        `/api.php?action=listNotifications&user_id=2`,
+        `/backend/notificationApi.php?action=listNotifications&user_id=2`,
         { method: 'GET' }
       );
 
@@ -95,7 +95,7 @@ export const useNotifications = () => {
     unreadCount.value = Math.max(0, unreadCount.value - 1);
 
     try {
-      const response = await $api<ApiResponse<any>>('/api.php?action=markRead', {
+      const response = await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markRead', {
         method: 'POST',
         body: { notification_id: notificationId },
       });
@@ -124,7 +124,7 @@ export const useNotifications = () => {
     unreadCount.value = 0;
 
     try {
-      const response = await $api<ApiResponse<any>>('/api.php?action=markAllRead', {
+      const response = await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markAllRead', {
         method: 'POST',
         // Le user_id est géré par le backend
       });
@@ -151,7 +151,7 @@ export const useNotifications = () => {
 
     // Note: Le chemin est relatif à la racine du site.
     // Assurez-vous que le serveur web sert bien ce fichier PHP.
-    eventSource = new EventSource('/backend/sse_notifications.php');
+    eventSource = new EventSource('/backend/notificationApi.php?action=sse');
 
     eventSource.onopen = () => {
       console.log('SSE connection established.');

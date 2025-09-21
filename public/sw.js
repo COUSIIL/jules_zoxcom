@@ -96,5 +96,5 @@ self.addEventListener('notificationclick', (event) => {
   );
 
   // Ici, on pourrait aussi envoyer une requête à l'API pour marquer la notif comme lue
-  // fetch(`/api.php?action=markRead`, { method: 'POST', body: JSON.stringify({ notification_id: notification.data.notification_id }) });
+  // fetch(`/backend/notificationApi.php?action=markRead`, { method: 'POST', body: JSON.stringify({ notification_id: notification.data.notification_id }) });
 });
