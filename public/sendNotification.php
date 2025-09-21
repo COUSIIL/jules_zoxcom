@@ -7,7 +7,7 @@ if (php_sapi_name() !== 'cli') {
 echo "--- Notification Worker started at " . date('Y-m-d H:i:s') . " ---\n";
 
 $configPath = __DIR__ . '/backend/config/dbConfig.php';
-$notConfigPath = __DIR__ . 'notification.config.php';
+$notConfigPath = __DIR__ . '/notification.config.php';
 
 // --- Initialisation ---
 if (!file_exists($configPath)) {

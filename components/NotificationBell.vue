@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { useNotifications } from '~/composables/useNotifications';
+import { useNotifications } from '~/composables/useNotifications.ts';
 import NotificationDropdown from './NotificationDropdown.vue';
 
 const { unreadCount } = useNotifications();

@@ -152,6 +152,104 @@ if ($mysqli->query($tableSQL) === false) {
     exit;
 }
 
+/**
+ * Crée une notification via l'API puis la met en file (enqueue).
+ * Retourne l'id de la notification en cas de succès, false sinon.
+ *
+ * IMPORTANT :
+ * - L'API createNotification doit autoriser l'appel (auth / DEBUG_MODE).
+ * - Ne pas créer la notif déjà en 'queued' si tu veux utiliser enqueueSend.
+ */
+function create_and_enqueue_notification($mysqli, array $data) {
+    // Force un status "draft" si l'appelant a mis "queued" — enqueueSend attend draft|failed.
+    if (empty($data['status'])) {
+        $data['status'] = 'draft';
+    } elseif ($data['status'] === 'queued') {
+        // Si l'appelant veut absolument créer directement en queued, on peut retourner l'id
+        // mais enqueueSend ne la traitera pas (il vérifie draft|failed). Ici on force draft.
+        $data['status'] = 'draft';
+    }
+
+    $baseUrlCreate = "https://management.hoggari.com/api.php?action=createNotification";
+
+    $ch = curl_init($baseUrlCreate);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        // 'Authorization: Bearer XYZ' // décommente si tu utilises JWT et que l'API l'attend
+    ]);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // seulement en dev si nécessaire
+
+    $response = curl_exec($ch);
+    $curlErr = curl_error($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($response === false) {
+        error_log("cURL error (create): " . $curlErr);
+        return false;
+    }
+
+    // Accept any 2xx (201 is expected)
+    if ($httpCode < 200 || $httpCode >= 300) {
+        error_log("Create API responded HTTP $httpCode: $response");
+        return false;
+    }
+
+    $decoded = json_decode($response, true);
+    if (!is_array($decoded) || empty($decoded['success']) || empty($decoded['data']['id'])) {
+        error_log("Invalid create response: $response");
+        return false;
+    }
+
+    $notificationId = intval($decoded['data']['id']);
+
+    // --- Now enqueue send ---
+    $enqueueUrl = "https://management.hoggari.com/api.php?action=enqueueSend";
+    $payload = ['notification_id' => $notificationId];
+
+    $ch2 = curl_init($enqueueUrl);
+    curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch2, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        // 'Authorization: Bearer XYZ' // si nécessaire
+    ]);
+    curl_setopt($ch2, CURLOPT_POST, true);
+    curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($payload));
+    curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch2, CURLOPT_FOLLOWLOCATION, true);
+
+    $response2 = curl_exec($ch2);
+    $curlErr2 = curl_error($ch2);
+    $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+    curl_close($ch2);
+
+    if ($response2 === false) {
+        error_log("cURL error (enqueue): " . $curlErr2);
+        return false;
+    }
+
+    if ($httpCode2 < 200 || $httpCode2 >= 300) {
+        error_log("Enqueue API responded HTTP $httpCode2: $response2");
+        return false;
+    }
+
+    $decoded2 = json_decode($response2, true);
+    if (!is_array($decoded2) || empty($decoded2['success'])) {
+        error_log("Invalid enqueue response: $response2");
+        return false;
+    }
+
+    // Tout OK -> retourner l'id
+    return $notificationId;
+}
+
+
+
 $data = json_decode(file_get_contents("php://input"), true);
 
 if ($stmt = $mysqli->prepare("SELECT 1 FROM banned_ips WHERE ip_address = ? LIMIT 1")) {
@@ -442,24 +540,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $mysqli->commit();
 
         // --- Créer une notification pour la nouvelle commande ---
-        if (function_exists('create_and_enqueue_notification')) {
-            $notification_params = [
-                'title' => '🎉 Nouvelle Commande Reçue !',
-                'body' => "La commande #$orderId pour $name d'un total de $totalPrice DA a été enregistrée.",
-                'targets' => [['type' => 'user_id', 'value' => 1]], // Cible l'admin (user_id = 1)
-                'type' => 'success',
-                'priority' => 3, // High
-                'meta' => [
-                    'route' => "/orders/$orderId",
-                    'resourceId' => $orderId
-                ]
-            ];
-            $notification_result = create_and_enqueue_notification($mysqli, $notification_params);
-            if ($notification_result !== true) {
-                // Log l'erreur mais ne bloque pas le processus de commande
-                error_log("Failed to create notification for order $orderId: " . $notification_result);
-            }
-        }
+        $params = [
+        "title" => "Nouvelle commande reçue",
+        "body" => "Une nouvelle commande a été passée (#$orderId).",
+        "tag_id" => 1,
+        "type" => "system",
+        "priority" => 3,
+        "channels" => ["inapp", "push"],
+        "status" => "queued",
+        "meta" => [
+            "route" => "/orders/$orderId",
+            "icon" => "/icons/order.png"
+        ],
+        "targets" => [
+            ["type" => "user_id", "value" => "2"] // admin par ex.
+        ]
+        ];
+
+        create_and_enqueue_notification($mysqli, $params);
+
         // --- Fin de la création de notification ---
 
         try {
@@ -528,4 +627,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     ]);
     exit;
 }
+
+
+
 ?>

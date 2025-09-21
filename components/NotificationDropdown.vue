@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNotifications, type Notification } from '~/composables/useNotifications';
+import { useNotifications, type Notification } from '~/composables/useNotifications.ts';
 
 const emit = defineEmits(['close']);
 

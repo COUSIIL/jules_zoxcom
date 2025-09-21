@@ -59,9 +59,13 @@ export const useNotifications = () => {
 
     try {
       // Note: l'user_id est géré côté backend via la session ou le token JWT
-      const response = await $api<ApiResponse<ListNotificationsData>>('/api.php?action=listNotifications', {
-        method: 'GET',
-      });
+      const response = await $api<ApiResponse<ListNotificationsData>>(
+        `/api.php?action=listNotifications&user_id=2`,
+        { method: 'GET' }
+      );
+
+      console.log("API notifications response:", response);
+
 
       if (response.success && response.data) {
         notifications.value = response.data.notifications;

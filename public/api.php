@@ -237,7 +237,7 @@ function create_and_enqueue_notification(mysqli $db, array $params) {
  */
 function authenticate_request() {
     if (defined('DEBUG_MODE') && DEBUG_MODE) {
-        return ['user_id' => 1, 'role' => 'admin'];
+        return ['user_id' => 2, 'role' => 'admin'];
     }
 
     // IMPLEMENTER ICI la lecture du header Authorization et la vérification du token
