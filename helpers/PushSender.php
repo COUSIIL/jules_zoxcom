@@ -5,11 +5,11 @@ use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 
 class PushSender {
-    private $pdo;
+    private $mysqli;
     private $webPush;
 
-    public function __construct(PDO $pdo) {
-        $this->pdo = $pdo;
+    public function __construct(mysqli $mysqli) {
+        $this->mysqli = $mysqli;
         $auth = [
             'VAPID' => [
                 'subject' => VAPID_SUBJECT,
@@ -32,10 +32,16 @@ class PushSender {
             return ['success' => 0, 'failed' => 0, 'expired' => 0];
         }
 
-        $placeholders = rtrim(str_repeat('?,', count($userIds)), ',');
-        $stmt = $this->pdo->prepare("SELECT id, user_id, subscription FROM push_subscriptions WHERE user_id IN ($placeholders)");
-        $stmt->execute($userIds);
-        $subscriptions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Construction dynamique des placeholders
+        $placeholders = implode(',', array_fill(0, count($userIds), '?'));
+        $types = str_repeat('i', count($userIds));
+
+        $stmt = $this->mysqli->prepare("SELECT id, user_id, subscription FROM push_subscriptions WHERE user_id IN ($placeholders)");
+        $stmt->bind_param($types, ...$userIds);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $subscriptions = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
 
         if (empty($subscriptions)) {
             return ['success' => 0, 'failed' => 0, 'expired' => 0];
@@ -44,7 +50,7 @@ class PushSender {
         $payload = json_encode([
             'title' => $notification['title'],
             'body' => $notification['body'],
-            'icon' => $notification['meta']['icon'] ?? '/icon.png', // URL vers une icône
+            'icon' => $notification['meta']['icon'] ?? '/icon.png',
             'data' => [
                 'url' => $notification['meta']['route'] ?? APP_URL,
                 'notification_id' => $notification['id'],
@@ -55,7 +61,7 @@ class PushSender {
             $this->webPush->queueNotification(
                 Subscription::create(json_decode($sub['subscription'], true)),
                 $payload,
-                ['TTL' => 5000] // Time To Live
+                ['TTL' => 5000]
             );
         }
 
@@ -66,15 +72,12 @@ class PushSender {
             'expired_ids' => [],
         ];
 
-        /** @var \Minishlink\WebPush\MessageSentReport $sentReport */
         foreach ($this->webPush->flush() as $sentReport) {
             if ($sentReport->isSuccess()) {
                 $report['success']++;
             } elseif ($sentReport->isSubscriptionExpired()) {
-                // Le endpoint n'est plus valide
                 $report['expired']++;
                 $endpoint = $sentReport->getEndpoint();
-                // On cherche l'ID de la souscription à supprimer
                 foreach ($subscriptions as $sub) {
                     $subData = json_decode($sub['subscription'], true);
                     if ($subData['endpoint'] === $endpoint) {
@@ -83,9 +86,7 @@ class PushSender {
                     }
                 }
             } else {
-                // Autre erreur
                 $report['failed']++;
-                // Pour le debug: echo "Push failed for endpoint {$sentReport->getEndpoint()}: {$sentReport->getReason()}\n";
             }
         }
 
@@ -106,8 +107,13 @@ class PushSender {
         if (empty($subscriptionIds)) {
             return;
         }
-        $placeholders = rtrim(str_repeat('?,', count($subscriptionIds)), ',');
-        $stmt = $this->pdo->prepare("DELETE FROM push_subscriptions WHERE id IN ($placeholders)");
-        $stmt->execute($subscriptionIds);
+
+        $placeholders = implode(',', array_fill(0, count($subscriptionIds), '?'));
+        $types = str_repeat('i', count($subscriptionIds));
+
+        $stmt = $this->mysqli->prepare("DELETE FROM push_subscriptions WHERE id IN ($placeholders)");
+        $stmt->bind_param($types, ...$subscriptionIds);
+        $stmt->execute();
+        $stmt->close();
     }
 }

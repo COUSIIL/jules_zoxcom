@@ -16,6 +16,8 @@
       <img v-else :src="varqDark" alt="Dini white icon" />
     </NuxtLink>
 
+    <NotificationBell />
+
     <button @click="toggleDarkMode" class="main-nav__action">
       <svg
         v-if="isDark"
@@ -56,6 +58,7 @@
 
 <script setup>
 import ProfileBtn from './bloc/profileBtn.vue'
+import NotificationBell from '../NotificationBell.vue'
 import { useLang } from '~/composables/useLang'
 
 const { t } = useLang()

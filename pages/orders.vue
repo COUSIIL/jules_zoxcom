@@ -177,7 +177,7 @@
       </div>
       <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-else>
         <div class="order" v-if="!droped[index]">
-          {{ orderStatut[index] }}
+
           <button :class="
           orderStatut[index] === 'waiting' ? 
             'numberBtn bg-rangy' : 
@@ -186,9 +186,9 @@
             orderStatut[index] === 'returned' ?
             'numberBtn bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'numberBtn bg-blumy' :
+            'numberBtn bg-blue' :
             orderStatut[index] === 'completed' ?
-            'numberBtn bg-greeny' :
+            'numberBtn bg-green' :
             orderStatut[index] === 'shipping' ?
             'numberBtn bg-yelly' :
             orderStatut[index] === 'canceled' ?
@@ -264,9 +264,9 @@
             orderStatut[index] === 'returned' ?
             'numberBtn bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'numberBtn bg-blumy' :
+            'numberBtn bg-blue' :
             orderStatut[index] === 'completed' ?
-            'numberBtn bg-greeny' :
+            'numberBtn bg-green' :
             orderStatut[index] === 'shipping' ?
             'numberBtn bg-yelly' :
             orderStatut[index] === 'canceled' ?
@@ -368,9 +368,9 @@
             orderStatut[index] === 'returned' ?
             'bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'bg-blumy' :
+            'bg-blue' :
             orderStatut[index] === 'completed' ?
-            'bg-greeny' :
+            'bg-green' :
             orderStatut[index] === 'shipping' ?
             'bg-yelly' :
             orderStatut[index] === 'canceled' ?

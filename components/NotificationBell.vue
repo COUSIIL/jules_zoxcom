@@ -59,12 +59,18 @@ onUnmounted(() => {
 
 .bell-button {
   position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 8px;
   border-radius: 50%;
   transition: background-color 0.2s;
+  margin: 5px;
 }
 
 .bell-button:hover {

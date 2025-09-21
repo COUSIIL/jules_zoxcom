@@ -3,7 +3,7 @@
 Ce fichier fournit des exemples de commandes `curl` pour tester chaque endpoint de `api.php`.
 
 **Note importante**:
-- Remplacez `https://votre-domaine.com/api` par l'URL réelle de votre API.
+- Remplacez `https://management.hoggari.com/api` par l'URL réelle de votre API.
 - Les exemples ci-dessous supposent que la fonction `authenticate_request()` dans `api.php` retourne un utilisateur valide (par exemple, l'utilisateur de test en mode `DEBUG_MODE`). En production, vous devrez ajouter un header d'authentification à vos requêtes, par exemple : `-H "Authorization: Bearer VOTRE_TOKEN_JWT"`.
 
 ---
@@ -13,7 +13,7 @@ Ce fichier fournit des exemples de commandes `curl` pour tester chaque endpoint 
 #### Créer un nouveau tag (admin)
 ```bash
 # Crée un tag "promotions"
-curl -X POST "https://votre-domaine.com/api/api.php?action=createTag" \
+curl -X POST "https://management.hoggari.com/api.php?action=createTag" \
 -H "Content-Type: application/json" \
 -d '{
   "slug": "promo-ete-2024",
@@ -26,7 +26,7 @@ curl -X POST "https://votre-domaine.com/api/api.php?action=createTag" \
 
 #### Lister tous les tags
 ```bash
-curl -X GET "https://votre-domaine.com/api/api.php?action=listTags"
+curl -X GET "https://management.hoggari.com/api.php?action=listTags"
 
 # Réponse attendue:
 # {"success":true,"data":[{"id":1,"slug":"general","label":"Général"}, ...],"error":null}
@@ -39,7 +39,7 @@ curl -X GET "https://votre-domaine.com/api/api.php?action=listTags"
 #### Étape A: Créer une notification en brouillon (`draft`)
 ```bash
 # Crée une notification de type "promo" ciblant un utilisateur spécifique (user_id: 12)
-curl -X POST "https://votre-domaine.com/api/api.php?action=createNotification" \
+curl -X POST "https://management.hoggari.com/api.php?action=createNotification" \
 -H "Content-Type: application/json" \
 -d '{
   "title": "Offre Spéciale d''Été !",
@@ -66,7 +66,7 @@ curl -X POST "https://votre-domaine.com/api/api.php?action=createNotification" \
 #### Étape B: Mettre la notification en file d'attente (`queued`)
 ```bash
 # Utilise l'ID de la notification créée à l'étape précédente (ex: 101)
-curl -X POST "https://votre-domaine.com/api/api.php?action=enqueueSend" \
+curl -X POST "https://management.hoggari.com/api.php?action=enqueueSend" \
 -H "Content-Type: application/json" \
 -d '{
   "notification_id": 101
@@ -85,7 +85,7 @@ curl -X POST "https://votre-domaine.com/api/api.php?action=enqueueSend" \
 ```bash
 # Récupère les notifications pour l'utilisateur authentifié (ou user_id=12 si spécifié)
 # Le backend doit associer le token d'authentification à un user_id
-curl -X GET "https://votre-domaine.com/api/api.php?action=listNotifications&user_id=12"
+curl -X GET "https://management.hoggari.com/api/api.php?action=listNotifications&user_id=12"
 
 # Réponse attendue:
 # {
@@ -110,7 +110,7 @@ curl -X GET "https://votre-domaine.com/api/api.php?action=listNotifications&user
 #### Marquer une notification comme lue
 ```bash
 # L'utilisateur (géré par l'auth backend) marque la notification 101 comme lue
-curl -X POST "https://votre-domaine.com/api/api.php?action=markRead" \
+curl -X POST "https://management.hoggari.com/api/api.php?action=markRead" \
 -H "Content-Type: application/json" \
 -d '{
   "notification_id": 101
@@ -122,7 +122,7 @@ curl -X POST "https://votre-domaine.com/api/api.php?action=markRead" \
 
 #### Marquer toutes les notifications comme lues
 ```bash
-curl -X POST "https://votre-domaine.com/api/api.php?action=markAllRead" \
+curl -X POST "https://management.hoggari.com/api/api.php?action=markAllRead" \
 -H "Content-Type: application/json" \
 -d '{}'
 
@@ -137,7 +137,7 @@ curl -X POST "https://votre-domaine.com/api/api.php?action=markAllRead" \
 #### Enregistrer un abonnement Push
 ```bash
 # Simule l'envoi d'un objet PushSubscription par le frontend
-curl -X POST "https://votre-domaine.com/api/api.php?action=subscribePush" \
+curl -X POST "https://management.hoggari.com/api/api.php?action=subscribePush" \
 -H "Content-Type: application/json" \
 -d '{
   "subscription": {

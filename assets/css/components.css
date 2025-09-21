@@ -939,6 +939,12 @@
 .bg-rady {
   background-color: var(--color-rady);
 }
+.bg-green {
+  background-color: var(--color-greeny);
+}
+.bg-blue {
+  background-color: var(--color-blumy);
+}
 
 .bg-whitly {
   background-color: var(--color-whitly);

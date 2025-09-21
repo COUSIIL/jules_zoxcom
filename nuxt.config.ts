@@ -27,6 +27,13 @@ export default defineNuxtConfig({
     }
   },
 
+  runtimeConfig: {
+    public: {
+      // Clé VAPID publique de votre config.php
+      vapidPublicKey: 'BCcIPD0QlNkfi3Zaw93Sd0D7Y5WvZlLAlaDfsjppa3yeYkLo_f_t0p1dEPy-mgUYN3Yb_Fz8CegClBa8ymz_xeQ'
+    }
+  },
+
 
   vite: {
     css: {
