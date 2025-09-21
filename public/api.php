@@ -148,6 +148,89 @@ function get_json_input() {
 }
 
 /**
+ * Crée et met en file d'attente une notification système.
+ * C'est une fonction interne, pas une route API.
+ *
+ * @param mysqli $db - L'instance de la connexion mysqli.
+ * @param array $params - Tableau contenant les détails de la notification.
+ *   - 'title' (string) - Requis.
+ *   - 'body' (string) - Optionnel.
+ *   - 'targets' (array) - Requis. Ex: [['type' => 'user_id', 'value' => 1]]
+ *   - 'type' (string) - Optionnel, défaut 'info'.
+ *   - 'priority' (int) - Optionnel, défaut 2.
+ *   - 'channels' (array) - Optionnel, défaut ['inapp'].
+ *   - 'meta' (array) - Optionnel.
+ * @return bool|string - true en cas de succès, message d'erreur en cas d'échec.
+ */
+function create_and_enqueue_notification(mysqli $db, array $params) {
+    // Validation des paramètres de base
+    if (empty($params['title']) || empty($params['targets'])) {
+        return "Title and targets are required.";
+    }
+
+    $db->begin_transaction();
+    try {
+        // 1. Créer la notification principale (status 'draft')
+        $stmt = $db->prepare(
+            "INSERT INTO notifications (title, body, type, priority, channels, meta, status, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, 'draft', ?)"
+        );
+        if (!$stmt) throw new Exception('Prepare failed: ' . $db->error);
+
+        $title = $params['title'];
+        $body = $params['body'] ?? null;
+        $type = $params['type'] ?? 'info';
+        $priority = $params['priority'] ?? 2;
+        $channels = json_encode($params['channels'] ?? ['inapp']);
+        $meta = isset($params['meta']) ? json_encode($params['meta']) : null;
+        $created_by = 0; // 0 pour système
+
+        $stmt->bind_param('sssisss', $title, $body, $type, $priority, $channels, $meta, $created_by);
+        if (!$stmt->execute()) throw new Exception('Execute failed: ' . $stmt->error);
+
+        $notificationId = $db->insert_id;
+        $stmt->close();
+
+        // 2. Ajouter les cibles (targets)
+        $tstmt = $db->prepare("INSERT INTO notification_targets (notification_id, target_type, target_value) VALUES (?, ?, ?)");
+        if (!$tstmt) throw new Exception('Prepare target failed: ' . $db->error);
+        foreach ($params['targets'] as $target) {
+            $tstmt->bind_param('iss', $notificationId, $target['type'], $target['value']);
+            if (!$tstmt->execute()) throw new Exception('Insert target failed: ' . $tstmt->error);
+        }
+        $tstmt->close();
+
+        // 3. Mettre la notification en file d'attente (status 'queued')
+        $u = $db->prepare("UPDATE notifications SET status = 'queued' WHERE id = ?");
+        if (!$u) throw new Exception('Update status failed: ' . $db->error);
+        $u->bind_param('i', $notificationId);
+        if (!$u->execute()) throw new Exception('Execute update status failed: ' . $u->error);
+        $u->close();
+
+        // 4. Insérer dans user_notifications pour les cibles directes
+        foreach ($params['targets'] as $target) {
+            if ($target['type'] === 'user_id') {
+                $ins = $db->prepare("INSERT IGNORE INTO user_notifications (notification_id, user_id) VALUES (?, ?)");
+                if (!$ins) throw new Exception('Prepare user_notification failed: ' . $db->error);
+                $uid = intval($target['value']);
+                $ins->bind_param('ii', $notificationId, $uid);
+                if (!$ins->execute()) throw new Exception('Execute user_notification failed: ' . $ins->error);
+                $ins->close();
+            }
+            // Vous pouvez étendre ici pour 'role', 'broadcast', etc.
+        }
+
+        $db->commit();
+        return true;
+    } catch (Exception $e) {
+        $db->rollback();
+        // Log l'erreur au lieu de l'afficher directement
+        error_log("Notification creation failed: " . $e->getMessage());
+        return $e->getMessage();
+    }
+}
+
+/**
  * Placeholder d'authentification.
  * Retourne ['user_id' => int, 'role' => 'admin'|'user'|...] ou false
  * À remplacer par ta logique réelle (JWT/session).
