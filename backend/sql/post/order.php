@@ -26,6 +26,11 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
+// Inclure le fichier api.php pour accéder à la fonction helper de notification
+$apiPath = __DIR__ . '/../../../public/api.php';
+if (file_exists($apiPath)) {
+    require_once $apiPath;
+}
 
 
 $createTables = [
@@ -435,6 +440,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Valider la transaction
         $mysqli->commit();
+
+        // --- Créer une notification pour la nouvelle commande ---
+        if (function_exists('create_and_enqueue_notification')) {
+            $notification_params = [
+                'title' => '🎉 Nouvelle Commande Reçue !',
+                'body' => "La commande #$orderId pour $name d'un total de $totalPrice DA a été enregistrée.",
+                'targets' => [['type' => 'user_id', 'value' => 1]], // Cible l'admin (user_id = 1)
+                'type' => 'success',
+                'priority' => 3, // High
+                'meta' => [
+                    'route' => "/orders/$orderId",
+                    'resourceId' => $orderId
+                ]
+            ];
+            $notification_result = create_and_enqueue_notification($mysqli, $notification_params);
+            if ($notification_result !== true) {
+                // Log l'erreur mais ne bloque pas le processus de commande
+                error_log("Failed to create notification for order $orderId: " . $notification_result);
+            }
+        }
+        // --- Fin de la création de notification ---
 
         try {
             $sendData = http_build_query([

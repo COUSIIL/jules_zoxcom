@@ -44,7 +44,7 @@ export const useNotifications = () => {
 
   const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
 
-  let pollingInterval: NodeJS.Timeout | null = null;
+  let eventSource: EventSource | null = null;
 
   // --- Actions ---
 
@@ -138,37 +138,64 @@ export const useNotifications = () => {
   };
 
 
-  // --- Polling ---
+  // --- Real-time (SSE) ---
 
-  /**
-   * Démarre le polling pour vérifier les nouvelles notifications.
-   * @param interval - L'intervalle en millisecondes (par défaut 30s).
-   */
-  const startPolling = (interval: number = 30000) => {
-    if (pollingInterval) return; // Déjà démarré
-    console.log('Starting notification polling...');
-    pollingInterval = setInterval(fetchNotifications, interval);
+  const connectToSse = () => {
+    if (eventSource) {
+      eventSource.close();
+    }
+
+    // Note: Le chemin est relatif à la racine du site.
+    // Assurez-vous que le serveur web sert bien ce fichier PHP.
+    eventSource = new EventSource('/backend/sse_notifications.php');
+
+    eventSource.onopen = () => {
+      console.log('SSE connection established.');
+      error.value = null;
+    };
+
+    eventSource.addEventListener('notification', (event) => {
+      try {
+        const newNotification: Notification = JSON.parse(event.data);
+
+        // Ajoute la nouvelle notification en haut de la liste
+        notifications.value.unshift(newNotification);
+
+        // Incrémente le compteur de non-lus
+        if (!newNotification.is_read) {
+            unreadCount.value++;
+        }
+
+      } catch (e) {
+        console.error('Failed to parse SSE notification event:', e);
+      }
+    });
+
+    eventSource.onerror = (err) => {
+      console.error('SSE Error:', err);
+      error.value = "Real-time connection to the server failed. Reconnecting...";
+      // EventSource réessaie de se connecter automatiquement.
+      // On pourrait vouloir fermer après N tentatives.
+    };
   };
 
-  /**
-   * Arrête le polling.
-   */
-  const stopPolling = () => {
-    if (pollingInterval) {
-      console.log('Stopping notification polling.');
-      clearInterval(pollingInterval);
-      pollingInterval = null;
+  const disconnectFromSse = () => {
+    if (eventSource) {
+      console.log('Closing SSE connection.');
+      eventSource.close();
+      eventSource = null;
     }
   };
 
+
   // --- Hooks de cycle de vie ---
   onMounted(() => {
-    fetchNotifications(); // Premier fetch
-    startPolling();
+    fetchNotifications(); // Premier fetch pour l'historique
+    connectToSse();       // Connexion temps réel pour les nouvelles
   });
 
   onUnmounted(() => {
-    stopPolling(); // Nettoyage pour éviter les fuites de mémoire
+    disconnectFromSse(); // Nettoyage pour éviter les fuites de mémoire
   });
 
 
