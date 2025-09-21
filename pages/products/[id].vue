@@ -224,6 +224,8 @@
           
         </div>
 
+        
+
         <!--Add Details-->
         <div v-if="ref.activeColor || ref.activeSize" class="formRow">
           <Inputer style="max-width: 100px;" type="number" :placeHolder="t('id catalog image')" :img="icons[image]" :required="true" v-model="catalog_index" v-on="{ 'blur:modelValue': val => catalog_image = catalogImage[val].previewImage }"/>
@@ -233,9 +235,13 @@
           </label>
           <Selector v-if="ref.activeColor" :options="colors" color="var(--color-zioly2)" :placeHolder="t('color')" @update:modelValue="getColor" />
           <Selector v-if="ref.activeSize" :options="sizes" color="var(--color-zioly2)" :placeHolder="t('size')" @update:modelValue="getSize" />
+
           <Inputer v-if="!ref.infinit_stock" style="max-width: 100px;" type="number" :placeHolder="t('qty')" :img="labelSvg" :required="true" v-model="ref.quantity"/>
+          
           <Gbtn :text="t('add detail')" @click="addDetail(ref.quantity, index, catalog_index)" color="var(--color-zioly2)" :svg="icons['add']"/>
         </div>
+
+        <Inputer v-if="!ref.infinit_stock && !ref.activeSize && !ref.activeColor" style="max-width: 100px;" type="number" :placeHolder="t('qty')" :img="labelSvg" :required="true" v-model="ref.quantity"/>
 
         <div class="folder-tree">
           <div v-for="(ref2, indexD) in ref.details" :key="indexD" >
@@ -649,6 +655,7 @@ const activeSize = (index) => {
 }
 const activeStock = (index) => {
   modal.value[index].infinit_stock = !modal.value[index].infinit_stock
+
 }
 
 const addSize = (name) => {
@@ -1074,7 +1081,7 @@ async function uploadProductImage() {
           'ref': item.reference,
           'buy': parseFloat(item.buyPrice),
           'sell': parseFloat(item.sellPrice),
-          'qty': 1,
+          'qty': item.quantity,
           'activeColor': item.activeColor,
           'activeSize': item.activeSize,
           'sku': item.sku,

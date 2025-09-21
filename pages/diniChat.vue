@@ -89,7 +89,7 @@ const inputBox = ref(null);
 const chatMessagesContainer = ref(null);
 
 const API_URL = 'https://management.hoggari.com/backend/api.php';
-const STREAM_URL = '/backend/diniChat/chat_stream.php';
+
 
 // --- Lifecycle ---
 onMounted(() => {
@@ -216,67 +216,61 @@ async function renameConversation(id) {
 }
 
 async function sendMessage() {
-    if (!userInput.value.trim() || isReplying.value) return;
-    if (!activeConversationId.value) {
-        alert(t('please_select_or_create_a_conversation'));
-        return;
+  if (!userInput.value.trim() || isReplying.value) return
+  if (!activeConversationId.value) {
+    alert("Please select or create a conversation")
+    return
+  }
+
+  const messageContent = userInput.value
+  messages.value.push({ role: "user", content: messageContent })
+  userInput.value = ''
+  adjustTextareaHeight()
+  scrollToBottom()
+  isReplying.value = true
+
+  const assistantMessage = { role: 'assistant', content: '' }
+  messages.value.push(assistantMessage)
+
+  try {
+    const response = await fetch(
+      'https://management.hoggari.com/backend/api.php?action=chatStream',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: messageContent,
+          conversation_id: activeConversationId.value,
+          user_id: user.value.id,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
     }
 
-    const messageContent = userInput.value;
-    messages.value.push({ role: 'user', content: messageContent });
-    userInput.value = '';
-    adjustTextareaHeight();
-    scrollToBottom();
-
-    isReplying.value = true;
-    const assistantMessage = { role: 'assistant', content: '' };
-    messages.value.push(assistantMessage);
-
-    try {
-        const response = await fetch(STREAM_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: messageContent,
-                conversation_id: activeConversationId.value,
-                user_id: user.value.id
-            })
-        });
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            const eventLines = chunk.split('\n\n').filter(line => line.trim());
-
-            for (const line of eventLines) {
-                if (line.startsWith('event: message')) {
-                    const dataLine = line.substring(line.indexOf('data: ') + 6);
-                    const data = JSON.parse(dataLine);
-                    assistantMessage.content += data.text;
-                    scrollToBottom();
-                } else if (line.startsWith('event: end')) {
-                    isReplying.value = false;
-                    return;
-                } else if (line.startsWith('event: error')) {
-                    const dataLine = line.substring(line.indexOf('data: ') + 6);
-                    const data = JSON.parse(dataLine);
-                    assistantMessage.content = `**Error:** ${data.error}`;
-                    isReplying.value = false;
-                    return;
-                }
-            }
-        }
-    } catch (error) {
-        assistantMessage.content = `**Error:** ${error.message}`;
-    } finally {
-        isReplying.value = false;
+    const result = await response.json()
+    
+    if (result.reply) {
+      assistantMessage.content = result.reply
+      scrollToBottom()
+    } else if (result.error) {
+      assistantMessage.content = `**Error:** ${result.error}`
     }
+
+  } catch (err) {
+    console.error("Erreur fetch:", err)
+    assistantMessage.content = `**Error:** ${err.message}`
+  } finally {
+    isReplying.value = false
+  }
 }
+
+
+
+
+
 
 // --- UI & UX ---
 function formatMessage(content) {

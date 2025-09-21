@@ -70,75 +70,58 @@ const cleanHtml = computed(() => {
 const uploadAndConvert = async () => {
   if (!selectedFile.value) {
     error.value = 'Please select a file first.';
-    return;
+    return
   }
 
-  isLoading.value = true;
-  generatedHtml.value = '';
-  error.value = '';
-
-  const formData = new FormData();
-  formData.append('image', selectedFile.value);
+  isLoading.value = true
+  generatedHtml.value = ''
+  error.value = ''
 
   try {
-    // Step 1: Upload the file
-    const uploadResponse = await fetch('/backend/imageToHtml/upload.php', {
+    // --- Step 1: Upload the file ---
+    const formData = new FormData()
+    formData.append('image', selectedFile.value)
+
+    const uploadResponse = await fetch('https://management.hoggari.com/backend/api.php?action=uploadImage', {
       method: 'POST',
       body: formData,
-    });
+    })
 
     if (!uploadResponse.ok) {
-      const errorData = await uploadResponse.json();
-      throw new Error(errorData.error || 'File upload failed');
+      const errRes = await uploadResponse.json().catch(() => ({}))
+      throw new Error(errRes.error || 'File upload failed')
     }
 
-    const uploadResult = await uploadResponse.json();
+    const uploadResult = await uploadResponse.json()
     if (!uploadResult.success) {
-      throw new Error(uploadResult.error || 'File upload failed');
+      throw new Error(uploadResult.error)
     }
 
-    // Step 2: Start streaming with the file ID
-    const fileId = uploadResult.fileId;
-    const eventSource = new EventSource(`/backend/imageToHtml/convert.php?fileId=${encodeURIComponent(fileId)}`);
+    // --- Step 2: Call Gemini ---
+    const fileId = uploadResult.fileId
 
-    generatedHtml.value = ''; // Reset before streaming
+    // Exemple : envoie du message avec la référence de l’image
+    const message = `Convert this image to HTML: https://management.hoggari.com/uploads/brands/${fileId}`
 
-    eventSource.onmessage = (event) => {
-        try {
-            const data = JSON.parse(event.data);
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                generatedHtml.value += data.candidates[0].content.parts[0].text;
-            }
-        } catch (e) {
-            // This can happen if the stream sends incomplete JSON.
-            // For this use case, we can often ignore it and wait for the next message.
-            console.warn("Could not parse stream data:", event.data);
-        }
-    };
-
-    eventSource.addEventListener('error', (e) => {
-      // The 'error' event from EventSource is generic.
-      // We rely on our custom error event from the PHP script.
-      if (e.data) {
-          const data = JSON.parse(e.data);
-          error.value = data.error || 'An unknown streaming error occurred.';
-      } else {
-          error.value = 'A connection error occurred with the streaming service.';
+    const res = await $fetch('https://management.hoggari.com/backend/api.php?action=convertImageToHtml', {
+      method: 'POST',
+      body: {
+        fileId: fileId,
+        message: message
       }
-      isLoading.value = false;
-      eventSource.close();
     });
+    console.log('res: ', res)
+    if (!res.success) throw new Error(res.error)
 
-    eventSource.addEventListener('end', () => {
-      isLoading.value = false;
-      eventSource.close();
-    });
+    generatedHtml.value = res.reply
 
   } catch (err) {
-    error.value = err.message;
-    isLoading.value = false;
+    error.value = err.message
+  } finally {
+    isLoading.value = false
   }
-};
+}
+
 
 const copyToClipboard = () => {
   navigator.clipboard.writeText(cleanHtml.value).then(() => {

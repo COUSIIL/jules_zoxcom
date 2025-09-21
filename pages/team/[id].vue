@@ -71,6 +71,7 @@ onMounted(() => {
 const getUsers = async () => {
   const authentic = JSON.parse(localStorage.getItem('auth'))
   
+  
   const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUsers')
   if (!response.ok) {
     console.error(t('Error retrieving users'))
@@ -80,7 +81,8 @@ const getUsers = async () => {
   members.value = result.data
   auth.value = members.value.find(u => u.username === user.value) || null
 
-  if(auth.value['username'] === authentic['user']) {
+
+  if(auth.value['username'] === authentic['username']) {
     isEditable.value = true
   } else {
     isEditable.value = false

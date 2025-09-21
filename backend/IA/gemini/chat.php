@@ -1,21 +1,46 @@
 <?php
-// Clé API Gemini
-
-$apiKey = getenv("API_GEMINI"); 
-
-// URL Gemini avec la clé dans l'URL
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-$headers = [
-  "Content-Type: application/json",
-  "X-goog-api-key: $apiKey"
-];
 
 
-// Récupère le message depuis une requête POST JSON
+header("Content-Type: application/json");
+
+$autoload = __DIR__ . '/../../../vendor/autoload.php';
+
+if (!file_exists($autoload)) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "error" => "Autoload introuvable : $autoload"
+    ]);
+    exit;
+}
+
+require $autoload;
+
+
+// Charger les variables d'environnement (.env à la racine)
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
+$apiKey = $_ENV['API_GEMINI'] ?? '';
+
+if (empty($apiKey)) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "error" => "Clé API Gemini introuvable dans .env"
+    ]);
+    exit;
+}
+
+// URL Gemini
+$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+
+
+// Récupérer le message depuis POST JSON
 $value = json_decode(file_get_contents('php://input'), true);
 $message = $value['message'] ?? 'Bonjour.';
 
-// Structure des données selon la documentation Gemini
+// Structure de la requête
 $data = [
     "contents" => [
         [
@@ -26,21 +51,27 @@ $data = [
     ]
 ];
 
-// Headers pour l'API Gemini
+// Headers
 $headers = [
-    "Content-Type: application/json"
+    "Content-Type: application/json",
+    "x-goog-api-key: $apiKey"
 ];
 
-// Appel cURL
+
+
+// cURL
 $ch = curl_init($url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => json_encode($data),
+    CURLOPT_HTTPHEADER => $headers,
+    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_FOLLOWLOCATION => true
+]);
 
 $response = curl_exec($ch);
 
-// Gérer les erreurs cURL
 if (curl_errno($ch)) {
     echo json_encode([
         "success" => false,
@@ -52,15 +83,23 @@ if (curl_errno($ch)) {
 
 curl_close($ch);
 
-// Renvoie directement la réponse de Gemini
+// Extraire le texte généré
 $responseData = json_decode($response, true);
 
-// Extraire le texte généré
-$text = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? 'Réponse indisponible.';
 
-// Retourne uniquement le texte (ou structure personnalisée)
+$text = $responseData['candidates'][0]['content']['parts'][0]['text']
+    ?? null;
+
+if (!$text) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Réponse indisponible.',
+        'raw' => $responseData // debug optionnel
+    ]);
+    exit;
+}
+
 echo json_encode([
     'success' => true,
     'reply' => $text
 ]);
-?>

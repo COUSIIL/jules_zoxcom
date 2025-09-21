@@ -48,11 +48,14 @@
   --color-zioly4: #2D0460;
   --color-zioly420: #2D046040;
 
-  /* Ad-hoc colors from Tailwind */
   --color-blue-500: #3b82f6;
+  --color-blumy: #3b82f6;
   --color-blue-20: #3b82f640;
+  --color-bloy: #3b82f640;
   --color-green-500: #22c55e;
+  --color-greeny: #22c55e;
   --color-green-20: #22c55e40;
+  --color-greenoy: #22c55e40;
 
   /* --------------------
      Typography

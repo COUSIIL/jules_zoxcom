@@ -157,6 +157,7 @@ html.dark {
 
 .sidebar1__item {
   border-radius: 8px;
+  margin: 10px;
 }
 
 .sidebar1__link {
@@ -172,6 +173,7 @@ html.dark {
 
 .sidebar1__link.is-active {
   background-color: var(--color-whizy);
+  border-radius: 8px;
 }
 
 .dark .sidebar1__link {
@@ -179,7 +181,8 @@ html.dark {
 }
 
 .dark .sidebar1__link.is-active {
-  background-color: var(--color-darky);
+  background-color: var(--color-darkow);
+  border-radius: 8px;
 }
 
 .sidebar1__icon {

@@ -4,7 +4,7 @@
 
   <div class="loading" v-if="!isMounted">
 
-    <Loader :style="{width: '80px', height: '80px'}"/>
+    <LoaderBlack v-if="isSaving" width="80px"/>
 
   </div>
 
@@ -173,10 +173,11 @@
     </div>
     <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-if="isListed" v-for="(id, index) in orderID" :key="id">
       <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-if="isUpdating[index]">
-        <Loader :style="{width: '50px', height: '50px'}"/>
+
       </div>
       <div :style="{width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column'}" v-else>
         <div class="order" v-if="!droped[index]">
+          {{ orderStatut[index] }}
           <button :class="
           orderStatut[index] === 'waiting' ? 
             'numberBtn bg-rangy' : 
@@ -185,9 +186,9 @@
             orderStatut[index] === 'returned' ?
             'numberBtn bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'numberBtn bg-blue-500' :
+            'numberBtn bg-blumy' :
             orderStatut[index] === 'completed' ?
-            'numberBtn bg-green-500' :
+            'numberBtn bg-greeny' :
             orderStatut[index] === 'shipping' ?
             'numberBtn bg-yelly' :
             orderStatut[index] === 'canceled' ?
@@ -263,9 +264,9 @@
             orderStatut[index] === 'returned' ?
             'numberBtn bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'numberBtn bg-blue-500' :
+            'numberBtn bg-blumy' :
             orderStatut[index] === 'completed' ?
-            'numberBtn bg-green-500' :
+            'numberBtn bg-greeny' :
             orderStatut[index] === 'shipping' ?
             'numberBtn bg-yelly' :
             orderStatut[index] === 'canceled' ?
@@ -367,9 +368,9 @@
             orderStatut[index] === 'returned' ?
             'bg-ioly' :
             orderStatut[index] === 'confirmed' ?
-            'bg-blue-500' :
+            'bg-blumy' :
             orderStatut[index] === 'completed' ?
-            'bg-green-500' :
+            'bg-greeny' :
             orderStatut[index] === 'shipping' ?
             'bg-yelly' :
             orderStatut[index] === 'canceled' ?
@@ -714,9 +715,9 @@
                     </div>
                     
                   </div>
-                  <div class="boxItems">
-                    {{id.items[i].size}}
-                  </div>
+                    <div class="boxItems">
+                      {{id.items[i].size}}
+                    </div>
                   
                 </div>
                 
@@ -833,11 +834,12 @@ import Confirm from '../components/confirm.vue';
 import Deliver from '../components/deliver.vue';
 
 import Message from '../components/elements/bloc/message.vue';
+import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
 
 import icons from '~/public/icons.json'
 
 export default {
-  components: { Loader, Search, Confirm, Deliver, Message },
+  components: { Loader, Search, Confirm, Deliver, Message, LoaderBlack },
 data() {
 return {
   icons: [],
@@ -906,6 +908,7 @@ return {
   yalWork: false,
   gpxWork: false,
   beta: true,
+  isSaving: true,
   allStatus: [
     {name: 'All', value: 'all', 
     svg: ``},
@@ -1020,15 +1023,29 @@ levenshteinDistance(a, b) {
 
 
 async deliverOrder(index) {
+
   var data;
 
   var type;
-    if(this.orderType[index] == 'Stop Desk') {
-      type = true;
+  var product_name = '';
+
+  const items = this.orderProduct[index][0].items ?? [];
+
+  for (let pro of items) {
+
+    if (product_name === '') {
+      product_name = `${this.orderProduct[index][0].name}-${pro.color_name}-${pro.size}`;
     } else {
-      type = false;
+      product_name = `${product_name}, ${this.orderProduct[index][0].name}-${pro.color_name}-${pro.size}`;
     }
-    console.log('this.orderType : ', type );
+  }
+  
+
+  if(this.orderType[index] == 'Stop Desk') {
+    type = true;
+  } else {
+    type = false;
+  }
   if(this.orderMethod[index] === 'ups') {
     try {
       const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUpsWilaya', {
@@ -1038,7 +1055,10 @@ async deliverOrder(index) {
       data = await response.json();
     } catch (error) {
         console.log('responce: ', error);
+        return
     }
+
+    
 
     
 
@@ -1068,7 +1088,7 @@ async deliverOrder(index) {
           code_wilaya: wilayaId.toString(),  // ✅ Correction ici
           montant: this.total[index].toString(),  // ✅ Forcer string si nécessaire
           remarque: this.remarque[index],
-          produit: this.orderProduct[index][0].name,  // ✅ Correction ici
+          produit: product_name,  // ✅ Correction ici
           stock: '',
           quantite: '',
           produit_a_recupere: '',
@@ -1089,10 +1109,8 @@ async deliverOrder(index) {
         });
 
         const data2 = await response2.json();
-        if (data2.success) {
-            console.log('wilaya: ', data2);
-        } else {
-              console.error(`Error: ${data2.message}`);
+        if (!data2.success) {
+            console.error(`Error: ${data2.message}`);
         }
       } else {
         console.error('no wilaya found');
@@ -1144,7 +1162,7 @@ async deliverOrder(index) {
           code_wilaya: wilayaId.toString(),  // ✅ Correction ici
           montant: this.total[index].toString(),  // ✅ Forcer string si nécessaire
           remarque: this.remarque[index],
-          produit: this.orderProduct[index][0].name,  // ✅ Correction ici
+          produit: product_name,  // ✅ Correction ici
           stock: '',
           quantite: '',
           produit_a_recupere: '',
@@ -1165,10 +1183,8 @@ async deliverOrder(index) {
         });
 
         const data2 = await response2.json();
-        if (data2.success) {
-            console.log('wilaya: ', data2);
-        } else {
-              console.error(`Error: ${data2.message}`);
+        if (!data2.success) {
+            console.error(`Error: ${data2.message}`);
         }
       } else {
         console.error('no wilaya found');
@@ -1181,22 +1197,64 @@ async deliverOrder(index) {
     
     //const type = orderType.value === 0 ? "Livraison" : "Stop Desk";
   } else if (this.orderMethod[index] === 'yalidine') {
+    
     var center = 0;
     const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getYalidineCenter', {
       method: 'GET',
     });
-    console.log('response2: ', response2);
     const data2 = await response2.json();
+    const tolerance = 2;
+    
+    
     if (data2.success) {
       for (let i = 0; i < data2.data.data.length; i++) {
-          if (this.orderWilaya[index] == data2.data.data[i].wilaya_name) {
+          const distance = this.levenshteinDistance(data2.data.data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
+        
+          const distance2 = this.levenshteinDistance(data2.data.data[i].commune_name.toLowerCase(), this.orderSZone[index].toLowerCase());
+
+          if (distance <= tolerance && distance2 <= tolerance) {
               wilayaId = data2.data.data[i].wilaya_id;
               center = data2.data.data[i].center_id;
               break; 
           }
       }
 
-      if(center != 0) {
+      if(!wilayaId) {
+        const url = data2.data.links.next
+
+        while (!wilayaId) {
+
+          const bodyUrl = JSON.stringify({
+            url: url,
+          });
+          
+          const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=yalidineCenterNext', {
+            method: 'POST',
+            body: bodyUrl
+          });
+            const next = await response2.json();
+            for (let i = 0; i < next.data.data.length; i++) {
+              const distance = this.levenshteinDistance(next.data.data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
+        
+              const distance2 = this.levenshteinDistance(next.data.data[i].commune_name.toLowerCase(), this.orderSZone[index].toLowerCase());
+
+              if (distance <= tolerance && distance2 <= tolerance) {
+                  wilayaId = next.data.data[i].wilaya_id;
+                  center = next.data.data[i].center_id;
+                  break; 
+              }
+            }
+          }
+
+        
+      }
+      if(!center) {
+        center = null
+        console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
+      }
+
+
+      if(center != -1) {
         const { firstname, familyname } = this.splitName(this.orderName[index])
 
         const parcels = [{
@@ -1232,9 +1290,7 @@ async deliverOrder(index) {
           body: JSON.stringify({ parcels }), // ✅ ici on met le tableau dans un objet
         });
         const data2 = await response2.json();
-        if (data2.success) {
-          console.log('wilaya: ', data2);
-        } else {
+        if (!data2.success) {
           console.error(`Error: ${data2.message}`);
         }
       } else {
@@ -1247,34 +1303,73 @@ async deliverOrder(index) {
     }
 
 
-  } else if(this.orderMethod[index] === 'guepex') {
-    var center = 0;
-    const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=getGuepexCenter', {
-      method: 'GET',
-    });
+  } else if (this.orderMethod[index] === 'guepex') {
+    let center = null;
+    let wilayaId = null;
     const tolerance = 2;
-    const data1 = await response2.json();
-    if (data1.success) {
-      for (let i = 0; i < data1.data.data.length; i++) {
-        const distance = this.levenshteinDistance(data1.data.data[i].wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
-        
-        const distance2 = this.levenshteinDistance(data1.data.data[i].commune_name.toLowerCase(), this.orderSZone[index].toLowerCase());
+
+
+    try {
+      // Première requête
+      const response = await fetch('https://management.hoggari.com/backend/api.php?action=getGuepexCenter');
+      const data1 = await response.json();
+
+
+      if (!data1.success) {
+        console.error(`Error: ${data1.message}`);
+        return;
+      }
+
+      // Fonction utilitaire pour chercher dans une liste
+      const searchCenters = (list) => {
+        for (let item of list) {
+          const distance = this.levenshteinDistance(item.wilaya_name.toLowerCase(), this.orderWilaya[index].toLowerCase());
+          const distance2 = this.levenshteinDistance(item.commune_name.toLowerCase(), this.orderSZone[index].toLowerCase());
 
           if (distance <= tolerance && distance2 <= tolerance) {
-              wilayaId = data1.data.data[i].wilaya_id;
-              center = data1.data.data[i].center_id;
-              break; 
+            wilayaId = item.wilaya_id;
+            center = item.center_id;
+            return true;
           }
-        
-      }
-      if(center == 0) {
-        
-      } else {
-        center = null
-        console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
+        }
+        return false;
+      };
+
+      // 🔎 1. On cherche dans la première page
+      if (!searchCenters(data1.data.data)) {
+        let url = data1.data.links?.next || null;
+
+        let pageCount = 0;
+        const MAX_PAGES = 20;
+
+        while (url && !wilayaId && pageCount < MAX_PAGES) {
+          pageCount++;
+          const responseNext = await fetch(
+            'https://management.hoggari.com/backend/api.php?action=guepexCenterNext',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url })
+            }
+          );
+
+          const next = await responseNext.json();
+
+          if (!next?.data?.data) break;
+
+          // Chercher dans la page
+          if (searchCenters(next.data.data)) break;
+
+          // Vérifie s'il reste d'autres pages
+          if (next.data.has_more && next.data.links?.next) {
+            url = next.data.links.next;
+          } else {
+            // plus de pages disponibles
+            url = null;
+          }
+        }
       }
       const { firstname, familyname } = this.splitName(this.orderName[index])
-
         const parcels = [{
           order_id: `CofP-${this.orderID[index]}`,
           from_wilaya_name: "Tipaza",
@@ -1288,9 +1383,9 @@ async deliverOrder(index) {
           price: this.total[index],
           do_insurance: false,
           declared_value: this.total[index],
-          height: 10,
-          width: 10,
-          length: 10,
+          height: 5,
+          width: 5,
+          length: 5,
           weight: 1,
           freeshipping: false,
           is_stopdesk: type,
@@ -1307,15 +1402,13 @@ async deliverOrder(index) {
           body: JSON.stringify({ parcels }), // ✅ ici on met le tableau dans un objet
         });
         const data2 = await response2.json();
-        if (data2.success) {
-          console.log('wilaya: ', data2);
-        } else {
+        if (!data2.success) {
           console.error(`Error: ${data2.message}`);
         }
 
       
-    } else {
-      console.error(`Error: ${data2.message}`);
+    } catch (err) {
+      console.error("Request error:", err);
     }
 
 
@@ -1657,42 +1750,44 @@ clearDeliverOrder() {
 
 async updateOrderValue(id, status, value, index) {
 
-    this.isUpdating[index] = true;
+  this.isUpdating[index] = true;
   const updateOrder = JSON.stringify({
         id: id,
         status: status,
         value: value,
-        });
-        console.log('updateOrder: ', updateOrder);
-        const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=updateOrderValue', {
-        method: 'POST',
-        body: updateOrder,
-        });
-        if(!response2.ok){
-            this.orLog = "error in response";
-            this.isUpdating[index] = false;
-            return;
-        }
-        const textResponse = await response2.json();  // Récupérer la réponse en texte
-        if (textResponse.success) {
-            this.orLog = textResponse.data;
-            
-            
-            await this.getOrders();
-            this.resetOrders();
-            for (var i = 0; i < this.resulted.length; i++) {
-              this.setOrders(i);
-              
-            }
-            this.isUpdating[index] = false;
-        } else {
-            this.orLog = textResponse.message;
-            this.isUpdating[index] = false;
-        }
-        this.isUpdating[index] = false;
-        this.isOpen[index] = false;
-        this.isEdit[index] = false;
-        this.isOpen2 = false;
+  });
+
+  
+  const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=updateOrderValue', {
+  method: 'POST',
+  body: updateOrder,
+  });
+  if(!response2.ok){
+      this.orLog = "error in response";
+      this.isUpdating[index] = false;
+      return;
+  }
+  const textResponse = await response2.json();  // Récupérer la réponse en texte
+  console.log('textResponse: ', textResponse);
+  if (textResponse.success) {
+      this.orLog = textResponse.data;
+      
+      
+      await this.getOrders();
+      this.resetOrders();
+      for (var i = 0; i < this.resulted.length; i++) {
+        this.setOrders(i);
+        
+      }
+      this.isUpdating[index] = false;
+  } else {
+      this.orLog = textResponse.message;
+      this.isUpdating[index] = false;
+  }
+  this.isUpdating[index] = false;
+  this.isOpen[index] = false;
+  this.isEdit[index] = false;
+  this.isOpen2 = false;
   
 
 },
@@ -1716,7 +1811,7 @@ async deleteSelectedOrder() {
 },
 
 async updateSelectedOrder(status, value) {
-  console.log('test: ', value, ' ', status, ' ', this.nameDeliver[0]);
+
   if(value === "shipping" && this.nameDeliver[0]) {
     this.showDeliver = true;
     return;
@@ -2135,4 +2230,6 @@ try {
 }
 };
 </script>
+
+
 

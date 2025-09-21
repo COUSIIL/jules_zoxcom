@@ -292,16 +292,6 @@
     align-items: center;
 }
 
-.gBtn {
-  height: 32px;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  overflow: visible;
-  margin: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
 
 .gBtn p {
   height: 28px;
@@ -719,6 +709,7 @@
   background: rgb(47, 47, 47);
 }
 
+
 .childElement2 .edit-icon:hover {
   background: rgba(0, 0, 0, 0.4);
 }
@@ -933,6 +924,32 @@
   background-color: var(--color-darkly);
 }
 
+.bg-gorry {
+  background-color: var(--color-gorry);
+}
+.bg-rangy {
+  background-color: var(--color-rangy);
+}
+.bg-ioly {
+  background-color: var(--color-ioly);
+}
+.bg-yelly {
+  background-color: var(--color-yelly);
+}
+.bg-rady {
+  background-color: var(--color-rady);
+}
+
+.bg-whitly {
+  background-color: var(--color-whitly);
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.dark .bg-whitly {
+  background-color: var(--color-darkly);
+}
+
+
 /* ==========================================================================
    Number Button Modifiers (for Order Status)
    ========================================================================== */
@@ -969,29 +986,6 @@
 /* ==========================================================================
    Form Inputs
    ========================================================================== */
-
-.floating-input {
-  position: relative;
-  width: calc(100% - 10px);
-  margin-inline: 5px;
-  margin-block: 10px;
-}
-
-.floating-input input {
-  width: 100%;
-  padding: 12px 12px 8px;
-  font-size: 16px;
-  height: 40px;
-  border-radius: 8px;
-  outline: none;
-  background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
-  border: 2px solid var(--color-zioly2);
-  font-size: 14px;
-}
-
-.dark .floating-input input {
-  background: linear-gradient(to right, var(--color-darky), var(--color-darkiw));
-}
 
 .floating-input input.locked {
   background-color: #f3f3f3;
