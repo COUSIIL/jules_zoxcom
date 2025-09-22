@@ -44,7 +44,7 @@ export const useNotifications = () => {
 
   const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
 
-  let eventSource: EventSource | null = null;
+  let polling: any | null = null;
 
   // --- Actions ---
 
@@ -52,23 +52,34 @@ export const useNotifications = () => {
    * Récupère les notifications depuis l'API.
    * Cette fonction met à jour l'état local.
    */
-  const fetchNotifications = async () => {
-    if (isLoading.value) return;
+  let lastNotificationId: number | null = null;
+
+  const fetchNotifications = async (sinceId: number | null = null) => {
+    if (isLoading.value && !sinceId) return; // Allow polling requests to go through
     isLoading.value = true;
     error.value = null;
 
     try {
-      // Note: l'user_id est géré côté backend via la session ou le token JWT
-      const response = await $api<ApiResponse<ListNotificationsData>>(
-        `/backend/notificationApi.php?action=listNotifications&user_id=2`,
-        { method: 'GET' }
-      );
+      const url = sinceId
+        ? `/backend/notificationApi.php?action=listNotifications&user_id=2&since_id=${sinceId}`
+        : `/backend/notificationApi.php?action=listNotifications&user_id=2`;
 
-      console.log("API notifications response:", response);
-
+      const response = await $api<ApiResponse<ListNotificationsData>>(url, { method: 'GET' });
 
       if (response.success && response.data) {
-        notifications.value = response.data.notifications;
+        if (sinceId) {
+          // Polling request: prepend new notifications
+          if (response.data.notifications.length > 0) {
+            notifications.value = [...response.data.notifications, ...notifications.value];
+            lastNotificationId = response.data.notifications[response.data.notifications.length - 1].id;
+          }
+        } else {
+          // Initial load: replace notifications
+          notifications.value = response.data.notifications;
+          if (notifications.value.length > 0) {
+            lastNotificationId = notifications.value[0].id;
+          }
+        }
         unreadCount.value = response.data.unread_count;
       } else {
         throw new Error(response.error || 'Failed to fetch notifications.');
@@ -79,6 +90,10 @@ export const useNotifications = () => {
     } finally {
       isLoading.value = false;
     }
+  };
+
+  const fetchNewNotifications = () => {
+    fetchNotifications(lastNotificationId);
   };
 
   /**
@@ -142,67 +157,32 @@ export const useNotifications = () => {
   };
 
 
-  // --- Real-time (SSE) ---
+  // --- Real-time (Polling) ---
 
-  /*const connectToSse = () => {
-    console.log('linking');
-    if (eventSource) {
-      eventSource.close();
+  const startPolling = () => {
+    if (polling) {
+      clearInterval(polling);
     }
+    // Fetch new notifications every 5 seconds
+    polling = setInterval(fetchNewNotifications, 5000);
+  };
 
-    // Note: Le chemin est relatif à la racine du site.
-    // Assurez-vous que le serveur web sert bien ce fichier PHP.
-    eventSource = new EventSource('/backend/notificationApi.php?action=sse');
-
-    eventSource.onopen = () => {
-      console.log('SSE connection established.');
-      error.value = null;
-    };
-
-    console.log('eventSource: ', eventSource);
-
-    eventSource.addEventListener('notification', (event) => {
-      try {
-        const newNotification: Notification = JSON.parse(event.data);
-
-        // Ajoute la nouvelle notification en haut de la liste
-        notifications.value.unshift(newNotification);
-
-        // Incrémente le compteur de non-lus
-        if (!newNotification.is_read) {
-            unreadCount.value++;
-        }
-
-      } catch (e) {
-        console.error('Failed to parse SSE notification event:', e);
-      }
-    });
-
-    eventSource.onerror = (err) => {
-      console.error('SSE Error:', err);
-      error.value = "Real-time connection to the server failed. Reconnecting...";
-      // EventSource réessaie de se connecter automatiquement.
-      // On pourrait vouloir fermer après N tentatives.
-    };
-  };*/
-
-  /*const disconnectFromSse = () => {
-    if (eventSource) {
-      console.log('Closing SSE connection.');
-      eventSource.close();
-      eventSource = null;
+  const stopPolling = () => {
+    if (polling) {
+      clearInterval(polling);
+      polling = null;
     }
-  };*/
+  };
 
 
   // --- Hooks de cycle de vie ---
   onMounted(() => {
     fetchNotifications(); // Premier fetch pour l'historique
-    //connectToSse();       // Connexion temps réel pour les nouvelles
+    startPolling();       // Démarrer le polling pour les mises à jour
   });
 
   onUnmounted(() => {
-    //disconnectFromSse(); // Nettoyage pour éviter les fuites de mémoire
+    stopPolling(); // Nettoyage pour éviter les fuites de mémoire
   });
 
 

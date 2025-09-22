@@ -3,18 +3,7 @@
 // Ce fichier centralise toute la logique de l'API pour les notifications.
 
 // --- Headers & Initialisation ---
-// Pour les actions JSON
-if (!isset($_GET['action']) || $_GET['action'] !== 'sse') {
-    header("Content-Type: application/json; charset=UTF-8");
-}
-// Pour l'action SSE
-else {
-    header('Content-Type: text/event-stream');
-    header('Cache-Control: no-cache');
-    header('Connection: keep-alive');
-    header('X-Accel-Buffering: no');
-}
-
+header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *"); // ⚠️ restreindre en production
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -25,25 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// --- Configuration ---
-// Les chemins sont relatifs à ce fichier (backend/notificationApi.php)
-$configPath = __DIR__ . '/config/dbConfig.php';
-$notConfigPath = __DIR__ . '/../notification.config.php'; // Remonter d'un niveau
-
-// Inclure les configurations
-if (!file_exists($configPath)) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'dbConfig.php not found.']);
-    exit;
-}
-require_once $configPath;
-
-if (!file_exists($notConfigPath)) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'notification.config.php not found.']);
-    exit;
-}
-require_once $notConfigPath;
+// --- Configuration & Functions ---
+require_once __DIR__ . '/config/dbConfig.php';
+require_once __DIR__ . '/../notification.config.php';
+require_once __DIR__ . '/notificationFunction.php';
 
 // Vérifier que $mysqli existe et est bien une instance de mysqli
 if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
@@ -51,101 +25,6 @@ if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
     echo json_encode(['success' => false, 'error' => 'Database connection not initialized correctly.']);
     exit;
 }
-
-
-// --- Helpers ---
-function send_json_response($success, $data = null, $error = null, $http_code = 200) {
-    if (!headers_sent()) {
-        http_response_code($http_code);
-    }
-    echo json_encode(['success' => $success, 'data' => $data, 'message' => $error]);
-    exit;
-}
-
-function get_json_input() {
-    $raw = file_get_contents('php://input');
-    $input = json_decode($raw, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        send_json_response(false, null, 'Invalid JSON payload: ' . json_last_error_msg(), 400);
-    }
-    return $input;
-}
-
-function authenticate_request() {
-    // En production, implémenter une vraie logique de session/JWT
-    // Pour le développement, on simule un utilisateur authentifié.
-    if (defined('DEBUG_MODE') && DEBUG_MODE) {
-        return ['user_id' => 2, 'role' => 'admin'];
-    }
-    return ['user_id' => 1, 'role' => 'admin']; // ID utilisateur par défaut pour le dev
-}
-
-function create_and_enqueue_notification(mysqli $db, array $params) {
-    // Validation des paramètres de base
-    if (empty($params['title']) || empty($params['targets'])) {
-        return "Title and targets are required.";
-    }
-
-    $db->begin_transaction();
-    try {
-        // 1. Créer la notification principale (status 'draft')
-        $stmt = $db->prepare(
-            "INSERT INTO notifications (title, body, type, priority, channels, meta, status, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, 'draft', ?)"
-        );
-        if (!$stmt) throw new Exception('Prepare failed: ' . $db->error);
-
-        $title = $params['title'];
-        $body = $params['body'] ?? null;
-        $type = $params['type'] ?? 'info';
-        $priority = $params['priority'] ?? 2;
-        $channels = json_encode($params['channels'] ?? ['inapp']);
-        $meta = isset($params['meta']) ? json_encode($params['meta']) : null;
-        $created_by = 0; // 0 pour système
-
-        $stmt->bind_param('sssisss', $title, $body, $type, $priority, $channels, $meta, $created_by);
-        if (!$stmt->execute()) throw new Exception('Execute failed: ' . $stmt->error);
-
-        $notificationId = $db->insert_id;
-        $stmt->close();
-
-        // 2. Ajouter les cibles (targets)
-        $tstmt = $db->prepare("INSERT INTO notification_targets (notification_id, target_type, target_value) VALUES (?, ?, ?)");
-        if (!$tstmt) throw new Exception('Prepare target failed: ' . $db->error);
-        foreach ($params['targets'] as $target) {
-            $tstmt->bind_param('iss', $notificationId, $target['type'], $target['value']);
-            if (!$tstmt->execute()) throw new Exception('Insert target failed: ' . $tstmt->error);
-        }
-        $tstmt->close();
-
-        // 3. Mettre la notification en file d'attente (status 'queued')
-        $u = $db->prepare("UPDATE notifications SET status = 'queued' WHERE id = ?");
-        if (!$u) throw new Exception('Update status failed: ' . $db->error);
-        $u->bind_param('i', $notificationId);
-        if (!$u->execute()) throw new Exception('Execute update status failed: ' . $u->error);
-        $u->close();
-
-        // 4. Insérer dans user_notifications pour les cibles directes
-        foreach ($params['targets'] as $target) {
-            if ($target['type'] === 'user_id') {
-                $ins = $db->prepare("INSERT IGNORE INTO user_notifications (notification_id, user_id) VALUES (?, ?)");
-                if (!$ins) throw new Exception('Prepare user_notification failed: ' . $db->error);
-                $uid = intval($target['value']);
-                $ins->bind_param('ii', $notificationId, $uid);
-                if (!$ins->execute()) throw new Exception('Execute user_notification failed: ' . $ins->error);
-                $ins->close();
-            }
-        }
-
-        $db->commit();
-        return true;
-    } catch (Exception $e) {
-        $db->rollback();
-        error_log("Notification creation failed: " . $e->getMessage());
-        return $e->getMessage();
-    }
-}
-
 
 // --- Routage ---
 $action = $_GET['action'] ?? null;
@@ -155,7 +34,6 @@ if (!$auth && !in_array($action, ['setup', 'listTags'])) { // 'setup' et 'listTa
     // En mode non-authentifié, on bloque tout sauf les actions autorisées.
     // send_json_response(false, null, 'Authentication required.', 401);
 }
-
 
 switch ($action) {
 
@@ -178,72 +56,40 @@ switch ($action) {
         send_json_response(true, $results);
         break;
 
-    case 'sse':
-        $user_id = $auth['user_id'];
-        if (!$user_id) {
-            error_log("SSE Error: No user ID found.");
-            exit;
-        }
-
-        $last_event_id = 0;
-        $stmt_latest = $mysqli->prepare("SELECT MAX(un.id) as max_id FROM user_notifications un WHERE un.user_id = ?");
-        if ($stmt_latest) {
-            $stmt_latest->bind_param('i', $user_id);
-            $stmt_latest->execute();
-            $res = $stmt_latest->get_result();
-            if ($row = $res->fetch_assoc()) {
-                $last_event_id = (int)$row['max_id'];
-            }
-            $stmt_latest->close();
-        }
-
-        while (true) {
-            if (connection_aborted()) {
-                break;
-            }
-
-            $sql = "SELECT n.id, n.title, n.body, n.type, n.priority, n.channels, n.meta, n.created_at, un.id as user_notification_id, un.is_read, un.read_at FROM notifications AS n INNER JOIN user_notifications AS un ON n.id = un.notification_id WHERE un.user_id = ? AND un.id > ? AND (n.status = 'sent' OR n.status = 'queued') ORDER BY un.id ASC";
-            $stmt = $mysqli->prepare($sql);
-            if (!$stmt) {
-                error_log("SSE Prepare failed: " . $mysqli->error);
-                sleep(10);
-                continue;
-            }
-
-            $stmt->bind_param('ii', $user_id, $last_event_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $notifications = $result->fetch_all(MYSQLI_ASSOC);
-            $stmt->close();
-
-            foreach ($notifications as $notification) {
-                $last_event_id = $notification['user_notification_id'];
-                $notification['channels'] = json_decode($notification['channels'] ?? '[]', true);
-                $notification['meta'] = $notification['meta'] ? json_decode($notification['meta'], true) : null;
-
-                echo "id: " . $last_event_id . "\n";
-                echo "event: notification\n";
-                echo "data: " . json_encode($notification) . "\n\n";
-
-                ob_flush();
-                flush();
-            }
-
-            sleep(2);
-        }
-        break;
-
     case 'listNotifications':
         $user_id = filter_input(INPUT_GET, 'user_id', FILTER_VALIDATE_INT) ?: $auth['user_id'];
+        $since_id = filter_input(INPUT_GET, 'since_id', FILTER_VALIDATE_INT);
         $page = filter_input(INPUT_GET, 'page', FILTER_VALIDATE_INT) ?: 1;
         $per_page = filter_input(INPUT_GET, 'per_page', FILTER_VALIDATE_INT) ?: 20;
         $offset = ($page - 1) * $per_page;
 
-        $sql = "SELECT n.id, n.title, n.body, n.type, n.priority, n.channels, n.meta, n.created_at, un.is_read, un.read_at FROM notifications AS n INNER JOIN user_notifications AS un ON n.id = un.notification_id WHERE un.user_id = ? AND (n.status = 'sent' OR n.status = 'queued') AND (n.visible_from IS NULL OR n.visible_from <= NOW()) AND (n.expires_at IS NULL OR n.expires_at > NOW()) ORDER BY n.priority DESC, n.created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT n.id, n.title, n.body, n.type, n.priority, n.channels, n.meta, n.created_at, un.is_read, un.read_at
+                FROM notifications AS n
+                INNER JOIN user_notifications AS un ON n.id = un.notification_id
+                WHERE un.user_id = ?
+                AND (n.status = 'sent' OR n.status = 'queued')
+                AND (n.visible_from IS NULL OR n.visible_from <= NOW())
+                AND (n.expires_at IS NULL OR n.expires_at > NOW())";
+
+        $params = [$user_id];
+        $types = "i";
+
+        if ($since_id) {
+            $sql .= " AND un.id > ?";
+            $params[] = $since_id;
+            $types .= "i";
+            $sql .= " ORDER BY un.id ASC";
+        } else {
+            $sql .= " ORDER BY n.priority DESC, n.created_at DESC LIMIT ? OFFSET ?";
+            $params[] = $per_page;
+            $params[] = $offset;
+            $types .= "ii";
+        }
+
         $stmt = $mysqli->prepare($sql);
         if (!$stmt) send_json_response(false, null, 'Prepare failed: ' . $mysqli->error, 500);
 
-        $stmt->bind_param('iii', $user_id, $per_page, $offset);
+        $stmt->bind_param($types, ...$params);
         if (!$stmt->execute()) send_json_response(false, null, 'Execute failed: ' . $stmt->error, 500);
 
         $res = $stmt->get_result();
@@ -369,6 +215,4 @@ switch ($action) {
         break;
 
 }
-
-
 ?>
