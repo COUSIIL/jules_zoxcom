@@ -71,7 +71,7 @@ export const useNotifications = () => {
           // Polling request: prepend new notifications
           if (response.data.notifications.length > 0) {
             notifications.value = [...response.data.notifications, ...notifications.value];
-            lastNotificationId = response.data.notifications[response.data.notifications.length - 1].id;
+            lastNotificationId = response.data.notifications[0].id;
           }
         } else {
           // Initial load: replace notifications

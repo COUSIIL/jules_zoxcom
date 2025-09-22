@@ -25,11 +25,16 @@ const notificationBar = ref(null);
 const { notifications } = useNotifications();
 
 watch(notifications, (newNotifications, oldNotifications) => {
-  if (newNotifications.length > 0 && newNotifications.length > oldNotifications.length) {
-    const latestNotification = newNotifications[0];
-    if (notificationBar.value) {
-      notificationBar.value.show(latestNotification.title, latestNotification.type);
-    }
+  const newCount = newNotifications.length - oldNotifications.length;
+  if (newCount > 0) {
+    const addedNotifications = newNotifications.slice(0, newCount).reverse();
+    addedNotifications.forEach((notification, index) => {
+      setTimeout(() => {
+        if (notificationBar.value) {
+          notificationBar.value.show(notification.title, notification.type);
+        }
+      }, index * 6000); // Stagger notifications to appear one after another
+    });
   }
 }, { deep: true });
 
