@@ -64,8 +64,8 @@ watch(() => props.message, (newMessage) => {
 
 <style scoped>
 .notification-bar {
-  position: fixed;
-  top: 0;
+  position: relative;
+  top: 200px;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;

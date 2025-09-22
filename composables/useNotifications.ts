@@ -144,7 +144,8 @@ export const useNotifications = () => {
 
   // --- Real-time (SSE) ---
 
-  const connectToSse = () => {
+  /*const connectToSse = () => {
+    console.log('linking');
     if (eventSource) {
       eventSource.close();
     }
@@ -157,6 +158,8 @@ export const useNotifications = () => {
       console.log('SSE connection established.');
       error.value = null;
     };
+
+    console.log('eventSource: ', eventSource);
 
     eventSource.addEventListener('notification', (event) => {
       try {
@@ -181,25 +184,25 @@ export const useNotifications = () => {
       // EventSource réessaie de se connecter automatiquement.
       // On pourrait vouloir fermer après N tentatives.
     };
-  };
+  };*/
 
-  const disconnectFromSse = () => {
+  /*const disconnectFromSse = () => {
     if (eventSource) {
       console.log('Closing SSE connection.');
       eventSource.close();
       eventSource = null;
     }
-  };
+  };*/
 
 
   // --- Hooks de cycle de vie ---
   onMounted(() => {
     fetchNotifications(); // Premier fetch pour l'historique
-    connectToSse();       // Connexion temps réel pour les nouvelles
+    //connectToSse();       // Connexion temps réel pour les nouvelles
   });
 
   onUnmounted(() => {
-    disconnectFromSse(); // Nettoyage pour éviter les fuites de mémoire
+    //disconnectFromSse(); // Nettoyage pour éviter les fuites de mémoire
   });
 
 

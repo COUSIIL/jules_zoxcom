@@ -148,13 +148,14 @@ function create_and_enqueue_notification(mysqli $db, array $params) {
 
 
 // --- Routage ---
-$action = $_GET['action'] ?? '';
+$action = $_GET['action'] ?? null;
 $auth = authenticate_request();
 
 if (!$auth && !in_array($action, ['setup', 'listTags'])) { // 'setup' et 'listTags' pourraient être publics
     // En mode non-authentifié, on bloque tout sauf les actions autorisées.
     // send_json_response(false, null, 'Authentication required.', 401);
 }
+
 
 switch ($action) {
 
@@ -367,13 +368,7 @@ switch ($action) {
         send_json_response(true, ['status' => 'Notification enqueued for sending.']);
         break;
 
-    default:
-        send_json_response(false, null, 'Invalid action specified for notification API.', 404);
-        break;
 }
 
-// La connexion est fermée implicitement à la fin du script, mais c'est une bonne pratique.
-if ($mysqli) {
-    $mysqli->close();
-}
+
 ?>

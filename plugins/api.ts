@@ -1,3 +1,5 @@
+
+
 export default defineNuxtPlugin(() => {
   const $api = $fetch.create({
     // Adaptez l'URL de base à l'emplacement de votre api.php

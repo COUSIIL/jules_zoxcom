@@ -13,6 +13,13 @@ function getUserIp(): string {
 }
 $ip = getUserIp();
 
+// Inclure le fichier api.php pour accéder à la fonction helper de notification
+$apiPath = __DIR__ . '/../../../backend/notificationApi.php';
+if (file_exists($apiPath)) {
+    require_once $apiPath;
+}
+
+
 // Inclure le fichier de configuration de la base de données
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
 
@@ -26,11 +33,6 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
-// Inclure le fichier api.php pour accéder à la fonction helper de notification
-$apiPath = __DIR__ . '/../../../public/api.php';
-if (file_exists($apiPath)) {
-    require_once $apiPath;
-}
 
 
 $createTables = [
@@ -159,7 +161,7 @@ if ($mysqli->query($tableSQL) === false) {
  * IMPORTANT :
  * - L'API createNotification doit autoriser l'appel (auth / DEBUG_MODE).
  * - Ne pas créer la notif déjà en 'queued' si tu veux utiliser enqueueSend.
- */
+ 
 function create_and_enqueue_notification($mysqli, array $data) {
     // Force un status "draft" si l'appelant a mis "queued" — enqueueSend attend draft|failed.
     if (empty($data['status'])) {
@@ -248,7 +250,7 @@ function create_and_enqueue_notification($mysqli, array $data) {
     return $notificationId;
 }
 
-
+*/
 
 $data = json_decode(file_get_contents("php://input"), true);
 
