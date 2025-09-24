@@ -40,6 +40,7 @@ const show = (newMessage: string, newType: Props['type'] = 'info') => {
 
 const hide = () => {
   visible.value = false;
+
   if (timeoutId) {
     clearTimeout(timeoutId);
     timeoutId = null;
@@ -64,24 +65,27 @@ watch(() => props.message, (newMessage) => {
 
 <style scoped>
 .notification-bar {
-  position: relative;
-  top: 200px;
+  position: fixed;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
+  width: 90%;
   max-width: 600px;
   padding: 1rem 1.5rem;
-  margin: 1rem;
+  margin-top: 1rem;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  color: #fff;
   font-family: sans-serif;
   animation: slide-down 0.5s ease-out forwards;
   opacity: 0;
+  background-color: var(--color-whitly);
+}
+.dark .notification-bar {
+  background-color: var(--color-darkow);
 }
 
 @keyframes slide-down {
@@ -90,7 +94,7 @@ watch(() => props.message, (newMessage) => {
     opacity: 0;
   }
   to {
-    top: 0;
+    top: 50px;
     opacity: 1;
   }
 }

@@ -7,17 +7,17 @@
       </button>
     </header>
 
-    <div v-if="isLoading" class="loading-state">
+    <div v-if="!fixedNotifications" class="loading-state">
       Chargement...
     </div>
 
-    <div v-else-if="notifications.length === 0" class="empty-state">
+    <div v-else-if="fixedNotifications.length === 0" class="empty-state">
       <p>Vous n'avez aucune notification.</p>
     </div>
 
     <ul v-else class="notification-list">
       <li
-        v-for="notification in notifications"
+        v-for="notification in fixedNotifications"
         :key="notification.id"
         :class="{ 'is-unread': !notification.is_read }"
         @click="handleNotificationClick(notification)"
@@ -42,11 +42,13 @@
 
 <script setup lang="ts">
 import { useNotifications, type Notification } from '~/composables/useNotifications.ts';
+import { useRouter } from 'vue-router';
+import { watch, ref } from 'vue';
 
 const emit = defineEmits(['close']);
 
 const {
-  notifications,
+  notifications, // <- ça bouge tout le temps (reactif)
   unreadCount,
   isLoading,
   markAsRead,
@@ -55,24 +57,35 @@ const {
 
 const router = useRouter();
 
+// On stocke une copie fixe au montage
+
+
+
+const fixedNotifications = ref<Notification[]>([]);
+
+const stop = watch(notifications, (newVal) => {
+  if (newVal.length > 0) {
+    fixedNotifications.value = [...newVal];
+    stop(); // stoppe l'écoute -> reste figé
+  }
+});
+
 const handleNotificationClick = async (notification: Notification) => {
   if (!notification.is_read) {
     await markAsRead(notification.id);
   }
 
-  // Si la notification a une route associée, on navigue
   if (notification.meta?.route) {
     router.push(notification.meta.route);
   }
 
-  emit('close'); // Ferme le dropdown après un clic
+  emit('close');
 };
 
 const handleMarkAllRead = async () => {
   await markAllAsRead();
 };
 
-// Fonction utilitaire pour le temps (peut être externalisée)
 const formatTimeAgo = (dateString: string) => {
   const date = new Date(dateString);
   const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
@@ -90,25 +103,37 @@ const formatTimeAgo = (dateString: string) => {
 };
 </script>
 
+
 <style scoped>
 .dropdown-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 380px;
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
   max-height: 450px;
-  background-color: white;
-  border: 1px solid #e2e8f0;
+  margin-top: 1rem;
+  background-color: var(--color-whitly);
+  border: 1px solid var(--color-whity);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 900;
+}
+
+.dark .dropdown-panel {
+  background-color: var(--color-darkow);
+  border: 1px solid var(--color-darkly);
 }
 
 .dropdown-header, .dropdown-footer {
   padding: 12px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-whiby);
+}
+.dark .dropdown-header, .dropdown-footer {
+  border-bottom: 1px solid var(--color-darkiw);
 }
 
 .dropdown-header {
@@ -125,7 +150,7 @@ const formatTimeAgo = (dateString: string) => {
 .mark-all-read-btn {
   background: none;
   border: none;
-  color: #3b82f6; /* Bleu */
+  color: var(--color-blumy);
   font-size: 12px;
   cursor: pointer;
 }
@@ -153,7 +178,10 @@ const formatTimeAgo = (dateString: string) => {
 
 .notification-item.is-unread {
   font-weight: bold;
-  background-color: #eff6ff;
+  background-color: var(--color-whiby);
+}
+.dark .notification-item.is-unread {
+  background-color: var(--color-darkiw);
 }
 
 .notification-content {

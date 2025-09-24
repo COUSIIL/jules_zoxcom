@@ -445,24 +445,31 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $mysqli->commit();
 
         // --- Créer une notification pour la nouvelle commande ---
-        $params = [
-        "title" => "Nouvelle commande reçue",
-        "body" => "Une nouvelle commande a été passée (#$orderId).",
-        "tag_id" => 1,
-        "type" => "system",
-        "priority" => 3,
-        "channels" => ["inapp", "push"],
-        "status" => "queued",
-        "meta" => [
-            "route" => "/orders/$orderId",
-            "icon" => "/icons/order.png"
-        ],
-        "targets" => [
-            ["type" => "user_id", "value" => "2"] // admin par ex.
-        ]
-        ];
+        // Récupérer tous les utilisateurs
+        $result = $mysqli->query("SELECT id FROM users");
+        $users = $result->fetch_all(MYSQLI_ASSOC);
 
-        create_and_enqueue_notification($mysqli, $params);
+        foreach ($users as $user) {
+            $params = [
+                "title" => "Nouvelle commande reçue",
+                "body" => "Une nouvelle commande a été passée (#$orderId).",
+                "tag_id" => 1,
+                "type" => "system",
+                "priority" => 3,
+                "channels" => ["inapp", "push"],
+                "status" => "queued",
+                "meta" => [
+                    "route" => "/orders/$orderId",
+                    "icon" => "/icons/order.png"
+                ],
+                "targets" => [
+                    ["type" => "user_id", "value" => $user['id']]
+                ]
+            ];
+
+            create_and_enqueue_notification($mysqli, $params);
+        }
+
 
         // --- Fin de la création de notification ---
 

@@ -41,6 +41,8 @@ export const useNotifications = () => {
   const unreadCount = ref<number>(0);
   const isLoading = ref<boolean>(false);
   const error = ref<string | null>(null);
+  const userId = ref<number>(1);
+  var authData = ref<any>();
 
   const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
 
@@ -61,8 +63,8 @@ export const useNotifications = () => {
 
     try {
       const url = sinceId
-        ? `/backend/notificationApi.php?action=listNotifications&user_id=2&since_id=${sinceId}`
-        : `/backend/notificationApi.php?action=listNotifications&user_id=2`;
+        ? `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
+        : `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`;
 
       const response = await $api<ApiResponse<ListNotificationsData>>(url, { method: 'GET' });
 
@@ -177,8 +179,17 @@ export const useNotifications = () => {
 
   // --- Hooks de cycle de vie ---
   onMounted(() => {
-    fetchNotifications(); // Premier fetch pour l'historique
-    startPolling();       // Démarrer le polling pour les mises à jour
+    if(localStorage.getItem('auth')) {
+      authData.value = localStorage.getItem('auth');
+      if(authData.value) {
+        userId.value = JSON.parse(authData.value).id
+        fetchNotifications(); // Premier fetch pour l'historique
+        startPolling();       // Démarrer le polling pour les mises à jour
+      }
+      
+      
+    }
+
   });
 
   onUnmounted(() => {

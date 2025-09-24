@@ -13,7 +13,6 @@ import Header from '~/plugin/webNavBar.vue';
 import NotificationBar from '~/components/NotificationBar.vue';
 import { useNotifications } from '~/composables/useNotifications';
 
-// Global shared state
 const isLargeScreen = useState('isLargeScreen', () => false);
 const isAuth = useState('isAuth', () => false);
 const loading = ref(true);
@@ -24,30 +23,35 @@ const notificationBar = ref(null);
 // Notifications
 const { notifications } = useNotifications();
 
-watch(notifications, (newNotifications, oldNotifications) => {
-  const newCount = newNotifications.length - oldNotifications.length;
-  if (newCount > 0) {
-    const addedNotifications = newNotifications.slice(0, newCount).reverse();
-    addedNotifications.forEach((notification, index) => {
+// 👉 On garde le dernier ID affiché
+let lastShownId = 0;
+
+watch(notifications, (newNotifications) => {
+  if (newNotifications.length === 0) return;
+
+  // On récupère toutes les notifs avec un id > lastShownId
+  const newOnes = newNotifications.filter(n => n.id > lastShownId);
+
+  if (newOnes.length > 0) {
+    // Mise à jour du dernier id affiché (le plus grand)
+    lastShownId = Math.max(...newOnes.map(n => n.id));
+
+    // Les afficher une par une avec un décalage
+    newOnes.reverse().forEach((notif, index) => {
       setTimeout(() => {
-        if (notificationBar.value) {
-          notificationBar.value.show(notification.title, notification.type);
-        }
-      }, index * 6000); // Stagger notifications to appear one after another
+        notificationBar.value?.show(notif.title, notif.type);
+      }, index * 6000); // délai entre chaque notif
     });
   }
 }, { deep: true });
 
-
 function checkScreenSize() {
-  // window is only available on the client
   if (process.client) {
     isLargeScreen.value = window.matchMedia('(min-width: 1024px)').matches;
   }
 }
 
 onMounted(() => {
-  // This code runs only on the client, so window and localStorage are available
   try {
     const auth = JSON.parse(localStorage.getItem('auth'));
     if (auth) {
