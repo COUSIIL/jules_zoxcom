@@ -1,16 +1,10 @@
-// utils/push-register.ts
-
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string | null;
-}
+// utils/push-register.js
 
 /**
  * Convertit une chaîne VAPID public key (base64) en un Uint8Array.
  * Nécessaire pour la souscription push.
  */
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
     .replace(/-/g, '+')
@@ -37,7 +31,7 @@ export async function registerForPushNotifications() {
   }
 
   // Utiliser `useRuntimeConfig` pour accéder aux variables d'environnement côté client.
-  // La clé VAPID publique doit être exposée dans `nuxt.config.ts`.
+  // La clé VAPID publique doit être exposée dans `nuxt.config.js`.
   const runtimeConfig = useRuntimeConfig();
   const vapidPublicKey = runtimeConfig.public.vapidPublicKey;
 
@@ -75,7 +69,7 @@ export async function registerForPushNotifications() {
 
     // 4. Envoyer l'abonnement au serveur backend
     const { $api } = useNuxtApp();
-    const response = await $api<ApiResponse<any>>('/api.php?action=subscribePush', {
+    const response = await $api('/api.php?action=subscribePush', {
       method: 'POST',
       body: {
         subscription: subscription.toJSON(),
@@ -92,6 +86,6 @@ export async function registerForPushNotifications() {
 
   } catch (error) {
     console.error('Failed to register for push notifications:', error);
-    alert(`Une erreur est survenue lors de l'abonnement aux notifications : ${error}`);
+    alert(`Une erreur est survenue lors de l'abonnement aux notifications : ${error.message}`);
   }
 }

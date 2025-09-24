@@ -1,52 +1,19 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
-// --- Interfaces TypeScript pour la robustesse du code ---
-
-export interface NotificationMeta {
-  route?: string; // ex: '/orders/123'
-  resourceId?: number | string;
-  [key: string]: any;
-}
-
-export interface Notification {
-  id: number;
-  title: string;
-  body: string;
-  tag_id: number | null;
-  type: 'info' | 'success' | 'warning' | 'error' | 'promo' | 'system';
-  priority: number;
-  channels: string[];
-  meta: NotificationMeta | null;
-  created_at: string;
-  is_read: 0 | 1;
-  read_at: string | null;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  error?: string | null;
-}
-
-interface ListNotificationsData {
-    notifications: Notification[];
-    unread_count: number;
-}
-
 // --- Le Composable ---
 
 export const useNotifications = () => {
   // --- État (State) ---
-  const notifications = ref<Notification[]>([]);
-  const unreadCount = ref<number>(0);
-  const isLoading = ref<boolean>(false);
-  const error = ref<string | null>(null);
-  const userId = ref<number>(1);
-  var authData = ref<any>();
+  const notifications = ref([]);
+  const unreadCount = ref(0);
+  const isLoading = ref(false);
+  const error = ref(null);
+  const userId = ref(1);
+  var authData = ref();
 
   const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
 
-  let polling: any | null = null;
+  let polling = null;
 
   // --- Actions ---
 
@@ -54,9 +21,9 @@ export const useNotifications = () => {
    * Récupère les notifications depuis l'API.
    * Cette fonction met à jour l'état local.
    */
-  let lastNotificationId: number | null = null;
+  let lastNotificationId = null;
 
-  const fetchNotifications = async (sinceId: number | null = null) => {
+  const fetchNotifications = async (sinceId = null) => {
     if (isLoading.value && !sinceId) return; // Allow polling requests to go through
     isLoading.value = true;
     error.value = null;
@@ -66,7 +33,7 @@ export const useNotifications = () => {
         ? `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
         : `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`;
 
-      const response = await $api<ApiResponse<ListNotificationsData>>(url, { method: 'GET' });
+      const response = await $api(url, { method: 'GET' });
 
       if (response.success && response.data) {
         if (sinceId) {
@@ -86,7 +53,7 @@ export const useNotifications = () => {
       } else {
         throw new Error(response.error || 'Failed to fetch notifications.');
       }
-    } catch (e: any) {
+    } catch (e) {
       error.value = e.message;
       console.error("Error fetching notifications:", e);
     } finally {
@@ -102,7 +69,7 @@ export const useNotifications = () => {
    * Marque une notification comme lue (avec mise à jour optimiste).
    * @param notificationId - L'ID de la notification à marquer comme lue.
    */
-  const markAsRead = async (notificationId: number) => {
+  const markAsRead = async (notificationId) => {
     const notification = notifications.value.find(n => n.id === notificationId);
     if (!notification || notification.is_read) return;
 
@@ -112,7 +79,7 @@ export const useNotifications = () => {
     unreadCount.value = Math.max(0, unreadCount.value - 1);
 
     try {
-      const response = await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markRead', {
+      const response = await $api('/backend/notificationApi.php?action=markRead', {
         method: 'POST',
         body: { notification_id: notificationId },
       });
@@ -123,7 +90,7 @@ export const useNotifications = () => {
         unreadCount.value++;
         throw new Error(response.error || 'Failed to mark notification as read.');
       }
-    } catch (e: any) {
+    } catch (e) {
       error.value = e.message;
       console.error(e);
     }
@@ -141,7 +108,7 @@ export const useNotifications = () => {
     unreadCount.value = 0;
 
     try {
-      const response = await $api<ApiResponse<any>>('/backend/notificationApi.php?action=markAllRead', {
+      const response = await $api('/backend/notificationApi.php?action=markAllRead', {
         method: 'POST',
         // Le user_id est géré par le backend
       });
@@ -152,7 +119,7 @@ export const useNotifications = () => {
         unreadCount.value = originalUnreadCount;
         throw new Error(response.error || 'Failed to mark all as read.');
       }
-    } catch (e: any) {
+    } catch (e) {
       error.value = e.message;
       console.error(e);
     }

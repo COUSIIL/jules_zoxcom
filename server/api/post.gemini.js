@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
     return { success: true, reply: text }
 
-  } catch (err: any) {
+  } catch (err) {
     return { success: false, error: err.message }
   }
 })
