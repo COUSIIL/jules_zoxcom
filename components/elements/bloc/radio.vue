@@ -22,10 +22,10 @@
     display: flex; /* Ajout pour centrer correctement */
     align-items: center; /* Centrage vertical */
     justify-content: center; /* Centrage horizontal */
-    min-width: 14px;
-    max-width: 14px;
-    height: 14px;
-    margin: 10px;
+    min-width: 12px;
+    max-width: 12px;
+    height: 12px;
+    margin: 12px;
     cursor: pointer;
     border: 2px solid var(--color-darkly); /* Correction de la propriété border */
     border-radius: 50%; /* Correction pour un cercle parfait */
@@ -41,7 +41,7 @@
     min-width: 12px;
     max-width: 12px;
     height: 12px;
-    margin: 11px;
+    margin: 12px;
     cursor: pointer;
     background-color: var(--color-greny);
     border-radius: 50%; /* Correction pour un cercle parfait */

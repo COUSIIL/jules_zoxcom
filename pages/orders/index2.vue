@@ -828,13 +828,13 @@
 
 <script>
 
-import Loader from '../components/loader.vue';
-import Search from '../components/search.vue';
-import Confirm from '../components/confirm.vue';
-import Deliver from '../components/deliver.vue';
+import Loader from '../../components/loader.vue';
+import Search from '../../components/search.vue';
+import Confirm from '../../components/confirm.vue';
+import Deliver from '../../components/deliver.vue';
 
-import Message from '../components/elements/bloc/message.vue';
-import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
+import Message from '../../components/elements/bloc/message.vue';
+import LoaderBlack from '../../components/elements/animations/loaderBlack.vue';
 
 import icons from '~/public/icons.json'
 
@@ -1768,7 +1768,6 @@ async updateOrderValue(id, status, value, index) {
       return;
   }
   const textResponse = await response2.json();  // Récupérer la réponse en texte
-  console.log('textResponse: ', textResponse);
   if (textResponse.success) {
       this.orLog = textResponse.data;
       

@@ -183,16 +183,15 @@
   const getBanks = async () => {
     try {
         isSaving.value = true
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=getBanks', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        const res = await fetch('https://management.hoggari.com/backend/finance.php?action=listbanks', {
+          method: 'GET',
         })
 
         const data = await res.json()
         if (data.success) {
           banks.value = data.data
           
-          option.value = data.data.map(bank => ({
+          option.value = data.data.banks.map(bank => ({
               value: bank.id,
               label: bank.name,
               img: ''

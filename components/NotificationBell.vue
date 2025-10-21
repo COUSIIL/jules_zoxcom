@@ -19,15 +19,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { useNotifications } from '~/composables/useNotifications.ts';
+import { useNotifications } from '~/composables/useNotifications';
 import NotificationDropdown from './NotificationDropdown.vue';
 import icons from '~/public/icons.json'
 
 const resizeSvg = (svg: '', width: 24, height: 24) => {
-    return svg
-      .replace(/width="[^"]+"/, `width="${width}"`)
-      .replace(/height="[^"]+"/, `height="${height}"`)
-  }
+  return svg
+    .replace(/width="[^"]+"/, `width="${width}"`)
+    .replace(/height="[^"]+"/, `height="${height}"`)
+}
 
 const { unreadCount } = useNotifications();
 

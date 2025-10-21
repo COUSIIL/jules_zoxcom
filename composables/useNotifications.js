@@ -23,6 +23,14 @@ export const useNotifications = () => {
    */
   let lastNotificationId = null;
 
+  const requestPermission = async () => {
+    if ("Notification" in navigator) {
+      if (Notification.permission === "default") {
+        await Notification.requestPermission();
+      }
+    }
+  };
+
   const fetchNotifications = async (sinceId = null) => {
     if (isLoading.value && !sinceId) return; // Allow polling requests to go through
     isLoading.value = true;
@@ -36,19 +44,23 @@ export const useNotifications = () => {
       const response = await $api(url, { method: 'GET' });
 
       if (response.success && response.data) {
+        // On ne garde que les notifications non lues
+        const unreadNotifications = response.data.notifications.filter(n => n.is_read === 0);
+
         if (sinceId) {
           // Polling request: prepend new notifications
-          if (response.data.notifications.length > 0) {
-            notifications.value = [...response.data.notifications, ...notifications.value];
-            lastNotificationId = response.data.notifications[0].id;
+          if (unreadNotifications.length > 0) {
+            notifications.value = [...unreadNotifications, ...notifications.value];
+            lastNotificationId = unreadNotifications[0].id;
           }
         } else {
           // Initial load: replace notifications
-          notifications.value = response.data.notifications;
+          notifications.value = unreadNotifications;
           if (notifications.value.length > 0) {
             lastNotificationId = notifications.value[0].id;
           }
         }
+
         unreadCount.value = response.data.unread_count;
       } else {
         throw new Error(response.error || 'Failed to fetch notifications.');
@@ -79,10 +91,11 @@ export const useNotifications = () => {
     unreadCount.value = Math.max(0, unreadCount.value - 1);
 
     try {
-      const response = await $api('/backend/notificationApi.php?action=markRead', {
-        method: 'POST',
-        body: { notification_id: notificationId },
+      const response = await $api(`/backend/notificationApi.php?action=markRead&notification_id=${notificationId}&user_id=${userId.value}`, {
+        method: 'GET',
       });
+
+      console.log('res: ', response);
 
       if (!response.success) {
         // Annuler la mise à jour si l'API échoue
@@ -108,8 +121,8 @@ export const useNotifications = () => {
     unreadCount.value = 0;
 
     try {
-      const response = await $api('/backend/notificationApi.php?action=markAllRead', {
-        method: 'POST',
+      const response = await $api(`/backend/notificationApi.php?action=markAllRead&user_id=${userId.value}`, {
+        method: 'GET',
         // Le user_id est géré par le backend
       });
 
@@ -119,6 +132,7 @@ export const useNotifications = () => {
         unreadCount.value = originalUnreadCount;
         throw new Error(response.error || 'Failed to mark all as read.');
       }
+
     } catch (e) {
       error.value = e.message;
       console.error(e);
@@ -146,6 +160,8 @@ export const useNotifications = () => {
 
   // --- Hooks de cycle de vie ---
   onMounted(() => {
+    requestPermission();
+    
     if(localStorage.getItem('auth')) {
       authData.value = localStorage.getItem('auth');
       if(authData.value) {

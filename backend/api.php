@@ -69,6 +69,7 @@ $routes = [
     // --- Orders ---
     "postOrder"                    => "../backend/sql/post/order.php",
     "getOrders"                    => "../backend/sql/get/order.php",
+    "getOrder"                    => "../backend/sql/get/singleOrder.php",
     "updateOrderValue"             => "../backend/sql/update/order.php",
     "deleteOrder"                  => "../backend/sql/delete/order.php",
     "sendEmailOrder"               => "../backend/email/sendOrder.php",
@@ -110,6 +111,7 @@ $routes = [
     // --- Analytics ---
     "viewPage"                     => "../backend/sql/post/viewPage.php",
     "getViewPage"                  => "../backend/sql/get/viewPage.php",
+
 
     // --- Modules UPS, Anderson, Yalidine, Guepex ---
     "upsModule"                    => "../backend/sql/post/upsModule.php",

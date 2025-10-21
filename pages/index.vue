@@ -1,5 +1,8 @@
 <template>
   <LoaderBlack v-if="!isMounted" width="80px"/>
+
+  <InstagramScrapper />
+  
   <div style="display: flex; flex-direction: column; align-items: center;">
 
     <div>
@@ -70,6 +73,7 @@ import { useLang } from '~/composables/useLang'
 import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
 import Donut from '../components/elements/graphDonut.vue';
 import Radar from '../components/elements/graphRadar.vue';
+import InstagramScrapper from '../components/InstagramRealScrapper.vue';
 
 const { t } = useLang()
 const isMounted = ref(false)

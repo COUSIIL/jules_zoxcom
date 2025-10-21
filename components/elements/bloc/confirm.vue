@@ -36,7 +36,7 @@ export default {
     },
     message: {
       type: String,
-      default: "You confirm this action ?",
+      default: "you confirm this action ?",
     },
   },
   mounted() {

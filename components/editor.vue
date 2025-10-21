@@ -140,6 +140,8 @@ import Blockquote from '@tiptap/extension-blockquote'
 import ImageResize from 'tiptap-extension-resize-image'
 import { Node } from '@tiptap/core'
 
+import Explorer from '../components/elements/explorer.vue';
+
 // ✅ Extension custom pour HTML brut
 const RawHTML = Node.create({
   name: 'rawHTML',
@@ -180,6 +182,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const isMounted = ref(false)
 const showUploader = ref(false)
+
+const imageUrls = ref([])
 
 // ---- INITIAL CONTENT ----
 let initialContent = `<p>Bienvenue 🚀</p>`
@@ -222,12 +226,30 @@ function insertRawHtml() {
 }
 
 function addImage(url) {
-  if (!url) return
-  editor.chain().focus().insertContent({
-    type: 'image',
-    attrs: { src: url }
-  }).run()
-  showUploader.value = false
+
+
+    
+    
+    if (url) {
+      imageUrls.value.push(url);
+
+      editor.chain().focus().insertContent([
+        {
+          type: 'image',
+          attrs: { src: url }
+        },
+        {
+          type: 'paragraph'
+        }
+      ]).run();
+    }
+
+    
+    showUploader.value = false;
+  }
+
+function showIt(value) {
+  showUploader.value = value;
 }
 
 onMounted(() => { isMounted.value = true })

@@ -1,9 +1,9 @@
 <template>
-    <div v-if="showDropdown" class="backClaque" @click="showDropdown = false"></div>
+    <div v-if="showDropdown" class="backClaque" @click="showDropdown = false, emit('close')"></div>
 
     <div class="floating-input3" :class="props.class">
       <div class="dropdown1" :style="{ backgroundColor: color }">
-        <div class="selected1" @click="toggleDropdown" :class="{ disabled: props.disabled }">
+        <div v-if="!disabled" class="selected1" @click="toggleDropdown" :class="{ disabled: props.disabled }">
           <img v-if="!selectedImage && props.modelImage" :src="`/${props.modelImage}`" alt="icon" />
           <div
             v-else-if="selectedImage && isSvgString(selectedImage)" 
@@ -17,7 +17,7 @@
           </p>
         </div>
 
-        <span class="lock-icon" @click="emit('toggleLock')">
+        <span v-if="!disabled" class="lock-icon" @click="emit('toggleLock')">
           <div v-if="props.disabled" v-html="resizeSvg(icons['lock'], 18, 18)">
 
           </div>
@@ -56,7 +56,7 @@
         </ul>
       </div>
 
-      <label class="floated">
+      <label v-if="!disabled" class="floated">
         <div class="iconSelect" v-html="resizedImg"></div>
         {{ t(placeHolder) }}
         <div v-if="required" style="margin-inline: 2px;">
@@ -87,8 +87,9 @@ const props = defineProps({
   required: Boolean,
   color: String,
   label: String,
-  disabled: Boolean,
-  class: String
+  disabled: {default: false, value: Boolean},
+  class: String,
+  showIt: {default: false, value: Boolean},
 })
 
   const resizeSvg = (svg, width, height) => {
@@ -97,13 +98,17 @@ const props = defineProps({
       .replace(/height="[^"]+"/, `height="${height}"`)
   }
 
-const emit = defineEmits(['update:modelValue', 'update:modelLabel', 'toggleLock'])
+const emit = defineEmits(['update:modelValue', 'update:modelLabel', 'toggleLock', 'close'])
 
 const showDropdown = ref(false)
 const inputValue = ref(props.modelValue || '')
 
 watch(() => props.modelValue, newVal => {
   inputValue.value = newVal ?? ''
+})
+
+watch(() => props.showIt, newVal => {
+  showDropdown.value = newVal
 })
 
 function isSvgString(content) {
@@ -141,7 +146,9 @@ function selectOption(option) {
   emit('update:modelValue', inputValue.value)
   emit('update:modelLabel', option['label'])
   emit('update:modelImage', option['img'])
+  emit('close')
   showDropdown.value = false
+  props.showIt = false
   props.options = []
 }
 </script>

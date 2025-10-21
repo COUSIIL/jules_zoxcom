@@ -319,7 +319,7 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { useRoute } from 'vue-router'
 import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
-import Editor from '../components/editor.vue';
+import Editor from '../../components/editor.vue';
 import Radio from '../components/elements/bloc/radio.vue';
 import Inputer from '../components/elements/bloc/input.vue';
 import InputBtn from '../components/elements/bloc/inputBtn.vue';
@@ -329,7 +329,7 @@ import Gbtn from '../components/elements/bloc/gBtn.vue';
 import Message from '../components/elements/bloc/message.vue';
 import CallToAction from '../components/elements/bloc/callToActionBtn.vue';
 import CancelBtn from '../components/elements/bloc/cancelBtn.vue';
-import Explorer from '../components/elements/explorer.vue';
+import Explorer from '../../components/elements/explorer.vue';
 import EditCat from '../components/elements/editCategory.vue';
 
 import icons from '~/public/icons.json'

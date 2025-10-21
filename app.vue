@@ -51,6 +51,7 @@ function checkScreenSize() {
   }
 }
 
+
 onMounted(() => {
   try {
     const auth = JSON.parse(localStorage.getItem('auth'));

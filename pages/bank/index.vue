@@ -144,14 +144,14 @@
   const getBanks = async () => {
     try {
         isSaving.value = true
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=getBanks', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        const res = await fetch('https://management.hoggari.com/backend/finance.php?action=listbanks', {
+          method: 'GET',
         })
 
         const data = await res.json()
+
         if (data.success) {
-          banks.value = data.data.map(bank => {
+          banks.value = data.data.banks.map(bank => {
             const value = bank.current_balance - bank.opening_balance
             let evaluation = 'stable'
             if (value < 0) evaluation = 'down'

@@ -23,6 +23,11 @@
         @click="handleNotificationClick(notification)"
         class="notification-item"
       >
+        <div v-if="notification.type == 'system'" class="icon_box">
+          <div v-html="resizeSvg(icons['purshase'], 30, 30)" class="icon_content">
+
+          </div>
+        </div>
         <div class="notification-content">
           <strong class="notification-title">{{ notification.title }}</strong>
           <p class="notification-body">{{ notification.body }}</p>
@@ -41,9 +46,16 @@
 </template>
 
 <script setup lang="ts">
-import { useNotifications, type Notification } from '~/composables/useNotifications.ts';
+import { useNotifications, type Notification } from '~/composables/useNotifications';
 import { useRouter } from 'vue-router';
 import { watch, ref } from 'vue';
+import icons from '~/public/icons.json'
+
+const resizeSvg = (svg: '', width: 24, height: 24) => {
+  return svg
+    .replace(/width="[^"]+"/, `width="${width}"`)
+    .replace(/height="[^"]+"/, `height="${height}"`)
+}
 
 const emit = defineEmits(['close']);
 
@@ -68,10 +80,12 @@ const stop = watch(notifications, (newVal) => {
     fixedNotifications.value = [...newVal];
     stop(); // stoppe l'écoute -> reste figé
   }
+
 });
 
 const handleNotificationClick = async (notification: Notification) => {
   if (!notification.is_read) {
+    console.log('notification.id: ', notification.id)
     await markAsRead(notification.id);
   }
 
@@ -128,6 +142,25 @@ const formatTimeAgo = (dateString: string) => {
   border: 1px solid var(--color-darkly);
 }
 
+.icon_box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #c6dcff52;
+  margin-right: 10px;
+}
+
+.icon_content {
+  width: 25px;
+  height: 25px;
+  margin: 7.5px;
+  color: var(--color-blumy);
+}
+
+
 .dropdown-header, .dropdown-footer {
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-whiby);
@@ -178,15 +211,19 @@ const formatTimeAgo = (dateString: string) => {
 
 .notification-item.is-unread {
   font-weight: bold;
-  background-color: var(--color-whiby);
+  background-color: var(--color-whitly);
 }
 .dark .notification-item.is-unread {
-  background-color: var(--color-darkiw);
+  background-color: var(--color-darkow);
 }
 
 .notification-content {
   flex-grow: 1;
+  display: flex;
+  flex-direction: column; /* empile les enfants verticalement */
+  align-items: flex-start; /* force l'alignement à gauche */
 }
+
 
 .notification-title {
   font-size: 14px;
