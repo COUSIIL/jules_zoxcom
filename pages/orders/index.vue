@@ -3,6 +3,19 @@
   <Confirm :isVisible="showConfirm" @confirm="deleteOrder(idToEdit, indexToEdit), showConfirm = false" @cancel="cancelConfirmDelete"/>
 
   <Selector :options="statusOptions" :showIt="showStatus" :disabled="true" @close="showStatus = false" @update:modelValue="editStatus"/>
+  <nav v-if="showDeliver" class="overlay">
+    <Deliver v-if="!isShipping" :isVisible="showDeliver"
+      :_name="nameDeliver"
+      :_phone1="phoneDeliver"
+      :_total="totalDeliver"
+      :_indexing="indexDeliver"
+      @confirm="shipping"
+      @cancel="cancelShipping"
+    />
+    <div v-else-if="isShipping">
+      <Loader :style="{width: '80px', height: '80px'}"/>
+    </div>
+  </nav>
   <div class="containerOrder">
     <Switcher />
 
@@ -81,11 +94,6 @@
 
           </div>
 
-          <div v-if="dts.note && !dts.isMore" :class="['noteBox', `status-${dts.status.toLowerCase()}`]">
-            <Note :speed="80" :gap="48">
-              {{ dts.note }}
-            </Note>
-          </div>
 
           <div v-if="dts.isMore" class="order-details">
 
@@ -108,36 +116,46 @@
               <div class="copyCard">
                 <div class="rowFlex">
                   <h4>{{t('localisation')}}</h4>
-                  <RectBtn svg="edit" @click:ok=""/>
+                  <RectBtn svg="edit" @click:ok="toggleEdit(dts)" v-if="dts.status !== 'shipping'"/>
                 </div>
-                
-                <p><b>Wilaya:</b> {{ dts.deliveryZone }}</p>
-                <p><b>Commune:</b> {{ dts.sZone }}</p>
-                <p><b>Adresse:</b> {{ dts.mZone }}</p>
-                
+                <div v-if="!dts.isEditing">
+                  <p><b>Wilaya:</b> {{ dts.deliveryZone }}</p>
+                  <p><b>Commune:</b> {{ dts.sZone }}</p>
+                  <p><b>Adresse:</b> {{ dts.mZone }}</p>
+                </div>
+                <div v-else>
+                  <input v-model="dts.deliveryZone" />
+                  <input v-model="dts.sZone" />
+                  <input v-model="dts.mZone" />
+                </div>
               </div>
 
               <div class="copyCard infos">
-                
                 <div class="rowFlex">
                   <h4>{{t('customer information')}}</h4>
-                  <RectBtn svg="edit" @click:ok=""/>
+                  <RectBtn svg="edit" @click:ok="toggleEdit(dts)" v-if="dts.status !== 'shipping'"/>
                 </div>
-                <p><b>Nom:</b> {{ dts.name }}</p>
-                <p><b>Téléphone:</b> {{ dts.phone }}</p>
-                <p><b>Date:</b> {{ dts.create }}</p>
+                <div v-if="!dts.isEditing">
+                  <p><b>Nom:</b> {{ dts.name }}</p>
+                  <p><b>Téléphone:</b> {{ dts.phone }}</p>
+                  <p><b>Date:</b> {{ dts.create }}</p>
+                </div>
+                <div v-else>
+                  <input v-model="dts.name" />
+                  <input v-model="dts.phone" />
+                </div>
               </div>
 
               <div class="copyCard infos">
-                
                 <div class="rowFlex">
                   <h4>{{t('delivery')}}</h4>
-                  <RectBtn svg="edit" @click:ok=""/>
+                  <RectBtn svg="edit" @click:ok="toggleEdit(dts)" v-if="dts.status !== 'shipping'"/>
                 </div>
                 <p><b>{{t('deliver name')}}:</b> {{ dts.method }}</p>
                 <p v-if="dts.type == 0"><b>{{t('delivery type')}}:</b> {{t('home')}}</p>
                 <p v-else><b>{{t('delivery type')}}:</b> {{t('stop desk')}}</p>
                 <p><b>{{t('fees')}}:</b> {{ dts.deliveryValue }} DA</p>
+                <p v-if="dts.trackingCode"><b>Tracking:</b> {{ dts.trackingCode }}</p>
 
               </div>
             </div>
@@ -187,19 +205,27 @@
             
 
             <!-- Note -->
-            <div>
-              <PostIt v-model="dts.note" :color="currentColor" :size="300" :rotate="-3" @update:modelValue="(value) => editNote(dts.id, value)"/>
-              <!--div style="margin-top:16px;">
-                <button @click="currentColor = '#ffef6c'">Jaune</button>
-                <button @click="currentColor = '#ffd6d6'">Rose</button>
-                <button @click="currentColor = '#d6ffdf'">Vert pâle</button>
-                <button @click="currentColor = '#d6e7ff'">Bleu</button>
-              </!--div-->
+            <div class="notes-section">
+              <h4>Notes</h4>
+              <ul>
+                <li v-for="(note, noteIndex) in dts.notes" :key="noteIndex" class="note-item">
+                  <span>{{ note.text }} - <i>{{ note.author }}</i></span>
+                  <button @click="deleteNote(dts, noteIndex)">Delete</button>
+                </li>
+              </ul>
+              <div class="add-note">
+                <input type="text" v-model="dts.newNoteText" placeholder="Add a new note" />
+                <button @click="addNote(dts)">Add Note</button>
+              </div>
             </div>
 
             <!-- Total -->
             <div class="copyCard total">
               <h3>Total: {{ dts.total }} DA</h3>
+            </div>
+            <div v-if="dts.isEditing" class="edit-actions">
+              <button @click="saveOrder(dts)">Save</button>
+              <button @click="toggleEdit(dts)">Cancel</button>
             </div>
           </div>
         </div>
@@ -228,11 +254,23 @@ import PostIt from '../../components/elements/newBloc/postIt.vue';
 import Selector from '../../components/elements/bloc/select.vue';
 import Radio from '../../components/elements/bloc/radio.vue';
 import Confirm from '../../components/elements/bloc/confirm.vue';
+import Deliver from '../../components/deliver.vue';
 
 import iconsFilled from '../../public/iconsFilled.json'
 import icons from '../../public/icons.json'
 
 const { t } = useLang()
+
+const showDeliver = ref(false);
+const isShipping = ref(false);
+const nameDeliver = ref([]);
+const phoneDeliver = ref([]);
+const totalDeliver = ref([]);
+const indexDeliver = ref([]);
+
+const cancelShipping = () => {
+  showDeliver.value = false;
+};
 
 
 const { data, loading, getOrders, deleteOrder, updateOrderValue } = useOrders();
@@ -278,6 +316,10 @@ const statusOptions = ref([{value: 'test', label: 'image', img: ''}])
 var returnStatusList = (val, id, index) => {
   statusID.value = id
   statusIndex.value = index
+  if (val === 'shipping') {
+    deliverOrder(limitedDt.value[index]);
+    return;
+  }
   if(val === 'canceled') {
     statusOptions.value = [
       {value: 'confirmed', label: 'Confirm', img: resizeSvg(iconsFilled['thumb-up'], 25, 25)},
@@ -388,10 +430,27 @@ const editStatus = async (vl) => {
   await updateOrderValue(statusID.value, 'status', vl)
 }
 
-const editNote = async (id, vl) => {
+const updateNotes = async (order) => {
+  await updateOrderValue(order.id, 'note', JSON.stringify(order.notes));
+};
 
-  await updateOrderValue(id, 'note', vl)
-}
+const addNote = (order) => {
+  if (order.newNoteText.trim() !== '') {
+    const author = order.isClientNote ? 'client' : 'user';
+    order.notes.push({
+      text: order.newNoteText,
+      author: author,
+      timestamp: new Date().toISOString()
+    });
+    order.newNoteText = '';
+    updateNotes(order);
+  }
+};
+
+const deleteNote = (order, noteIndex) => {
+  order.notes.splice(noteIndex, 1);
+  updateNotes(order);
+};
 
 const copyIp = async (ip, index) => {
   
@@ -406,12 +465,33 @@ const copyIp = async (ip, index) => {
 const reverseOrders = (vl) => {
   if (Array.isArray(vl)) {
     dt.value = vl
-      .map(item => ({
-        ...item,       // garder les propriétés existantes
-        isMore: false, // ajouter une nouvelle propriété
-        isSelected: false,
-        copiedId: false
-      }))
+      .map(item => {
+        let notes = [];
+        if (item.note) {
+          try {
+            // Attempt to parse the note field as JSON
+            const parsedNotes = JSON.parse(item.note);
+            if (Array.isArray(parsedNotes)) {
+              notes = parsedNotes;
+            } else {
+              // If it's not an array, treat it as a single note object
+              notes = [{ text: item.note, author: 'system', timestamp: new Date().toISOString() }];
+            }
+          } catch (e) {
+            // If parsing fails, it's likely a plain string
+            notes = [{ text: item.note, author: 'system', timestamp: new Date().toISOString() }];
+          }
+        }
+        return {
+          ...item,
+          isMore: false,
+          isSelected: false,
+          copiedId: false,
+          notes: notes, // Use the new 'notes' array
+          newNoteText: '', // For the input field
+          isEditing: false
+        };
+      })
       .reverse();
 
     limitedDt.value = dt.value.slice(0, limit.value);
@@ -438,6 +518,76 @@ const hrefLink = (link) => {
   }
 }
 
+const getTrackingCode = async (deliveryMethod) => {
+  // Simulate an API call to a delivery service
+  // In a real application, this would be an actual API call
+  // to UPS, FedEx, etc.
+  console.log(`Getting tracking code for ${deliveryMethod}`);
+  return `TRK${Math.random().toString(36).substr(2, 9)}`;
+};
+
+const deliverOrder = async (order) => {
+  if (order.status === 'shipping') {
+    console.log(`Order ${order.id} is already shipping.`);
+    return;
+  }
+  nameDeliver.value.push(order.name);
+  phoneDeliver.value.push(order.phone);
+  totalDeliver.value.push(order.total);
+  indexDeliver.value.push(order.id);
+  showDeliver.value = true;
+};
+
+const shipping = async ({ name, phone1, phone2, note, total, indexing }) => {
+  isShipping.value = true;
+  for (let i = 0; i < indexing.length; i++) {
+    const orderIndex = limitedDt.value.findIndex(o => o.id === indexing[i]);
+    if (orderIndex !== -1) {
+      const order = limitedDt.value[orderIndex];
+      order.name = name[i];
+      order.phone = phone1[i];
+      // Here you would call the actual delivery provider API
+      console.log(`Shipping order ${order.id} for ${name[i]}`);
+      order.trackingCode = await getTrackingCode(order.method);
+      await updateOrderValue(order.id, 'status', 'shipping');
+      await updateOrderValue(order.id, 'tracking_code', order.trackingCode);
+    }
+  }
+  isShipping.value = false;
+  showDeliver.value = false;
+};
+
+const splitName = (fullName) => {
+  if (!fullName || typeof fullName !== 'string') return { firstname: '', familyname: '' };
+  const parts = fullName.trim().split(' ');
+  if (parts.length === 1) return { firstname: parts[0], familyname: '' };
+  const firstname = parts.slice(0, 1).join(' ');
+  const familyname = parts.slice(1).join(' ');
+  return { firstname, familyname };
+};
+
+const toggleEdit = (order) => {
+  order.isEditing = !order.isEditing;
+};
+
+const saveOrder = async (order) => {
+  order.isEditing = false;
+  // Recalculate total based on new data
+  let newTotal = 0;
+  order.items.forEach(item => {
+    let price = (item.promo && item.promo !== '0.00') ? item.promo : item.total;
+    newTotal += price * item.qty;
+  });
+  newTotal += parseFloat(order.deliveryValue);
+  order.total = newTotal;
+
+  await updateOrderValue(order.id, 'delivery_zone', order.deliveryZone);
+  await updateOrderValue(order.id, 's_zone', order.sZone);
+  await updateOrderValue(order.id, 'm_zone', order.mZone);
+  await updateOrderValue(order.id, 'name', order.name);
+  await updateOrderValue(order.id, 'phone', order.phone);
+  await updateOrderValue(order.id, 'total', order.total);
+};
 </script>
 
 <style scoped>
