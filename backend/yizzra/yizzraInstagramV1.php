@@ -1,88 +1,76 @@
 <?php
-// yizzraInstagramV1.php - Instagram scraping logic
-
 require_once __DIR__ . '/../../vendor/autoload.php';
-
 use Dotenv\Dotenv;
 
-// Load environment variables from the parent directory of backend/yizzra
-$dotenv = Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 function scrapeInstagram($keyword) {
-    $apifyToken = $_ENV['APIFY_API_TOKEN'];
-    $actorId = $_ENV['APIFY_ACTOR_ID'];
-
-    if (empty($apifyToken) || empty($actorId)) {
-        return json_encode(['error' => 'Apify credentials are not configured.']);
+    $apifyToken = $_ENV['APIFY_API_TOKEN'] ?? null;
+    if (!$apifyToken) {
+        return json_encode(['status'=>'error','message'=>'APIFY_API_TOKEN not set']);
     }
 
-    $runUrl = "https://api.apify.com/v2/acts/{$actorId}/runs?token={$apifyToken}";
+    // Nettoyage du keyword
+    $keyword = preg_replace('/[^a-zA-Z0-9._]/', '', $keyword);
 
-    $runInput = [
-        'keyword' => $keyword,
+    $actorUrl = "https://api.apify.com/v2/acts/shu8hvrXbJbY3Eb9W/runs?token={$apifyToken}";
+    $payload = [
+        "directUrls" => ["https://www.instagram.com/{$keyword}/"],
+        "resultsType" => "posts",
+        "resultsLimit" => 10,
+        "searchType" => "user",
+        "searchLimit" => 1,
+        "addParentData" => false
     ];
 
-    $ch = curl_init($runUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($runInput));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
+    $ch = curl_init($actorUrl);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+        CURLOPT_TIMEOUT => 180
     ]);
-
-    $runResult = curl_exec($ch);
-
+    $response = curl_exec($ch);
     if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
+        $err = curl_error($ch);
         curl_close($ch);
-        return json_encode(['error' => "cURL Error: " . $error_msg]);
+        return json_encode(['status'=>'error','message'=>"cURL Error: $err"]);
     }
-
     curl_close($ch);
 
-    $runData = json_decode($runResult, true);
-    $runId = $runData['data']['id'] ?? null;
-    $datasetId = $runData['data']['defaultDatasetId'] ?? null;
-
-    if (!$runId || !$datasetId) {
-        return json_encode(['error' => 'Failed to start scraping run.', 'details' => $runData]);
+    $data = json_decode($response, true);
+    if (empty($data)) {
+        return json_encode(['status'=>'error','message'=>'Empty response from Apify']);
     }
 
-    // Wait for the run to finish
-    $statusUrl = "https://api.apify.com/v2/acts/{$actorId}/runs/{$runId}?token={$apifyToken}&waitForFinish=60";
-    $ch = curl_init($statusUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $statusResult = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
+    $datasetId = $data['data']['defaultDatasetId'] ?? null;
+    if ($datasetId) {
+        $datasetUrl = "https://api.apify.com/v2/datasets/{$datasetId}/items?token={$apifyToken}";
+        $ch = curl_init($datasetUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $datasetResult = curl_exec($ch);
+        if (curl_errno($ch)) {
+            $err = curl_error($ch);
+            curl_close($ch);
+            return json_encode(['status'=>'error','message'=>"cURL Error fetching dataset: $err"]);
+        }
         curl_close($ch);
-        return json_encode(['error' => "cURL Error: " . $error_msg]);
+
+        $items = json_decode($datasetResult, true);
+        return json_encode([
+            'status'=>'success',
+            'count'=>count($items),
+            'data'=>$items
+        ]);
     }
 
-    curl_close($ch);
+    return json_encode(['status'=>'error','message'=>'No datasetId found in run data']);
+}
 
-    $statusData = json_decode($statusResult, true);
-    $status = $statusData['data']['status'] ?? 'UNKNOWN';
-
-    if ($status !== 'SUCCEEDED') {
-        return json_encode(['error' => 'Scraping run did not succeed.', 'status' => $status, 'details' => $statusData]);
-    }
-
-    $datasetUrl = "https://api.apify.com/v2/datasets/{$datasetId}/items?token={$apifyToken}";
-
-    $ch = curl_init($datasetUrl);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $datasetResult = curl_exec($ch);
-
-    if (curl_errno($ch)) {
-        $error_msg = curl_error($ch);
-        curl_close($ch);
-        return json_encode(['error' => "cURL Error: " . $error_msg]);
-    }
-
-    curl_close($ch);
-
-    return $datasetResult;
+// 🔹 Appel automatique si keyword fourni via GET ou POST
+$keyword = $_GET['keyword'] ?? $_POST['keyword'] ?? null;
+if ($keyword) {
+    echo scrapeInstagram($keyword);
 }

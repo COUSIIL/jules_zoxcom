@@ -42,41 +42,35 @@
               {{ index + 1 }}
               
             </button>
-            <div class="box2" @click="doMore(index)">
-              
-              <div class="boxRow">
-                  <div v-html="resizeSvg(iconsFilled['order'], 18, 18)">
-
-                  </div>
-                  <p>
-                      order-{{ dts.id }}
-                  </p>
-              </div>
-              <div class="boxRow">
-                  <div v-html="resizeSvg(iconsFilled['alarm'], 18, 18)">
-
-                  </div>
-                  <p>
-                      {{ dts.create }}
-                  </p>
+            <!-- HTML (version nettoyée) -->
+          <div class="box2" @click="doMore(index)">
+            <!-- groupe 1 -->
+            <div class="boxGroup">
+              <div class="boxItem">
+                <div v-html="resizeSvg(iconsFilled['order'], 18, 18)"></div>
+                <p class="text">order-{{ dts.id }}</p>
               </div>
 
-              <div class="boxRow">
-                  <div v-html="resizeSvg(iconsFilled['phone'], 18, 18)">
-
-                  </div>
-                  <p>
-                      {{ dts.phone }}
-                  </p>
-              </div>
-
-              <div class="boxRow">
-                <div v-html="resizeSvg(iconsFilled['location'], 18, 18)"></div>
-                <p>
-                  {{ dts.name }} - {{ dts.deliveryZone }}
-                </p>
+              <div class="boxItem">
+                <div v-html="resizeSvg(iconsFilled['phone'], 18, 18)"></div>
+                <p class="text">{{ dts.phone }}</p>
               </div>
             </div>
+
+            <!-- groupe 2 -->
+            <div class="boxGroup">
+              <div class="boxItem">
+                <div v-html="resizeSvg(iconsFilled['alarm'], 18, 18)"></div>
+                <p class="text">{{ dts.create }}</p>
+              </div>
+
+              <div class="boxItem">
+                <div v-html="resizeSvg(iconsFilled['location'], 18, 18)"></div>
+                <p class="text">{{ dts.name }} - {{ dts.deliveryZone }}</p>
+              </div>
+            </div>
+          </div>
+
 
                 
                 
@@ -112,19 +106,39 @@
             <!-- Livraison & Infos -->
             <div class="grid2">
               <div class="copyCard">
-                <h4>Livraison</h4>
+                <div class="rowFlex">
+                  <h4>{{t('localisation')}}</h4>
+                  <RectBtn svg="edit" @click:ok=""/>
+                </div>
+                
                 <p><b>Wilaya:</b> {{ dts.deliveryZone }}</p>
                 <p><b>Commune:</b> {{ dts.sZone }}</p>
                 <p><b>Adresse:</b> {{ dts.mZone }}</p>
-                <p><b>Frais:</b> {{ dts.deliveryValue }} DA</p>
+                
               </div>
 
               <div class="copyCard infos">
-                <h4>Informations</h4>
+                
+                <div class="rowFlex">
+                  <h4>{{t('customer information')}}</h4>
+                  <RectBtn svg="edit" @click:ok=""/>
+                </div>
                 <p><b>Nom:</b> {{ dts.name }}</p>
                 <p><b>Téléphone:</b> {{ dts.phone }}</p>
-                <p><b>Méthode:</b> {{ dts.method }}</p>
                 <p><b>Date:</b> {{ dts.create }}</p>
+              </div>
+
+              <div class="copyCard infos">
+                
+                <div class="rowFlex">
+                  <h4>{{t('delivery')}}</h4>
+                  <RectBtn svg="edit" @click:ok=""/>
+                </div>
+                <p><b>{{t('deliver name')}}:</b> {{ dts.method }}</p>
+                <p v-if="dts.type == 0"><b>{{t('delivery type')}}:</b> {{t('home')}}</p>
+                <p v-else><b>{{t('delivery type')}}:</b> {{t('stop desk')}}</p>
+                <p><b>{{t('fees')}}:</b> {{ dts.deliveryValue }} DA</p>
+
               </div>
             </div>
             <!-- Produits -->
@@ -140,26 +154,30 @@
                       <p class="product-name">{{ item.productName }}</p>
                     </div>
                     
-
-                    <div v-for="(sub, i2) in item.items" :key="i2" class="sub-item">
-                      <div class="tags">
+                    <div class="columnFlex">
+                      <div v-for="(sub, i2) in item.items" :key="i2" class="sub-item">
+                        <div class="tags">
                         
-                        <span class="tag color">
-                          <span class="color-dot" :style="{ background: sub.color }"></span>
-                          {{ sub.color_name }}
-                        </span>
-                        <span class="tag size">Taille: {{ sub.size }}</span>
-                        <span class="tag qty">x{{ sub.qty }}</span>
-                      </div>
+                          <span class="tag color">
+                            <span class="color-dot" :style="{ background: sub.color }"></span>
+                            {{ sub.color_name }}
+                          </span>
+                          <span class="tag size">Taille: {{ sub.size }}</span>
+                          <span class="tag qty">x{{ sub.qty }}</span>
+                        </div>
 
-                      <div class="price">
-                        <span v-if="sub.promo && sub.promo !== '0.00'" class="promo">
-                          <span class="old">{{ sub.total }} DA</span>
-                          <span class="new">{{ sub.promo }} DA</span>
-                        </span>
-                        <span v-else class="new">{{ sub.total }} DA</span>
+                        <div class="price">
+                          <span v-if="sub.promo && sub.promo !== '0.00'" class="promo">
+                            <span class="old">{{ sub.total }} DA</span>
+                            <span class="new">{{ sub.promo }} DA</span>
+                          </span>
+                          <span v-else class="new">{{ sub.total }} DA</span>
+                        </div>
+      
+                        
                       </div>
                     </div>
+                    
                   </div>
                 </li>
               </ul>
@@ -169,9 +187,14 @@
             
 
             <!-- Note -->
-            <div v-if="dts.note" class="copyCard note-detail">
-              <h4>Note</h4>
-              <p>{{ dts.note }}</p>
+            <div>
+              <PostIt v-model="dts.note" :color="currentColor" :size="300" :rotate="-3" @update:modelValue="(value) => editNote(dts.id, value)"/>
+              <!--div style="margin-top:16px;">
+                <button @click="currentColor = '#ffef6c'">Jaune</button>
+                <button @click="currentColor = '#ffd6d6'">Rose</button>
+                <button @click="currentColor = '#d6ffdf'">Vert pâle</button>
+                <button @click="currentColor = '#d6e7ff'">Bleu</button>
+              </!--div-->
             </div>
 
             <!-- Total -->
@@ -201,12 +224,15 @@ import Loader from '../../components/elements/animations/loaderBlack.vue';
 import RectBtn from '../../components/elements/newBloc/rectBtn.vue';
 import SquareBtn from '../../components/elements/newBloc/squareConBtn.vue';
 import Note from '../../components/elements/newBloc/noteTicker.vue';
+import PostIt from '../../components/elements/newBloc/postIt.vue';
 import Selector from '../../components/elements/bloc/select.vue';
 import Radio from '../../components/elements/bloc/radio.vue';
 import Confirm from '../../components/elements/bloc/confirm.vue';
 
 import iconsFilled from '../../public/iconsFilled.json'
 import icons from '../../public/icons.json'
+
+const { t } = useLang()
 
 
 const { data, loading, getOrders, deleteOrder, updateOrderValue } = useOrders();
@@ -215,6 +241,7 @@ const statusID = ref(0)
 const statusIndex = ref(0)
 const indexToEdit = ref(0)
 const showConfirm = ref(false)
+const currentColor = ref('#ffef6c')
 var showConfirmDelete = (id, index) => {
   idToEdit.value = id
   indexToEdit.value = index
@@ -304,7 +331,7 @@ var returnStatusList = (val, id, index) => {
 const getUserData = async () => {
   try {
     const res = await $fetch('https://management.hoggari.com/backend/metaApi.php?action=getInstagramHashtag')
-    console.log('res: ', res) // affiche le profil Meta
+
   } catch (err) {
     console.error('Erreur:', err)
   }
@@ -359,6 +386,11 @@ onMounted(() => {
 const editStatus = async (vl) => {
 
   await updateOrderValue(statusID.value, 'status', vl)
+}
+
+const editNote = async (id, vl) => {
+
+  await updateOrderValue(id, 'note', vl)
 }
 
 const copyIp = async (ip, index) => {
@@ -491,20 +523,97 @@ const hrefLink = (link) => {
 
 }
 
+/* Container principal : ligne tant que possible, wrap si manque d'espace */
 .box2 {
-  width: 100%;
-  min-width: 50px; /* IMPORTANT: permet au contenu de s'ellipsiser dans un grid/flex containerOrder */
-  font-size: clamp(12px, 1.6vw, 14px);
   display: flex;
+  flex-direction: row; /* par défaut en ligne */
   align-items: center;
-  justify-content: left;
+  justify-content: center;
+  flex-wrap: wrap; /* permet un minimum de flexibilité */
+  gap: 6px;
+
+  width: 100%;
+  min-width: 50px;
+  font-size: clamp(12px, 1.6vw, 14px);
   font-weight: 500;
-  flex-direction: column;
   margin-inline: 5px;
 }
 
+
+
+
+/* Chaque "groupe" contient plusieurs items (ex: order + phone).
+   On laisse chaque groupe occuper au moins une "colonne" flexible. */
+.boxGroup {
+  
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+
+  /* flexible : peut grandir et rétrécir.
+     Le "basis" (ici 220px) est la taille préférée avant wrapping. */
+  flex: 1 1 220px;
+  min-width: 0; /* IMPORTANT pour autoriser le shrink du contenu */
+  padding-inline: 6px;
+}
+
+/* Chaque élément intérieur (icone + texte) */
+.boxItem {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;      /* IMPORTANT : permet au <p> de s'ellipsiser/shrinker */
+  flex: 0 1 auto;    /* ne force pas la ligne à prendre tout l'espace */
+  padding: 4px 2px;
+}
+
+/* Icône : garder taille fixe */
+.boxItem > div {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+}
+
+/* Texte : gérer overflow et ellipsis quand l'espace manque */
+.boxItem .text {
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* encore important pour l'ellipsis dans flexbox */
+  font-size: inherit;
+}
+
+
+
+/* --- responsive : sur conteneurs très étroits, empiler verticalement */
+@media (max-width: 520px) {
+  .box2 {
+    flex-direction: column;
+    align-items: flex-start; /* ou center selon ton besoin */
+  }
+  .boxGroup {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  /* si tu veux que le texte permette des sauts de ligne au lieu d'ellipsis : */
+  .boxItem .text.wrap-when-small {
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+
+
 .boxRow {
-  width: 100%;
+  min-width: 150px;
   display: flex;
   justify-content: left;
   align-items: center;
@@ -649,7 +758,6 @@ const hrefLink = (link) => {
   align-items: center;
   gap: 5px;
   text-align: left;
-  cursor: pointer;
 }
 
 .dark .copyCard {
@@ -674,6 +782,30 @@ const hrefLink = (link) => {
 }
 .copyCard p b {
   margin-inline: 5px;
+}
+
+.rowFlex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.columnFlex {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: left;
+  flex-direction: column;
+}
+
+.ci {
+  padding: 10px;
+  border-radius: 50%;
+  background-color: var(--color-darkow20);
+  cursor: pointer;
+}
+.dark .ci {
+  background-color: var(--color-whitly20);
 }
 
 
@@ -762,10 +894,6 @@ const hrefLink = (link) => {
   gap: 6px;
 }
 
-.dark .sub-item {
-  background: #222;
-}
-
 /* Tags */
 .tags {
   display: flex;
@@ -822,19 +950,6 @@ const hrefLink = (link) => {
   color: #e63946; /* Rouge promo */
 }
 
-
-/* --- Note --- */
-.note-detail p {
-  white-space: pre-wrap;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 14px;
-  background: #fafafa;
-}
-
-.dark .note-detail p {
-  background: #222;
-}
 
 /* --- Total --- */
 .total {

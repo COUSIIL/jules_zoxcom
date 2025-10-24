@@ -1,66 +1,52 @@
 #!/bin/bash
 
-# Arrêter le script en cas d'erreur
-set -e
-
-# Configuration
+# ⚙️ Configuration
 REMOTE_USER="mshurcnp"
 REMOTE_HOST="57.128.97.32"
 REMOTE_PORT="5804"
 REMOTE_PATH="/home/mshurcnp/management.hoggari.com"
-SSH_KEY="~/.ssh/id_rsa"  # Remplace si nécessaire
+DIST_DIR=".output/public"
+BACKEND_DIR="backend"
+SSH_KEY="$HOME/.ssh/id_rsa"
 
-# 🔥 Étape 1 : Installer les dépendances et générer le projet Nuxt
-echo "Installing dependencies for Nuxt..."
-pnpm install
+# 🧩 Étape 1 : Build du projet Nuxt
+echo "🔨 Installation des dépendances..."
+pnpm install || { echo "❌ Erreur pnpm install"; exit 1; }
 
-echo "Generating Nuxt project..."
-pnpm run generate
+echo "🏗️ Génération du site statique..."
+pnpm run generate || { echo "❌ Erreur pnpm run generate"; exit 1; }
 
-# 🔥 Étape 2 : Installer les dépendances PHP dans le backend
-echo "Installing PHP dependencies..."
-cd backend
-composer install --no-dev --optimize-autoloader
+# 🧩 Étape 2 : Installation des dépendances PHP localement
+echo "📦 Installation des dépendances PHP..."
+cd "$BACKEND_DIR" || exit 1
+composer install --no-dev --optimize-autoloader || { echo "❌ Erreur composer"; exit 1; }
 cd ..
 
-# 🔥 Étape 3 : Créer la structure côté serveur si elle n'existe pas
-echo "Creating remote directory structure..."
-ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST <<EOF
-    mkdir -p $REMOTE_PATH
-    mkdir -p $REMOTE_PATH/backend/config
-    mkdir -p $REMOTE_PATH/backend/sql/get
+# 🧩 Étape 3 : Déploiement via SFTP
+echo "🚀 Déploiement via SFTP..."
+sftp -i "$SSH_KEY" -P "$REMOTE_PORT" "$REMOTE_USER@$REMOTE_HOST" <<EOF
+# 📁 Création des dossiers nécessaires
+mkdir "$REMOTE_PATH"
+mkdir "$REMOTE_PATH/backend"
+mkdir "$REMOTE_PATH/backend/config"
+mkdir "$REMOTE_PATH/backend/sql"
+mkdir "$REMOTE_PATH/backend/sql/get"
+
+# 🖥️ Upload du frontend Nuxt généré
+cd "$REMOTE_PATH"
+put -r "$DIST_DIR"/*
+
+# 🗄️ Upload du backend (PHP + config)
+cd "$REMOTE_PATH/backend"
+put -r "$BACKEND_DIR"/*
+
+# ⚙️ Upload du .env (si existant)
+put "$BACKEND_DIR/.env" "$REMOTE_PATH/backend/.env"
+
+# ⚙️ Upload du vendor (PHP)
+put -r vendor "$REMOTE_PATH/backend/vendor"
+
+bye
 EOF
 
-# 🔥 Étape 4 : Déployer le frontend
-echo "Deploying frontend..."
-scp -i $SSH_KEY -P $REMOTE_PORT -r ./.output/public/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH
-
-# 🔥 Étape 5 : Déployer le backend (sauf les fichiers sensibles)
-echo "Deploying backend..."
-scp -i $SSH_KEY -P $REMOTE_PORT -r ./backend/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/backend
-
-# 🔥 Étape 6 : Déployer le fichier .env (⚠️ Sécurisé)
-echo "Deploying .env..."
-scp -i $SSH_KEY -P $REMOTE_PORT ./backend/.env $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/backend
-
-# 🔥 Étape 7 : Déployer le dossier vendor
-echo "Deploying vendor directory..."
-scp -i $SSH_KEY -P $REMOTE_PORT -r ./vendor $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH
-
-# 🔥 Étape 8 : Configurer les permissions
-echo "Setting permissions..."
-ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST <<EOF
-    chmod 600 $REMOTE_PATH/backend/.env
-    chmod 600 $REMOTE_PATH/backend/config/dbConfig.php
-    chmod -R 755 $REMOTE_PATH/backend/vendor
-    chown -R www-data:www-data $REMOTE_PATH
-EOF
-
-# 🔥 Étape 9 : Redémarrer le serveur (si nécessaire)
-echo "Restarting server..."
-ssh -i $SSH_KEY -p $REMOTE_PORT $REMOTE_USER@$REMOTE_HOST <<EOF
-    sudo systemctl restart nginx
-EOF
-
-# ✅ ✅ ✅ FIN ✅ ✅ ✅
-echo "🚀 Deployment complete!"
+echo "✅ Déploiement terminé avec succès !"

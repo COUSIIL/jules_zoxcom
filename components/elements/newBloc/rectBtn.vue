@@ -5,7 +5,7 @@
         :class="{ active: lom}"
         @click="clicker()"
       >
-        <div v-html="resizeSvg(icons[svg], width, height)" class="mySvg" :style="{ color: iconColor + ' !important'}"></div>
+        <div v-html="resizeSvg(svg, width, height)" class="mySvg" :style="{ color: iconColor + ' !important'}"></div>
 
         <p v-if="text">
           {{text}}
@@ -19,20 +19,28 @@
 
 <script setup>
 
-import icons from '../../../public/iconsFilled.json'
+import iconsFilled from '../../../public/iconsFilled.json'
+import icons from '../../../public/icons.json'
 
 const props = defineProps({
     text: {String, default: ''},
     svg: {String, default: 'back'},
-    iconColor: {String, default: 'black'},
+    iconColor: {String, default: 'currentColor'},
     width: { type: [String, Number], default: 20 },
     height: { type: [String, Number], default: 20 }
 })
 
 var resizeSvg = (svg, width, height) => {
-return svg
+  if(iconsFilled[svg]) {
+    return iconsFilled[svg]
     .replace(/width="[^"]+"/, `width="${width}"`)
     .replace(/height="[^"]+"/, `height="${height}"`)
+  } else {
+    return icons[svg]
+    .replace(/width="[^"]+"/, `width="${width}"`)
+    .replace(/height="[^"]+"/, `height="${height}"`)
+  }
+
 }
 
 
