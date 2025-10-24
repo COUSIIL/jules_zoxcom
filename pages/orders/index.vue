@@ -3,6 +3,23 @@
   <Confirm :isVisible="showConfirm" @confirm="deleteOrder(idToEdit, indexToEdit), showConfirm = false" @cancel="cancelConfirmDelete"/>
 
   <Selector :options="statusOptions" :showIt="showStatus" :disabled="true" @close="showStatus = false" @update:modelValue="editStatus"/>
+
+  <nav v-if="showDeliver" class="overlay">
+    <Deliver
+      v-if="!isShipping"
+      :isVisible="showDeliver"
+      :_name="nameDeliver"
+      :_phone1="phoneDeliver"
+      :_total="totalDeliver"
+      :_indexing="indexDeliver"
+      @confirm="shipping"
+      @cancel="cancelShipping"
+    />
+    <div v-else-if="isShipping">
+      <Loader :style="{width: '80px', height: '80px'}"/>
+    </div>
+  </nav>
+
   <div class="containerOrder">
     <Switcher />
 
@@ -187,14 +204,21 @@
             
 
             <!-- Note -->
-            <div>
-              <PostIt v-model="dts.note" :color="currentColor" :size="300" :rotate="-3" @update:modelValue="(value) => editNote(dts.id, value)"/>
-              <!--div style="margin-top:16px;">
-                <button @click="currentColor = '#ffef6c'">Jaune</button>
-                <button @click="currentColor = '#ffd6d6'">Rose</button>
-                <button @click="currentColor = '#d6ffdf'">Vert pâle</button>
-                <button @click="currentColor = '#d6e7ff'">Bleu</button>
-              </!--div-->
+            <div class="notes-section">
+              <div v-for="(note, noteIndex) in dts.notes" :key="noteIndex" class="note-wrapper">
+                <PostIt
+                  v-model="note.text"
+                  :color="note.isClientNote ? '#d6e7ff' : note.color"
+                  :size="300"
+                  :rotate="noteIndex % 2 === 0 ? -2 : 2"
+                  @update:modelValue="(value) => editNote(dts.id, dts.notes)"
+                />
+                <div class="note-info">
+                  <span class="note-user">{{ note.user }}</span>
+                  <RectBtn iconColor="#ff5555" svg="trashX" @click:ok="deleteNote(index, noteIndex)"/>
+                </div>
+              </div>
+              <RectBtn text="Add Note" @click:ok="addNote(index)"/>
             </div>
 
             <!-- Total -->
@@ -228,6 +252,7 @@ import PostIt from '../../components/elements/newBloc/postIt.vue';
 import Selector from '../../components/elements/bloc/select.vue';
 import Radio from '../../components/elements/bloc/radio.vue';
 import Confirm from '../../components/elements/bloc/confirm.vue';
+import Deliver from '../../components/deliver.vue';
 
 import iconsFilled from '../../public/iconsFilled.json'
 import icons from '../../public/icons.json'
@@ -242,6 +267,14 @@ const statusIndex = ref(0)
 const indexToEdit = ref(0)
 const showConfirm = ref(false)
 const currentColor = ref('#ffef6c')
+
+const showDeliver = ref(false);
+const isShipping = ref(false);
+const nameDeliver = ref([]);
+const phoneDeliver = ref([]);
+const totalDeliver = ref([]);
+const indexDeliver = ref([]);
+
 var showConfirmDelete = (id, index) => {
   idToEdit.value = id
   indexToEdit.value = index
@@ -384,14 +417,68 @@ onMounted(() => {
 });
 
 const editStatus = async (vl) => {
+  if (vl === 'shipping') {
+    const order = limitedDt.value[statusIndex.value];
+    nameDeliver.value = [order.name];
+    phoneDeliver.value = [order.phone];
+    totalDeliver.value = [order.total];
+    indexDeliver.value = [statusIndex.value];
+    showDeliver.value = true;
+  } else {
+    await updateOrderValue(statusID.value, 'status', vl);
+  }
+};
 
-  await updateOrderValue(statusID.value, 'status', vl)
-}
+const shipping = async ({ name, phone1, phone2, note, total, indexing }) => {
+  isShipping.value = true;
+  for (let i = 0; i < indexing.length; i++) {
+    const orderIndex = indexing[i];
+    const order = limitedDt.value[orderIndex];
+    order.name = name[i];
+    order.phone = phone1[i];
+    // order.phone2 = phone2[i]; // Add if you have a second phone field
+    order.notes.push({ text: `Note de livraison: ${note[i]}`, user: 'system', isClientNote: false, color: '#d6ffdf' });
+    order.total = total[i];
 
-const editNote = async (id, vl) => {
+    await deliverOrder(order, order.items[0], order.type === 0 ? 'Home' : 'Stop Desk', order.method, order.total, order.deliveryValue);
+    await updateOrderValue(order.id, 'status', 'shipping');
+  }
+  showDeliver.value = false;
+  isShipping.value = false;
+};
 
-  await updateOrderValue(id, 'note', vl)
-}
+const cancelShipping = () => {
+  showDeliver.value = false;
+};
+
+const editNote = async (id, notes) => {
+  const notesJson = JSON.stringify(notes.map(note => ({
+    text: note.text,
+    user: note.user,
+    isClientNote: note.isClientNote,
+    color: note.color
+  })));
+  await updateOrderValue(id, 'notes', notesJson);
+};
+
+const addNote = (orderIndex) => {
+  const authData = JSON.parse(localStorage.getItem('auth'));
+  const currentUser = authData ? authData.user : 'unknown';
+
+  const newNote = {
+    text: 'New Note',
+    user: currentUser,
+    isClientNote: false,
+    color: '#ffef6c'
+  };
+  limitedDt.value[orderIndex].notes.push(newNote);
+  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].notes);
+};
+
+const deleteNote = (orderIndex, noteIndex) => {
+  limitedDt.value[orderIndex].notes.splice(noteIndex, 1);
+  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].notes);
+};
 
 const copyIp = async (ip, index) => {
   
@@ -406,12 +493,28 @@ const copyIp = async (ip, index) => {
 const reverseOrders = (vl) => {
   if (Array.isArray(vl)) {
     dt.value = vl
-      .map(item => ({
-        ...item,       // garder les propriétés existantes
-        isMore: false, // ajouter une nouvelle propriété
-        isSelected: false,
-        copiedId: false
-      }))
+      .map(item => {
+        let notes = [];
+        try {
+          // Atttempt to parse the notes field if it's a JSON string
+          notes = JSON.parse(item.notes);
+          if (!Array.isArray(notes)) {
+            // If parsing results in something other than an array, handle it
+            notes = item.notes ? [{ text: item.notes, user: 'system', isClientNote: true, color: '#d6e7ff' }] : [];
+          }
+        } catch (e) {
+          // If it's not a valid JSON string, treat it as a single note
+          notes = item.notes ? [{ text: item.notes, user: 'system', isClientNote: true, color: '#d6e7ff' }] : [];
+        }
+
+        return {
+          ...item,
+          isMore: false,
+          isSelected: false,
+          copiedId: false,
+          notes: notes
+        };
+      })
       .reverse();
 
     limitedDt.value = dt.value.slice(0, limit.value);
@@ -992,6 +1095,36 @@ const hrefLink = (link) => {
       2px 2px 4px 1px rgba(0, 0, 0, 0.761);
 }
 
+.notes-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
 
+.note-wrapper {
+  position: relative;
+}
 
+.note-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 </style>
