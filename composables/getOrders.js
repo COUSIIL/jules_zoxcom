@@ -403,8 +403,11 @@ export const useOrders = () => {
                 body: JSON.stringify({ parcels }), // ✅ ici on met le tableau dans un objet
                 });
                 const data2 = await response2.json();
-                if (!data2.success) {
-                console.error(`Error: ${data2.message}`);
+                if (data2.success && data2.data.length > 0) {
+                  const trackingCode = data2.data[0].tracking;
+                  await updateOrderValue(order.id, 'tracking_code', trackingCode);
+                } else {
+                  console.error(`Error: ${data2.message}`);
                 }
             } else {
                 console.error("Error: No center found", wilayaId, " ",  this.orderWilaya[index]);
@@ -582,5 +585,6 @@ export const useOrders = () => {
         getOrders,
         deleteOrder,
         updateOrderValue,
+        deliverOrder,
     };
 };
