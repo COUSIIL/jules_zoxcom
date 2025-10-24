@@ -163,9 +163,9 @@ export const useNotifications = () => {
     requestPermission();
     
     if(localStorage.getItem('auth')) {
-      authData.value = localStorage.getItem('auth');
+      authData.value = JSON.parse(localStorage.getItem('auth'));
       if(authData.value) {
-        userId.value = JSON.parse(authData.value).id
+        userId.value = authData.value.id
         fetchNotifications(); // Premier fetch pour l'historique
         startPolling();       // Démarrer le polling pour les mises à jour
       }
