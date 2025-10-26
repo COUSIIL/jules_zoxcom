@@ -1,13 +1,13 @@
 <template>
-    <h1>
-        {{ t('setings') }}
-    </h1>
+
+    <notif />
 
 
 </template>
 
 <script setup>
 import { useLang } from '~/composables/useLang';
+import notif from '../components/elements/notifSettings.vue';
 
 const { t } = useLang()
 

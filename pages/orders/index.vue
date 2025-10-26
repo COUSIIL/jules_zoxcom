@@ -229,41 +229,19 @@
 
             
 
-            <!-- Note -->
-            <div class="note-section">
-              
-              <div v-for="(note, noteIndex) in dts.note" :key="noteIndex" class="note-wrapper">
-                <PostIt
-                  v-if="note.text"
-                  v-model="note.text"
-                  :color="note.isClientNote ? '#d6e7ff' : note.color"
-                  :size="300"
-                  :rotate="noteIndex % 2 === 0 ? -2 : 2"
-                  @update:modelValue="(value) => editNote(dts.id, dts.note)"
-                />
-                <div class="note-info" v-if="note.text">
-                  <div class="rowFlex2">
-                    <img
-                      class="circleImg"
-                      :src="note?.profile_image ? `https://management.hoggari.com/uploads/profile/${note.profile_image}` : 'https://management.hoggari.com/uploads/profile/default.png'"
-                      :alt="note?.profile_image || t('user profile')"
-                    />
+            <PostIt 
+              :modelValue="dts.note" 
+              :color="currentColor" 
+              :size="300" 
+              :rotate="0" 
+              @update:modelValue="(notesArray) => onPostItUpdate(notesArray, index)" 
+            />
 
-                    <span class="note-user">{{ note.user }}</span>
-                  </div>
-                  
-                  <RectBtn iconColor="#ff5555" svg="trashX" @click:ok="deleteNote(index, noteIndex)"/>
-                </div>
-              </div>
-              <PostIt
-                  :isBtn="true"
-                  :size="300"
-                  :rotate="noteIndex % 2 === 0 ? -2 : 2"
-                  @update:modelValue="addNote(index)"
-                />
 
-              
-            </div>
+
+
+
+
 
             <!-- Total -->
             <div class="copyCard total">
@@ -455,6 +433,20 @@ watch(data, (newData) => {
   reverseOrders(newData);
 });
 
+// Texte brut affiché dans le PostIt
+const postItText = ref('');
+
+// Initialiser postItText depuis limitedDt
+watch(
+  () => limitedDt.value[0]?.note,
+  (newNotes) => {
+    if (newNotes && Array.isArray(newNotes)) {
+      postItText.value = newNotes.map(n => n.text).join('\n');
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   getOrders();
   getUserData();
@@ -501,7 +493,7 @@ const editNote = async (id, note) => {
 
   try {
     if (Array.isArray(note)) {
-      // ✅ Si c’est un tableau de notes
+      // ✅ Si c’est un tableau de note
       noteJson = JSON.stringify(
         note.map(n => ({
           text: n.text ?? '',
@@ -527,30 +519,28 @@ const editNote = async (id, note) => {
 
     await updateOrderValue(id, 'note', noteJson);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour des notes :', error);
+    console.error('Erreur lors de la mise à jour des note :', error);
   }
 };
 
 
 
-const addNote = (orderIndex) => {
-  const authData = JSON.parse(localStorage.getItem('auth'));
-  const currentUser = authData ? authData.username : 'unknown';
 
-  const newNote = {
-    text: 'New Note',
-    user: currentUser,
-    isClientNote: false,
-    profile_image: authData.profile_image,
-    color: '#ffef6c'
-  };
-  limitedDt.value[orderIndex].note.push(newNote);
+const onPostItUpdate = async (notesArray, orderIndex) => {
+  // Mettre à jour seulement la commande ciblée
+  const order = limitedDt.value[orderIndex];
+  const isMoreState = order.isMore; // garder l'état isMore
+  order.note = notesArray;
+
+  // Envoyer la mise à jour à l'API
+  await editNote(order.id, notesArray);
+
+  // Réassigner pour forcer la réactivité si nécessaire
+  limitedDt.value[orderIndex] = { ...order, isMore: isMoreState };
 };
 
-const deleteNote = (orderIndex, noteIndex) => {
-  limitedDt.value[orderIndex].note.splice(noteIndex, 1);
-  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].note);
-};
+
+
 
 const copyIp = async (ip, index) => {
   
@@ -1231,10 +1221,28 @@ const hrefLink = (link) => {
 
 .note-section {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 16px;
+  flex-direction: column;
+  gap: 10px;
 }
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.note-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-text {
+  flex: 1;
+}
+
 
 .note-wrapper {
   position: relative;
@@ -1251,7 +1259,7 @@ const hrefLink = (link) => {
 }
 .note-user {
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   margin-inline: 2px;
 }
 .activityText {
@@ -1281,4 +1289,6 @@ const hrefLink = (link) => {
   object-fit: cover;        /* garde les proportions */
   object-position: center;  /* centre le contenu */
 }
+
+
 </style>
