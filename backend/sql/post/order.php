@@ -53,6 +53,7 @@ $createTables = [
         note TEXT,
         total_price DECIMAL(10,2) NOT NULL,
         status VARCHAR(255) NOT NULL DEFAULT 'waiting',
+        tracking_code VARCHAR(255) NOT NULL DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
     "CREATE TABLE IF NOT EXISTS order_items (
@@ -119,6 +120,7 @@ foreach ($createTables as $query) {
 
 $alters = [
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code VARCHAR(45) NULL AFTER ip_adresse",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
@@ -469,6 +471,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             create_and_enqueue_notification($mysqli, $params);
         }
+
+        // --- Envoi WebPush ---
+        sendWebPushNotification(
+                $mysqli,
+                "Nouvelle commande reçue",
+                "Une nouvelle commande vient d’être passée (#$orderId).",
+                "/orders/$orderId",
+                "/icons/order.png"
+            );
+
 
 
         // --- Fin de la création de notification ---

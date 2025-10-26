@@ -65,6 +65,7 @@ $routes = [
     "selectStoreDelivery"          => "../backend/sql/post/storeDelivery.php",
     "getStoreDelivery"             => "../backend/sql/get/storeDelivery.php",
     "deleteDeliveryOptions"        => "../backend/sql/delete/deliveryOptions.php",
+    
 
     // --- Orders ---
     "postOrder"                    => "../backend/sql/post/order.php",
@@ -127,6 +128,7 @@ $routes = [
     "addAndersonOrder"             => "../backend/anderson/addOrder.php",
     "getAndersonCommune"           => "../backend/anderson/getCommune.php",
     "testAnderson"                 => "../backend/anderson/test.php",
+    "getTrackingOp"                => "../backend/anderson/getTrackingOp.php",
 
     "yalidineModule"               => "../backend/sql/post/yalModule.php",
     "getYalidineWilaya"            => "../backend/yalidine/getWilaya.php",

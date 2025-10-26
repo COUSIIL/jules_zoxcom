@@ -838,6 +838,7 @@ import LoaderBlack from '../../components/elements/animations/loaderBlack.vue';
 
 import icons from '~/public/icons.json'
 
+
 export default {
   components: { Loader, Search, Confirm, Deliver, Message, LoaderBlack },
 data() {

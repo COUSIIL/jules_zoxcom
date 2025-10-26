@@ -1,194 +1,247 @@
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-
-// --- Le Composable ---
+// composables/useNotifications.js
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 export const useNotifications = () => {
-  // --- État (State) ---
-  const notifications = ref([]);
-  const unreadCount = ref(0);
-  const isLoading = ref(false);
-  const error = ref(null);
-  const userId = ref(1);
-  var authData = ref();
+  const notifications = ref([])
+  const unreadCount = ref(0)
+  const isLoading = ref(false)
+  const error = ref(null)
+  const userId = ref(null)
+  const authData = ref(null)
 
-  const { $api } = useNuxtApp(); // Plugin pour $fetch avec la base URL configurée (voir README)
+  const { $api } = useNuxtApp()
 
-  let polling = null;
+  const publicVapidKey = "BCcIPD0QlNkfi3Zaw93Sd0D7Y5WvZlLAlaDfsjppa3yeYkLo_f_t0p1dEPy-mgUYN3Yb_Fz8CegClBa8ymz_xeQ"
 
-  // --- Actions ---
+  let polling = null
+  let lastNotificationId = null
 
-  /**
-   * Récupère les notifications depuis l'API.
-   * Cette fonction met à jour l'état local.
-   */
-  let lastNotificationId = null;
+  /* ------------------------------------
+   🧠 Vérification support navigateur
+  ------------------------------------ */
+  const checkSupport = () => ({
+    push: 'PushManager' in window,
+    sw: 'serviceWorker' in navigator,
+    permission: Notification.permission
+  })
 
+  /* ------------------------------------
+   🔑 Demander permission notification
+  ------------------------------------ */
   const requestPermission = async () => {
-    if ("Notification" in navigator) {
-      if (Notification.permission === "default") {
-        await Notification.requestPermission();
-      }
+    if (!('Notification' in window)) return 'unsupported'
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission()
     }
-  };
+    return Notification.permission
+  }
 
-  const fetchNotifications = async (sinceId = null) => {
-    if (isLoading.value && !sinceId) return; // Allow polling requests to go through
-    isLoading.value = true;
-    error.value = null;
+    const markAsRead = async (notificationId) => {
+    const notif = notifications.value.find(n => n.id === notificationId)
+    if (!notif || notif.is_read) return
+
+    const original = notif.is_read
+    notif.is_read = 1
+    unreadCount.value = Math.max(0, unreadCount.value - 1)
 
     try {
-      const url = sinceId
-        ? `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
-        : `/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`;
-
-      const response = await $api(url, { method: 'GET' });
-
-      if (response.success && response.data) {
-        // On ne garde que les notifications non lues
-        const unreadNotifications = response.data.notifications.filter(n => n.is_read === 0);
-
-        if (sinceId) {
-          // Polling request: prepend new notifications
-          if (unreadNotifications.length > 0) {
-            notifications.value = [...unreadNotifications, ...notifications.value];
-            lastNotificationId = unreadNotifications[0].id;
-          }
-        } else {
-          // Initial load: replace notifications
-          notifications.value = unreadNotifications;
-          if (notifications.value.length > 0) {
-            lastNotificationId = notifications.value[0].id;
-          }
-        }
-
-        unreadCount.value = response.data.unread_count;
-      } else {
-        throw new Error(response.error || 'Failed to fetch notifications.');
-      }
+      const response = await $api(
+        `/backend/notificationApi.php?action=markRead&notification_id=${notificationId}&user_id=${userId.value}`,
+        { method: 'GET' }
+      )
+      if (!response.success) throw new Error(response.error)
     } catch (e) {
-      error.value = e.message;
-      console.error("Error fetching notifications:", e);
-    } finally {
-      isLoading.value = false;
+      notif.is_read = original
+      unreadCount.value++
+      console.error(e)
     }
-  };
+  }
 
-  const fetchNewNotifications = () => {
-    fetchNotifications(lastNotificationId);
-  };
-
-  /**
-   * Marque une notification comme lue (avec mise à jour optimiste).
-   * @param notificationId - L'ID de la notification à marquer comme lue.
-   */
-  const markAsRead = async (notificationId) => {
-    const notification = notifications.value.find(n => n.id === notificationId);
-    if (!notification || notification.is_read) return;
-
-    // Mise à jour optimiste
-    const originalStatus = notification.is_read;
-    notification.is_read = 1;
-    unreadCount.value = Math.max(0, unreadCount.value - 1);
-
-    try {
-      const response = await $api(`/backend/notificationApi.php?action=markRead&notification_id=${notificationId}&user_id=${userId.value}`, {
-        method: 'GET',
-      });
-
-      console.log('res: ', response);
-
-      if (!response.success) {
-        // Annuler la mise à jour si l'API échoue
-        notification.is_read = originalStatus;
-        unreadCount.value++;
-        throw new Error(response.error || 'Failed to mark notification as read.');
-      }
-    } catch (e) {
-      error.value = e.message;
-      console.error(e);
-    }
-  };
-
-  /**
-   * Marque toutes les notifications comme lues.
-   */
   const markAllAsRead = async () => {
-    const originalNotifications = JSON.parse(JSON.stringify(notifications.value));
-    const originalUnreadCount = unreadCount.value;
+    const backup = JSON.parse(JSON.stringify(notifications.value))
+    const backupCount = unreadCount.value
 
-    // Mise à jour optimiste
-    notifications.value.forEach(n => n.is_read = 1);
-    unreadCount.value = 0;
+    notifications.value.forEach(n => (n.is_read = 1))
+    unreadCount.value = 0
 
     try {
       const response = await $api(`/backend/notificationApi.php?action=markAllRead&user_id=${userId.value}`, {
         method: 'GET',
-        // Le user_id est géré par le backend
-      });
+      })
+      if (!response.success) throw new Error(response.error)
+    } catch (e) {
+      notifications.value = backup
+      unreadCount.value = backupCount
+      console.error(e)
+    }
+  }
 
-      if (!response.success) {
-        // Annuler si l'API échoue
-        notifications.value = originalNotifications;
-        unreadCount.value = originalUnreadCount;
-        throw new Error(response.error || 'Failed to mark all as read.');
+  /* ------------------------------------
+   🔔 Notification locale
+  ------------------------------------ */
+  const showBrowserNotification = (notif) => {
+    if (!('Notification' in navigator) || Notification.permission !== 'granted') return
+
+    const title = notif.title || 'Nouvelle notification'
+    const options = {
+      body: notif.message || notif.text || 'Vous avez une nouvelle notification.',
+      icon: notif.icon || '/favicon.ico',
+      tag: `notif-${notif.id || Date.now()}`,
+      renotify: true,
+    }
+
+    const notification = new Notification(title, options)
+    notification.onclick = () => {
+      window.focus()
+      if (notif.link) window.open(notif.link, '_blank')
+    }
+  }
+
+  /* ------------------------------------
+   🌐 Récupération depuis backend
+  ------------------------------------ */
+  const fetchNotifications = async (sinceId = null) => {
+    if (isLoading.value && !sinceId) return
+    if (!userId.value) return
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const url = sinceId
+        ? `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
+        : `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`
+
+      const res = await fetch(url)
+
+      if (!res.ok) {
+        const text = await res.text() // récupérer le message brut du serveur
+        throw new Error(`HTTP ${res.status}: ${text}`)
       }
 
-    } catch (e) {
-      error.value = e.message;
-      console.error(e);
+      const data = await res.json() // ok, c'est du JSON valide
+      // ... traiter data
+    } catch (err) {
+      console.error('Error fetching notifications:', err)
     }
-  };
 
+  }
 
-  // --- Real-time (Polling) ---
+  /* ------------------------------------
+   📬 Enregistrement Push
+  ------------------------------------ */
+  const registerPushNotifications = async (uid = null) => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return { success: false, message: 'Notifications push non supportées.' }
+      }
 
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        return { success: false, message: 'Permission refusée.' }
+      }
+
+      let subscription = await registration.pushManager.getSubscription()
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        })
+      }
+
+      const auth = JSON.parse(localStorage.getItem('auth') || '{}')
+      const user_id = uid || auth.id
+      if (!user_id) return { success: false, message: 'Aucun utilisateur connecté.' }
+
+      const res = await fetch(`https://management.hoggari.com/backend/notificationApi.php?action=subscribePush&user_id=${user_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription }),
+      }).then(r => r.json())
+
+      if (res.success) {
+        return { success: true, subscription: subscription.toJSON() }
+      } else {
+        return { success: false, message: res.message || 'Erreur serveur' }
+      }
+    } catch (err) {
+      console.error('💥 Erreur d’enregistrement push :', err)
+      return { success: false, message: err.message }
+    }
+  }
+
+  /* ------------------------------------
+   🧪 Envoi d’une notification test
+  ------------------------------------ */
+  const sendTestNotification = async (uid = null) => {
+    const auth = JSON.parse(localStorage.getItem('auth') || '{}')
+    const user_id = uid || auth.id
+    if (!user_id) return { success: false, message: 'Aucun utilisateur connecté.' }
+
+    try {
+      const res = await fetch(`https://management.hoggari.com/backend/notificationApi.php?action=testPush&user_id=${user_id}`).then(r => r.json())
+      return res
+    } catch (err) {
+      console.error('Erreur test notification:', err)
+      return { success: false, message: err.message }
+    }
+  }
+
+  /* ------------------------------------
+   🧮 Utils
+  ------------------------------------ */
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
+  }
+
+  /* ------------------------------------
+   🔁 Polling
+  ------------------------------------ */
   const startPolling = () => {
-    if (polling) {
-      clearInterval(polling);
-    }
-    // Fetch new notifications every 5 seconds
-    polling = setInterval(fetchNewNotifications, 5000);
-  };
+    stopPolling()
+    polling = setInterval(() => fetchNotifications(lastNotificationId), 5000)
+  }
 
   const stopPolling = () => {
-    if (polling) {
-      clearInterval(polling);
-      polling = null;
-    }
-  };
+    if (polling) clearInterval(polling)
+  }
 
-
-  // --- Hooks de cycle de vie ---
-  onMounted(() => {
-    requestPermission();
-    
-    if(localStorage.getItem('auth')) {
-      authData.value = JSON.parse(localStorage.getItem('auth'));
-      if(authData.value) {
+  /* ------------------------------------
+   🌱 Lifecycle
+  ------------------------------------ */
+  onMounted(async () => {
+    const auth = localStorage.getItem('auth')
+    if (auth) {
+      authData.value = JSON.parse(auth)
+      if (authData.value) {
         userId.value = authData.value.id
-        fetchNotifications(); // Premier fetch pour l'historique
-        startPolling();       // Démarrer le polling pour les mises à jour
+        await fetchNotifications()
+        startPolling()
       }
-      
-      
     }
+  })
 
-  });
+  onUnmounted(stopPolling)
 
-  onUnmounted(() => {
-    stopPolling(); // Nettoyage pour éviter les fuites de mémoire
-  });
-
-
-  // --- Exportations ---
   return {
+    // 🔔 notifications classiques
     notifications: computed(() => notifications.value),
     unreadCount: computed(() => unreadCount.value),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
-
     fetchNotifications,
-    markAsRead,
+
+    // 🔑 gestion push
+    checkSupport,
+    registerPushNotifications,
+    sendTestNotification,
     markAllAsRead,
-  };
-};
+    markAsRead
+  }
+}

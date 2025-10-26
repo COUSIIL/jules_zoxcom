@@ -2,6 +2,9 @@
 // backend/notificationApi.php
 // Ce fichier centralise toute la logique de l'API pour les notifications.
 
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+
 // --- Headers & Initialisation ---
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *"); // ⚠️ restreindre en production
@@ -16,8 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // --- Configuration & Functions ---
 require_once __DIR__ . '/config/dbConfig.php';
-require_once __DIR__ . '/../notification.config.php';
 require_once __DIR__ . '/notificationFunction.php';
+require __DIR__ . '/../notification.config.php';
+
 
 // Vérifier que $mysqli existe et est bien une instance de mysqli
 if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
@@ -37,6 +41,7 @@ if (!$auth && !in_array($action, ['setup', 'listTags'])) { // 'setup' et 'listTa
     send_json_response(false, null, 'Authentication required.', 401);
     exit;
 }
+
 
 switch ($action) {
 
@@ -214,6 +219,129 @@ switch ($action) {
         $stmt->execute();
         send_json_response(true, ['status' => 'Notification enqueued for sending.']);
         break;
+
+    case 'swPush':
+
+    // 🔹 Récupération des abonnements de l'utilisateur
+    $userId = (int)$auth;
+    $subscriptions = getUserSubscriptions($mysqli, $userId);
+
+    if (empty($subscriptions)) {
+        send_json_response(false, null, 'Aucune subscription trouvée pour cet utilisateur.', 404);
+    }
+
+    // 🔹 Contenu de la notification
+    $payload = json_encode([
+        'title' => 'Nouvelle notification 🎉',
+        'message' => 'Une nouvelle notification vient d’arriver.',
+        'icon' => '/icons/notification-icon.png',
+        'link' => '/notifications'
+    ]);
+
+    // 🔹 Chargement des clés VAPID depuis config
+    require_once __DIR__ . '/config/vapid_keys.php'; // (à adapter)
+    // vapid_keys.php :
+    // define('VAPID_PUBLIC_KEY', '...');
+    // define('VAPID_PRIVATE_KEY', '...');
+
+    // 🔹 Instanciation du client WebPush
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => VAPID_SUBJECT,
+            'publicKey' => VAPID_PUBLIC_KEY,
+            'privateKey' => VAPID_PRIVATE_KEY,
+        ],
+    ]);
+
+    $successCount = 0;
+    $failCount = 0;
+
+    // 🔹 Envoi à chaque abonnement
+    foreach ($subscriptions as $sub) {
+        try {
+            $subscription = Subscription::create([
+                'endpoint' => $sub['endpoint'],
+                'keys' => [
+                    'p256dh' => $sub['p256dh'],
+                    'auth' => $sub['auth'],
+                ],
+            ]);
+
+            $report = $webPush->sendOneNotification($subscription, $payload);
+
+            if ($report->isSuccess()) {
+                $successCount++;
+            } else {
+                $failCount++;
+                error_log("[WebPush] Échec pour endpoint: " . $sub['endpoint']);
+            }
+
+        } catch (Exception $e) {
+            $failCount++;
+            error_log("[WebPush] Exception: " . $e->getMessage());
+        }
+    }
+
+    send_json_response(true, [
+        'sent' => $successCount,
+        'failed' => $failCount,
+        'total' => count($subscriptions),
+    ]);
+
+    break;
+
+    case 'testPush':
+    $userId = (int)$auth;
+    $subscriptions = getUserSubscriptions($mysqli, $userId);
+
+    if (empty($subscriptions)) {
+        send_json_response(false, null, 'Aucune subscription trouvée pour cet utilisateur.', 404);
+    }
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => VAPID_SUBJECT,
+            'publicKey' => VAPID_PUBLIC_KEY,
+            'privateKey' => VAPID_PRIVATE_KEY,
+        ],
+    ]);
+
+    $payload = json_encode([
+        'title' => 'Test de notification 🎯',
+        'message' => 'Si tu vois ceci, ton système de notifications push fonctionne ✅',
+        'icon' => '/icons/notification-icon.png',
+        'link' => '/'
+    ]);
+
+    $success = 0; $fail = 0;
+    foreach ($subscriptions as $sub) {
+        try {
+            $subscription = Subscription::create([
+                'endpoint' => $sub['endpoint'],
+                'keys' => [
+                    'p256dh' => $sub['p256dh'],
+                    'auth' => $sub['auth'],
+                ],
+            ]);
+
+            $report = $webPush->sendOneNotification($subscription, $payload);
+            if ($report->isSuccess()) $success++;
+            else $fail++;
+        } catch (Exception $e) {
+            $fail++;
+        }
+    }
+
+    send_json_response(true, [
+        'sent' => $success,
+        'failed' => $fail,
+        'total' => count($subscriptions),
+    ]);
+    break;
+
+
+
+
 
 }
 ?>

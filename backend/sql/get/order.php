@@ -16,6 +16,7 @@ require_once $configPath;
 
 $alters = [
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
@@ -104,6 +105,7 @@ foreach ($data['orders'] as $orderData) {
         'total' => $orderData['total_price'],
         'status' => $orderData['status'],
         'ip' => $orderData['ip_adresse'] ?? '',
+        'tracking' => $orderData['tracking_code'] ?? '',
         'create' => $orderData['created_at'],
     ];
 }

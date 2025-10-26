@@ -3,6 +3,22 @@
 // Ce fichier contient les fonctions pour le système de notification.
 
 // --- Helpers ---
+
+use Minishlink\WebPush\WebPush;
+use Minishlink\WebPush\Subscription;
+
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
+// Si c’est une requête OPTIONS (préflight), on arrête ici
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+
 function send_json_response($success, $data = null, $error = null, $http_code = 200) {
     if (!headers_sent()) {
         http_response_code($http_code);
@@ -10,6 +26,77 @@ function send_json_response($success, $data = null, $error = null, $http_code = 
     }
     echo json_encode(['success' => $success, 'data' => $data, 'message' => $error]);
     exit;
+}
+
+
+function sendWebPushNotification($mysqli, $title, $message, $link = '/notifications', $icon = '/icons/order.png') {
+    $vendorPath = __DIR__ . '/../vendor/autoload.php'; 
+    $configPath = __DIR__ . '/../notification.config.php';
+
+    require_once $vendorPath;
+    require_once $configPath;
+
+    $subs = $mysqli->query("SELECT subscription FROM push_subscriptions");
+
+    $subscriptions = [];
+    while ($row = $subs->fetch_assoc()) {
+        $subData = json_decode($row['subscription'], true);
+        if ($subData) {
+            $subscriptions[] = [
+                'endpoint' => $subData['endpoint'] ?? '',
+                'p256dh'   => $subData['keys']['p256dh'] ?? '',
+                'auth'     => $subData['keys']['auth'] ?? '',
+            ];
+        }
+    }
+
+    $payload = json_encode([
+        'title' => $title,
+        'message' => $message,
+        'icon' => $icon,
+        'link' => $link
+    ]);
+
+    $webPush = new WebPush([
+        'VAPID' => [
+            'subject' => VAPID_SUBJECT,
+            'publicKey' => VAPID_PUBLIC_KEY,
+            'privateKey' => VAPID_PRIVATE_KEY,
+        ],
+    ]);
+
+    $successCount = 0;
+    $failCount = 0;
+
+    // ⚠ On parcourt $subscriptions, pas $subs
+    foreach ($subscriptions as $sub) {
+        try {
+            $subscription = Subscription::create([
+                'endpoint' => $sub['endpoint'],
+                'keys' => [
+                    'p256dh' => $sub['p256dh'],
+                    'auth' => $sub['auth']
+                ],
+            ]);
+
+            $report = $webPush->sendOneNotification($subscription, $payload);
+
+            if ($report->isSuccess()) {
+                $successCount++;
+            } else {
+                $failCount++;
+            }
+        } catch (Exception $e) {
+            $failCount++;
+        }
+    }
+
+    return [
+        'error' => false,
+        'sent' => $successCount,
+        'failed' => $failCount,
+        'total' => $successCount + $failCount,
+    ];
 }
 
 function get_json_input() {
@@ -95,4 +182,44 @@ function create_and_enqueue_notification(mysqli $db, array $params) {
         return $e->getMessage();
     }
 }
+
+/**
+ * Récupère toutes les subscriptions push d’un utilisateur.
+ *
+ * @param mysqli $mysqli  Connexion à la base
+ * @param int $user_id    ID utilisateur
+ * @return array          Liste des subscriptions [endpoint, p256dh, auth]
+ */
+function getUserSubscriptions(mysqli $mysqli, int $user_id): array {
+    $sql = "SELECT subscription FROM push_subscriptions WHERE user_id = ?";
+    $stmt = $mysqli->prepare($sql);
+    if (!$stmt) {
+        error_log("getUserSubscriptions prepare error: " . $mysqli->error);
+        return [];
+    }
+
+    $stmt->bind_param("i", $user_id);
+    if (!$stmt->execute()) {
+        error_log("getUserSubscriptions execute error: " . $stmt->error);
+        return [];
+    }
+
+    $res = $stmt->get_result();
+    $subscriptions = [];
+
+    while ($row = $res->fetch_assoc()) {
+        $sub = json_decode($row['subscription'], true);
+        if (!$sub) continue;
+
+        $subscriptions[] = [
+            'endpoint' => $sub['endpoint'] ?? '',
+            'p256dh'   => $sub['keys']['p256dh'] ?? '',
+            'auth'     => $sub['keys']['auth'] ?? '',
+        ];
+    }
+
+    $stmt->close();
+    return $subscriptions;
+}
+
 ?>

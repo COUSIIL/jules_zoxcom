@@ -89,38 +89,28 @@ const clicker = (val) => {
 
 /* Inactif (ressorti, comme un bouton qui dépasse) */
 .switchGrid button:not(.active) {
-  color: var(--color-zioly1);
   height: 30px;
-  background: var(--color-whity);
+  background: var(--color-whitly);
   border-radius: 8px;
   box-shadow: 
-    -4px -4px 6px 4px #ffffffd2,
-     4px  4px 6px 4px #aca7afc2;
+     2px  2px 4px 2px #aca7afc2;
   transform: translateY(-2px); /* bouton ressorti */
 }
 .dark .switchGrid button:not(.active) {
-  background: var(--color-darky);
+  background: var(--color-darkly);
   box-shadow: 
-      -4px -4px 6px 4px #180f1f,
-      4px 4px 6px 4px rgba(0, 0, 0, 0.761);
+      2px 2px 4px 2px rgba(0, 0, 0, 0.761);
 }
 
 /* Actif (enfoncé comme un clic) */
 .switchGrid button.active {
-  color: var(--color-zioly1);
   height: 30px;
-  background: var(--color-whity);
+  background: var(--color-whitly);
   border-radius: 8px;
-  box-shadow: 
-    inset -4px -4px 6px 1px #ffffffd2,
-    inset  4px  4px 6px 1px #aca7afc2;
   transform: translateY(2px); /* bouton enfoncé */
 }
 .dark .switchGrid button.active {
-  background: var(--color-darky);
-  box-shadow: 
-    inset -4px -4px 6px 1px #180f1f,
-    inset  4px  4px 6px 1px rgba(0, 0, 0, 0.761);
+  background: var(--color-darkly);
 }
 
 

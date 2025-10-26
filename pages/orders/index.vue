@@ -16,7 +16,7 @@
       @cancel="cancelShipping"
     />
     <div v-else-if="isShipping">
-      <Loader :style="{width: '80px', height: '80px'}"/>
+      <Loader width="80px"/>
     </div>
   </nav>
 
@@ -83,7 +83,7 @@
 
               <div class="boxItem">
                 <div v-html="resizeSvg(iconsFilled['location'], 18, 18)"></div>
-                <p class="text">{{ dts.name }} - {{ dts.deliveryZone }}</p>
+                <p class="text">{{ dts.deliveryZone }} - {{ dts.sZone }}</p>
               </div>
             </div>
           </div>
@@ -98,9 +98,29 @@
 
           </div>
 
-          <div v-if="dts.note && !dts.isMore" :class="['noteBox', `status-${dts.status.toLowerCase()}`]">
+          <div
+            v-if="Array.isArray(dts.note) && dts.note.length > 0 && dts.note.some(n => n?.text?.trim()) && !dts.isMore"
+            :class="['noteBox', dts.status ? `status-${dts.status.toLowerCase()}` : '']"
+          >
+
+
+
             <Note :speed="80" :gap="48">
-              {{ dts.note }}
+              <div v-for="noti in dts.note" >
+                <div v-if="noti?.text?.trim()" class="rowFlex2">
+                  <img
+                    class="circleImg"
+                    :src="noti?.profile_image ? `https://management.hoggari.com/uploads/profile/${noti.profile_image}` : 'https://management.hoggari.com/uploads/profile/default.png'"
+                    :alt="noti?.profile_image || t('user profile')"
+                  />
+                  <span v-if="noti.user" class="note-user"> {{ noti.user }} : </span>
+                  <span class="note-text">{{ noti.text }}</span>
+                  
+                  
+                </div>
+                
+              </div>
+              
             </Note>
           </div>
 
@@ -119,6 +139,8 @@
               </h4>
               
             </button>
+
+            
 
             <!-- Livraison & Infos -->
             <div class="grid2">
@@ -155,6 +177,10 @@
                 <p v-if="dts.type == 0"><b>{{t('delivery type')}}:</b> {{t('home')}}</p>
                 <p v-else><b>{{t('delivery type')}}:</b> {{t('stop desk')}}</p>
                 <p><b>{{t('fees')}}:</b> {{ dts.deliveryValue }} DA</p>
+                <p><b>{{t('Tracking Code')}}:</b> {{dts.tracking}}</p>
+                <p><b>{{t('activity')}}:</b> <div class="activityText" v-if="dts.activity">{{dts.activity}}</div></p>
+
+
 
               </div>
             </div>
@@ -204,21 +230,39 @@
             
 
             <!-- Note -->
-            <div class="notes-section">
-              <div v-for="(note, noteIndex) in dts.notes" :key="noteIndex" class="note-wrapper">
+            <div class="note-section">
+              
+              <div v-for="(note, noteIndex) in dts.note" :key="noteIndex" class="note-wrapper">
                 <PostIt
+                  v-if="note.text"
                   v-model="note.text"
                   :color="note.isClientNote ? '#d6e7ff' : note.color"
                   :size="300"
                   :rotate="noteIndex % 2 === 0 ? -2 : 2"
-                  @update:modelValue="(value) => editNote(dts.id, dts.notes)"
+                  @update:modelValue="(value) => editNote(dts.id, dts.note)"
                 />
-                <div class="note-info">
-                  <span class="note-user">{{ note.user }}</span>
+                <div class="note-info" v-if="note.text">
+                  <div class="rowFlex2">
+                    <img
+                      class="circleImg"
+                      :src="note?.profile_image ? `https://management.hoggari.com/uploads/profile/${note.profile_image}` : 'https://management.hoggari.com/uploads/profile/default.png'"
+                      :alt="note?.profile_image || t('user profile')"
+                    />
+
+                    <span class="note-user">{{ note.user }}</span>
+                  </div>
+                  
                   <RectBtn iconColor="#ff5555" svg="trashX" @click:ok="deleteNote(index, noteIndex)"/>
                 </div>
               </div>
-              <RectBtn text="Add Note" @click:ok="addNote(index)"/>
+              <PostIt
+                  :isBtn="true"
+                  :size="300"
+                  :rotate="noteIndex % 2 === 0 ? -2 : 2"
+                  @update:modelValue="addNote(index)"
+                />
+
+              
             </div>
 
             <!-- Total -->
@@ -260,7 +304,7 @@ import icons from '../../public/icons.json'
 const { t } = useLang()
 
 
-const { data, loading, getOrders, deleteOrder, updateOrderValue } = useOrders();
+const { data, loading, getOrders, deleteOrder, updateOrderValue, deliverOrder, viewTracking } = useOrders();
 const idToEdit = ref(0)
 const statusID = ref(0)
 const statusIndex = ref(0)
@@ -437,11 +481,11 @@ const shipping = async ({ name, phone1, phone2, note, total, indexing }) => {
     order.name = name[i];
     order.phone = phone1[i];
     // order.phone2 = phone2[i]; // Add if you have a second phone field
-    order.notes.push({ text: `Note de livraison: ${note[i]}`, user: 'system', isClientNote: false, color: '#d6ffdf' });
+    order.note.push({ text: `Note de livraison: ${note[i]}`, user: 'system', isClientNote: false, color: '#d6ffdf' });
     order.total = total[i];
 
-    await deliverOrder(order, order.items[0], order.type === 0 ? 'Home' : 'Stop Desk', order.method, order.total, order.deliveryValue);
-    await updateOrderValue(order.id, 'status', 'shipping');
+    await deliverOrder(order, order.items, order.type === 1 ? 'Home' : 'Stop Desk', order.method, order.total, order.deliveryValue, order.deliveryZone);
+
   }
   showDeliver.value = false;
   isShipping.value = false;
@@ -451,33 +495,61 @@ const cancelShipping = () => {
   showDeliver.value = false;
 };
 
-const editNote = async (id, notes) => {
-  const notesJson = JSON.stringify(notes.map(note => ({
-    text: note.text,
-    user: note.user,
-    isClientNote: note.isClientNote,
-    color: note.color
-  })));
-  await updateOrderValue(id, 'notes', notesJson);
+const editNote = async (id, note) => {
+  let noteJson;
+  const authData = JSON.parse(localStorage.getItem('auth'));
+
+  try {
+    if (Array.isArray(note)) {
+      // ✅ Si c’est un tableau de notes
+      noteJson = JSON.stringify(
+        note.map(n => ({
+          text: n.text ?? '',
+          user: n.user ?? null,
+          // 🧠 Si user existe => image du user connecté, sinon vide
+          profile_image: n.user ? authData?.profile_image || '' : '',
+          isClientNote: !!n.isClientNote,
+          color: n.color ?? '#fff'
+        }))
+      );
+    } else {
+      // ⚠ Note simple (client)
+      noteJson = JSON.stringify([
+        {
+          text: typeof note === 'string' ? note : JSON.stringify(note),
+          user: null,
+          isClientNote: true,
+          profile_image: '', // ❌ pas d’image pour le client
+          color: '#fff'
+        }
+      ]);
+    }
+
+    await updateOrderValue(id, 'note', noteJson);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour des notes :', error);
+  }
 };
+
+
 
 const addNote = (orderIndex) => {
   const authData = JSON.parse(localStorage.getItem('auth'));
-  const currentUser = authData ? authData.user : 'unknown';
+  const currentUser = authData ? authData.username : 'unknown';
 
   const newNote = {
     text: 'New Note',
     user: currentUser,
     isClientNote: false,
+    profile_image: authData.profile_image,
     color: '#ffef6c'
   };
-  limitedDt.value[orderIndex].notes.push(newNote);
-  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].notes);
+  limitedDt.value[orderIndex].note.push(newNote);
 };
 
 const deleteNote = (orderIndex, noteIndex) => {
-  limitedDt.value[orderIndex].notes.splice(noteIndex, 1);
-  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].notes);
+  limitedDt.value[orderIndex].note.splice(noteIndex, 1);
+  editNote(limitedDt.value[orderIndex].id, limitedDt.value[orderIndex].note);
 };
 
 const copyIp = async (ip, index) => {
@@ -494,17 +566,68 @@ const reverseOrders = (vl) => {
   if (Array.isArray(vl)) {
     dt.value = vl
       .map(item => {
-        let notes = [];
+        let note = [];
+
         try {
-          // Atttempt to parse the notes field if it's a JSON string
-          notes = JSON.parse(item.notes);
-          if (!Array.isArray(notes)) {
-            // If parsing results in something other than an array, handle it
-            notes = item.notes ? [{ text: item.notes, user: 'system', isClientNote: true, color: '#d6e7ff' }] : [];
+          // ✅ Si item.note est une chaîne JSON valide
+          if (typeof item.note === 'string') {
+            const parsed = JSON.parse(item.note);
+
+            if (Array.isArray(parsed)) {
+              note = parsed.map(note => ({
+                text: note.text ?? '',
+                user: note.user ?? null,
+                isClientNote: !!note.isClientNote,
+                profile_image: note.profile_image,
+                color: note.color ?? '#d6e7ff'
+              }));
+            } else if (parsed && typeof parsed === 'object') {
+              // ✅ Si c’est un seul objet
+              note = [{
+                text: parsed.text ?? '',
+                user: parsed.user ?? null,
+                isClientNote: !!parsed.isClientNote,
+                profile_image: parsed.profile_image,
+                color: parsed.color ?? '#d6e7ff'
+              }];
+            } else if (parsed) {
+              // ✅ Si c’est autre chose (string, nombre, etc.)
+              note = [{
+                text: String(parsed),
+                user: null,
+                isClientNote: true,
+                profile_image: '',
+                color: '#d6e7ff'
+              }];
+            }
+          } else if (Array.isArray(item.note)) {
+            // ✅ Déjà un tableau
+            note = item.note.map(note => ({
+              text: note.text ?? '',
+              user: note.user ?? null,
+              isClientNote: !!note.isClientNote,
+              profile_image: note.profile_image,
+              color: note.color ?? '#d6e7ff'
+            }));
+          } else if (item.note) {
+            // ✅ Chaîne brute ou autre
+            note = [{
+              text: String(item.note),
+              user: null,
+              isClientNote: true,
+              profile_image: '',
+              color: '#d6e7ff'
+            }];
           }
         } catch (e) {
-          // If it's not a valid JSON string, treat it as a single note
-          notes = item.notes ? [{ text: item.notes, user: 'system', isClientNote: true, color: '#d6e7ff' }] : [];
+          // ⚠ JSON invalide → note client simple
+          note = [{
+            text: String(item.note ?? ''),
+            user: null,
+            isClientNote: true,
+            profile_image: '',
+            color: '#d6e7ff'
+          }];
         }
 
         return {
@@ -512,7 +635,8 @@ const reverseOrders = (vl) => {
           isMore: false,
           isSelected: false,
           copiedId: false,
-          notes: notes
+          activity: '',
+          note
         };
       })
       .reverse();
@@ -521,8 +645,13 @@ const reverseOrders = (vl) => {
   }
 };
 
-const doMore = (val) => {
+
+const doMore = async (val) => {
   limitedDt.value[val].isMore = !limitedDt.value[val].isMore
+  
+  if(limitedDt.value[val].isMore === true && limitedDt.value[val].tracking) {
+    limitedDt.value[val].activity = await viewTracking(limitedDt.value[val].tracking)
+  }
 }
 
 
@@ -558,12 +687,11 @@ const hrefLink = (link) => {
   flex-direction: column;
   gap: 14px;
   box-sizing: border-box;
-  padding: 8px;
 }
 
 /* Liste */
 .uler {
-  margin: 10px 0;
+
   padding: 0;
   width: 100%;
   box-sizing: border-box;
@@ -582,7 +710,7 @@ const hrefLink = (link) => {
   justify-content: space-between;
   align-items: center;
   gap: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 20px;
 
 }
 
@@ -893,6 +1021,12 @@ const hrefLink = (link) => {
   justify-content: space-between;
   align-items: center;
 }
+.rowFlex2 {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
 .columnFlex {
   width: 100%;
   display: flex;
@@ -1095,7 +1229,7 @@ const hrefLink = (link) => {
       2px 2px 4px 1px rgba(0, 0, 0, 0.761);
 }
 
-.notes-section {
+.note-section {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
@@ -1110,9 +1244,20 @@ const hrefLink = (link) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
-  color: #666;
   margin-top: 4px;
+}
+.note-text {
+  font-size: 12px;
+}
+.note-user {
+  font-size: 14px;
+  font-weight: bold;
+  margin-inline: 2px;
+}
+.activityText {
+  font-size: 14px;
+  color: var(--color-yelly);
+  margin-inline: 2px;
 }
 
 .overlay {
@@ -1126,5 +1271,14 @@ const hrefLink = (link) => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+.circleImg {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 5px;
+  object-fit: cover;        /* garde les proportions */
+  object-position: center;  /* centre le contenu */
 }
 </style>

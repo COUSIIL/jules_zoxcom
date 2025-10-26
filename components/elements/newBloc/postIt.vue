@@ -1,12 +1,22 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
 
+import iconsFilled from '../../../public/iconsFilled.json'
+import icons from '../../../public/icons.json'
+
+var resizeSvg = (svg, width, height) => {
+  return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`)
+}
+
 // ✅ définir les props UNE SEULE FOIS
 const props = defineProps({
   modelValue: { type: String, default: '' },
   color: { type: String, default: '#ffef6c' }, // couleur par défaut (jaune post-it)
   size: { type: [Number, String], default: 200 }, // taille (px)
-  rotate: { type: Number, default: 0 } // rotation optionnelle
+  rotate: { type: Number, default: 0 }, // rotation optionnelle
+  isBtn: {type: Boolean, defineEmits: false}
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -37,7 +47,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
+
+
+
+  <div v-if="!isBtn"
     class="postit"
     :style="{
       width: Number(size) + 'px',
@@ -61,6 +74,30 @@ onMounted(() => {
       ></div>
     </div>
   </div>
+  <div v-else class="postitClick"
+    :style="{
+      width: Number(size) + 'px',
+      height: Number(size) + 'px',
+      transform: `rotate(${rotate}deg)`
+    }"
+    role="group"
+  >
+
+    <div class="postit-body" :style="{ backgroundColor: color }">
+      <div
+        ref="contentRef"
+        class="postit-content"
+        contenteditable="false"
+        aria-multiline="false"
+        spellcheck="false"
+        @click="onInput"
+      >
+      <div v-html="resizeSvg(iconsFilled['plus'], 30, 30)">
+
+      </div>
+    </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -69,6 +106,15 @@ onMounted(() => {
   position: relative;
   user-select: text;
   cursor: text;
+  margin: 12px;
+  transition: transform 0.12s ease;
+}
+
+.postitClick {
+  display: inline-block;
+  position: relative;
+  user-select: text;
+  cursor: pointer;
   margin: 12px;
   transition: transform 0.12s ease;
 }

@@ -25,6 +25,12 @@ if (!file_exists($configPath2)) {
 require_once $configPath;
 require_once $configPath2;
 
+$result = $mysqli->query("SHOW COLUMNS FROM orders LIKE 'tracking_code'");
+if ($result && $result->num_rows === 0) {
+    $mysqli->query("ALTER TABLE orders ADD COLUMN tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse");
+}
+
+
 $data = json_decode(file_get_contents('php://input'), true);
 
 // Vérifier si les données nécessaires sont présentes
@@ -34,7 +40,7 @@ if (isset($data['id'], $data['status'], $data['value'])) {
     $value = $data['value'];
 
     // Liste des champs autorisés pour éviter les injections SQL
-    $allowed_fields = ['status', 'note']; // Ajoutez d'autres champs si nécessaire
+    $allowed_fields = ['status', 'note', 'tracking_code']; // Ajoutez d'autres champs si nécessaire
     if (!in_array($status, $allowed_fields)) {
         echo json_encode([
             'success' => false,
