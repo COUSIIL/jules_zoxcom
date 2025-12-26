@@ -14,9 +14,14 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
+
 $alters = [
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS reminder_id INT NULL AFTER tracking_code",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS owner VARCHAR(45) NULL AFTER reminder_id",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS owner_conf_date TIMESTAMP NULL AFTER owner",
+  "ALTER TABLE orders ADD COLUMN IF NOT EXISTS owner_conf_state VARCHAR(45) NULL AFTER owner_conf_date",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
@@ -55,31 +60,38 @@ foreach ($tables as $key => $query) {
     $data[$key] = $result->fetch_all(MYSQLI_ASSOC);
 }
 
+// Organiser product_items par indx (order_items.id)
 $productItems = [];
-foreach ($data['product'] as $model) {
-    $productItems[$model['order_id']][] = [
-        'color' => $model['color'],
-        'color_name' => $model['color_name'],
-        'size' => $model['size'],
-        'qty' => $model['qty'],
-        'total' => $model['total'],
-        'promo' => $model['promo'],
-        'id' => $model['ids'],
-        'indx' => $model['indx']
+foreach ($data['product'] as $item) {
+    if (!isset($item['indx']) || !$item['indx']) continue;
+
+    $productItems[$item['indx']][] = [
+        'color' => $item['color'],
+        'color_name' => $item['color_name'],
+        'size' => $item['size'],
+        'qty' => $item['qty'],
+        'total' => $item['total'],
+        'promo' => $item['promo'],
+        'id' => $item['ids'],
+        'indx' => $item['indx'],
     ];
 }
 
 
-// Organisation des données pour éviter les boucles imbriquées
+// Organiser order_items : chaque modèle avec ses variantes uniques
 $groupedModels = [];
 foreach ($data['item'] as $model) {
+
+    $orderItemId = $model['id']; // id in order_items
+
     $groupedModels[$model['order_id']][] = [
+        'id' => $model['product_id'],
         'productName' => $model['product_name'],
         'image' => $model['image'],
         'price' => $model['price'],
         'qty' => $model['qty'],
         'ref' => $model['ref'],
-        'items' => $productItems[$model['order_id']] ?? [],
+        'items' => $productItems[$orderItemId] ?? [], // ✅ seulement les variantes liées
     ];
 }
 
@@ -106,7 +118,12 @@ foreach ($data['orders'] as $orderData) {
         'status' => $orderData['status'],
         'ip' => $orderData['ip_adresse'] ?? '',
         'tracking' => $orderData['tracking_code'] ?? '',
+        'reminder_id' => $orderData['reminder_id'] ?? '',
+        'delegated' => $orderData['delegated'] ?? '',
         'create' => $orderData['created_at'],
+        'owner' => $orderData['owner'] ?? '',
+        'owner_conf_date' => $orderData['owner_conf_date'] ?? '',
+        'owner_conf_state' => $orderData['owner_conf_state'] ?? '',
     ];
 }
 

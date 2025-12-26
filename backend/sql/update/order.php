@@ -2,22 +2,13 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 
-// Inclure le fichier de configuration de la base de données
-$configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
+$configPath  = __DIR__ . '/../../../backend/config/dbConfig.php';
 $configPath2 = __DIR__ . '/../update/products/confirmOrder.php';
 
-if (!file_exists($configPath)) {
+if (!file_exists($configPath) || !file_exists($configPath2)) {
     echo json_encode([
         'success' => false,
-        'message' => 'dbConfig not found.',
-    ]);
-    exit;
-}
-
-if (!file_exists($configPath2)) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'confirmOrder not found.',
+        'message' => 'Required config not found.'
     ]);
     exit;
 }
@@ -25,88 +16,161 @@ if (!file_exists($configPath2)) {
 require_once $configPath;
 require_once $configPath2;
 
-$result = $mysqli->query("SHOW COLUMNS FROM orders LIKE 'tracking_code'");
-if ($result && $result->num_rows === 0) {
-    $mysqli->query("ALTER TABLE orders ADD COLUMN tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse");
+/* =======================
+   Ensure columns exist
+======================= */
+
+$checks = [
+    "tracking_code"    => "ALTER TABLE orders ADD COLUMN tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse",
+    "reminder_id"      => "ALTER TABLE orders ADD COLUMN reminder_id INT NULL AFTER tracking_code",
+    "corrector_price"  => "ALTER TABLE orders ADD COLUMN corrector_price INT NULL AFTER reminder_id",
+    "delegated"        => "ALTER TABLE orders ADD COLUMN delegated INT NULL AFTER corrector_price",
+    "owner"            => "ALTER TABLE orders ADD COLUMN owner VARCHAR(45) NULL AFTER delegated",
+    "owner_conf_date"  => "ALTER TABLE orders ADD COLUMN owner_conf_date TIMESTAMP NULL AFTER owner",
+    "owner_conf_state" => "ALTER TABLE orders ADD COLUMN owner_conf_state VARCHAR(45) NULL AFTER owner_conf_date"
+];
+
+foreach ($checks as $col => $sql) {
+    $r = $mysqli->query("SHOW COLUMNS FROM orders LIKE '$col'");
+    if ($r && $r->num_rows === 0) {
+        $mysqli->query($sql);
+    }
 }
 
+/* =======================
+   Input
+======================= */
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-// Vérifier si les données nécessaires sont présentes
-if (isset($data['id'], $data['status'], $data['value'])) {
-    $id = $data['id'];
-    $status = $data['status'];
-    $value = $data['value'];
+if (!isset($data['id'], $data['status'], $data['value'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Missing parameters.'
+    ]);
+    exit;
+}
 
-    // Liste des champs autorisés pour éviter les injections SQL
-    $allowed_fields = ['status', 'note', 'tracking_code']; // Ajoutez d'autres champs si nécessaire
-    if (!in_array($status, $allowed_fields)) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Invalid field name.',
-        ]);
-        die;
-    }
+$id     = (int)$data['id'];
+$status = $data['status'];
+$value  = $data['value'];
 
-    // Vérifier si l'entrée existe
-    $check_query = $mysqli->prepare("SELECT * FROM orders WHERE id = ?");
-    $check_query->bind_param("i", $id);
-    $check_query->execute();
-    $check_result = $check_query->get_result();
-    $fetchedResult1 = $check_result->fetch_assoc();
-    $check_query->close();
+$owner = $data['owner'] ?? null;
 
-    $check_query_item = $mysqli->prepare("SELECT * FROM order_items WHERE order_id = ?");
-    $check_query_item->bind_param("i", $id);
-    $check_query_item->execute();
-    $check_result_item = $check_query_item->get_result();
+/* =======================
+   Allowed fields
+======================= */
 
-    $orderItems = [];
-    while ($row = $check_result_item->fetch_assoc()) {
-        $orderItems[] = $row;
-    }
-    $check_query_item->close();
+$allowed_fields = [
+    'status',
+    'note',
+    'tracking_code',
+    'reminder_id',
+    'delegated',
+    'owner',
+    'owner_conf_date',
+    'owner_conf_state'
+];
 
-    if ($check_result->num_rows != 0) {
-        $sql = "UPDATE orders SET $status = ? WHERE id = ?";
-        $update_query = $mysqli->prepare($sql);
-        $update_query->bind_param("si", $value, $id);
+if (!in_array($status, $allowed_fields, true)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid field name.'
+    ]);
+    exit;
+}
 
-        if ($update_query->execute()) {
+/* =======================
+   Check order
+======================= */
 
-            if($value == "confirmed") {
-                // Appeler la mise à jour du stock pour chaque item
-                foreach ($orderItems as $item) {
-                    $stockResult = updateStock($mysqli, $item['model_id'], $item['product_id'], $item['qty']);
-                    if (!$stockResult['success']) {
-                        echo json_encode($stockResult);
-                        die;
-                    } else {
-                        echo json_encode($stockResult);
-                    }
-                }
-            } else {
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Order updated',
-                    'data' => $value,
-                ]);
-            }
-            
+$check = $mysqli->prepare("SELECT id FROM orders WHERE id = ?");
+$check->bind_param("i", $id);
+$check->execute();
+$res = $check->get_result();
+$check->close();
 
-            
-        } else {
-            echo json_encode([
-                'success' => false,
-                'message' => "Error updating order: " . $mysqli->error,
-            ]);
+if ($res->num_rows === 0) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Order not found.'
+    ]);
+    exit;
+}
+
+/* =======================
+   Update main field
+======================= */
+
+if ($status === 'owner_conf_date') {
+    $sql = "UPDATE orders SET owner_conf_date = CURRENT_TIMESTAMP WHERE id = ?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("i", $id);
+} else {
+    $sql = "UPDATE orders SET `$status` = ? WHERE id = ?";
+    $stmt = $mysqli->prepare($sql);
+    $stmt->bind_param("si", $value, $id);
+}
+
+if (!$stmt->execute()) {
+    echo json_encode([
+        'success' => false,
+        'message' => $stmt->error
+    ]);
+    exit;
+}
+
+$stmt->close();
+
+/* =======================
+   Confirmed logic
+======================= */
+
+if ($value === 'confirmed') {
+
+    $sql2 = "
+        UPDATE orders
+        SET owner = ?,
+            owner_conf_state = 'confirmed',
+            owner_conf_date = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ";
+
+    $stmt2 = $mysqli->prepare($sql2);
+    $stmt2->bind_param("si", $owner, $id);
+    $stmt2->execute();
+    $stmt2->close();
+
+    $items = $mysqli->prepare("SELECT * FROM order_items WHERE order_id = ?");
+    $items->bind_param("i", $id);
+    $items->execute();
+    $itemsRes = $items->get_result();
+
+    while ($item = $itemsRes->fetch_assoc()) {
+        $stockResult = updateStock(
+            $mysqli,
+            $item['model_id'],
+            $item['product_id'],
+            $item['qty']
+        );
+
+        if (!$stockResult['success']) {
+            echo json_encode($stockResult);
+            exit;
         }
     }
 
+    $items->close();
 }
 
-// Fermer la connexion
+/* =======================
+   Response
+======================= */
+
+echo json_encode([
+    'success' => true,
+    'message' => 'Order updated successfully.'
+]);
+
 $mysqli->close();
-die;
-?>
+exit;

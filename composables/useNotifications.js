@@ -101,31 +101,46 @@ export const useNotifications = () => {
    🌐 Récupération depuis backend
   ------------------------------------ */
   const fetchNotifications = async (sinceId = null) => {
-    if (isLoading.value && !sinceId) return
-    if (!userId.value) return
+  if (isLoading.value && !sinceId) return
+  if (!userId.value) return
 
-    isLoading.value = true
-    error.value = null
+  isLoading.value = true
+  error.value = null
 
-    try {
-      const url = sinceId
-        ? `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
-        : `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`
+  try {
+    const url = sinceId
+      ? `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}&since_id=${sinceId}`
+      : `https://management.hoggari.com/backend/notificationApi.php?action=listNotifications&user_id=${userId.value}`
 
-      const res = await fetch(url)
+    const res = await fetch(url)
 
-      if (!res.ok) {
-        const text = await res.text() // récupérer le message brut du serveur
-        throw new Error(`HTTP ${res.status}: ${text}`)
-      }
-
-      const data = await res.json() // ok, c'est du JSON valide
-      // ... traiter data
-    } catch (err) {
-      console.error('Error fetching notifications:', err)
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(`HTTP ${res.status}: ${text}`)
     }
 
+    const data = await res.json()
+
+    // ✅ Sécurité : on vérifie que data.data.notifications est bien un tableau
+    const notifArray = Array.isArray(data?.data?.notifications) ? data.data.notifications : []
+    notifications.value = notifArray
+
+    // ✅ Calcul automatique du nombre de notifications non lues
+    unreadCount.value = notifArray.filter(n => !n.is_read || n.is_read == 0).length
+
+    // ✅ Sauvegarde du dernier ID pour le polling
+    if (notifArray.length > 0) {
+      lastNotificationId = Math.max(...notifArray.map(n => n.id || 0))
+    }
+
+  } catch (err) {
+    console.error('Error fetching notifications:', err)
+    error.value = err.message || 'Erreur lors du chargement des notifications'
+  } finally {
+    isLoading.value = false
   }
+}
+
 
   /* ------------------------------------
    📬 Enregistrement Push
@@ -232,7 +247,9 @@ export const useNotifications = () => {
   return {
     // 🔔 notifications classiques
     notifications: computed(() => notifications.value),
-    unreadCount: computed(() => unreadCount.value),
+    unreadCount: computed(() =>
+      notifications.value.filter(n => !n.is_read || n.is_read == 0).length
+    ),
     isLoading: computed(() => isLoading.value),
     error: computed(() => error.value),
     fetchNotifications,

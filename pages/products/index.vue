@@ -66,7 +66,7 @@
           </div>
           
         </div>
-        <div class="product-info" style="width: 100%;">
+        <div class="product-card-info" style="width: 100%;">
           <h2 class="product-title">{{ product.name }}</h2>
           <label v-if="product.models[0]" class="product-price">
             {{ product.models[0].sell }}
@@ -366,9 +366,10 @@
     transform: scale(1.1);
   }
 
-  .product-info {
+  .product-card-info {
     text-align: center;
     margin-top: 10px;
+
   }
 
   .product-title {

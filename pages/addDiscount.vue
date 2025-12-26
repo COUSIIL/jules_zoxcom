@@ -96,7 +96,7 @@
 
 <script>
 import { useLang } from '~/composables/useLang';
-const DiscountForm = () => import('../components/discountForm.vue');
+import DiscountForm from '../components/discountForm.vue';
 
 
 export default {

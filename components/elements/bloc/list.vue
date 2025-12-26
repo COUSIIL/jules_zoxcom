@@ -1,11 +1,13 @@
 <template>
+  <div v-if="showDropdown" class="backClaque" @click="showDropdown = false, emit('close')"></div>
+
   <div class="dropdown1" :style="{ backgroundColor: color }">
-    <div class="selected1" @click="toggleDropdown">
-      {{ options.length || t('your list') }}
+    <div v-if="!disabled" class="selected1" @click="toggleDropdown">
+      {{ props.options.length || t('your list') }}
     </div>
 
     <ul v-if="showDropdown" class="dropdown-list1">
-      <li v-for="(option, index) in options" :key="option.value" class="dropdown-item1">
+      <li v-for="(option, index) in props.options" :key="option.value" class="dropdown-item1">
         <span @click="selectOption(option.value)" style="display: flex; align-items: center; gap: 10px;">
           <div v-if="typeof option.value === 'string' && option.value.startsWith('#')"  style="width: 30px; height: 30px; border-radius: 50%;" :style="{backgroundColor: option.value}">
 
@@ -29,9 +31,11 @@ const props = defineProps({
   modelValue: String,
   options: Array,
   placeHolder: String,
-  color: String
+  color: String,
+  disabled: {default: false, type: Boolean},
+  showIt: {default: false, type: Boolean},
 })
-const emit = defineEmits(['update:modelValue', 'update:options'])
+const emit = defineEmits(['update:modelValue', 'update:options', 'close', 'update:value'])
 
 const showDropdown = ref(false)
 const inputValue = ref(props.modelValue || '')
@@ -44,8 +48,12 @@ watch(() => props.modelValue, newVal => {
   inputValue.value = newVal || ''
 })
 
+watch(() => props.showIt, newVal => {
+  showDropdown.value = newVal
+})
+
 function toggleDropdown() {
-  showDropdown.value = !showDropdown.value
+  if (!props.disabled) showDropdown.value = !showDropdown.value
 }
 
 function selectOption(val) {
@@ -58,6 +66,7 @@ function deleteOption(index) {
   const newOptions = [...props.options]
   newOptions.splice(index, 1)
   emit('update:options', newOptions)
+  emit('update:value', props.options[index].value)
 }
 </script>
 
@@ -82,6 +91,18 @@ function deleteOption(index) {
   max-width: 250px;
 }
 
+.backClaque {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(2px);         /* flou principal */
+  -webkit-backdrop-filter: blur(2px); /* compatibilité Safari */
+  z-index: 1000;
+}
+
 .selected1 {
   background: linear-gradient(to right, var(--color-whity), var(--color-whiby));
   border-radius: 24px;
@@ -94,15 +115,21 @@ function deleteOption(index) {
 }
 
 .dropdown-list1 {
-  position: absolute;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centrage parfait */
   background: var(--color-whitly);
   list-style: none;
   margin: 0;
   padding: 4px;
   border-radius: 22px;
   box-shadow: 0 0 6px rgba(0,0,0,0.2);
-  width: 100%;
-  z-index: 10;
+  width: 90%;          /* ou max-width pour adaptatif */
+  max-width: 400px;    /* empêche que ce soit trop large */
+  z-index: 1100;
+  max-height: 200px;   /* limite la hauteur */
+  overflow-y: auto;    /* scroll si besoin */
 }
 .dark .dropdown-list1 {
   background: var(--color-darky);

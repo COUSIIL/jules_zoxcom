@@ -1,50 +1,86 @@
 <template>
-    <div class="switchGrid">
-      <!-- Slider animé -->
+  <div class="switchGrid">
+    <!-- Slider animé -->
 
-      <button
-        type="button"
-        :class="{ active: lom }"
-        @click="clicker(1)"
-      >
-        <div v-html="resizeSvg(icons['click'], 24, 24)"></div>
-        this day
-      </button>
+    <button v-if="props.has1" type="button" :class="{ active: lom }" @click="clicker(1)">
+      <div v-if="props.img1" v-html="resizeSvg(img1, 24, 24)"></div>
+      {{ label1 }}
+    </button>
 
-      <button
-        type="button"
-        :class="{ active: !lom }"
-        @click="clicker(2)"
-      >
-        <div v-html="resizeSvg(icons['partition'], 24, 24)"></div>
-        personalized
-      </button>
-    </div>
+    <button v-if="props.has2" type="button" :class="{ active: !lom }" @click="clicker(2)">
+      <div v-if="props.img2" v-html="resizeSvg(img2, 24, 24)"></div>
+      {{ label2 }}
+    </button>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted } from 'vue';
 import icons from '../../../public/icons.json';
+import iconsFilled from '../../../public/iconsFilled.json';
 
 const resizeSvg = (svg, width, height) => {
-  return svg
-    .replace(/width="[^"]+"/, `width="${width}"`)
-    .replace(/height="[^"]+"/, `height="${height}"`);
+  if (iconsFilled[svg]) {
+    svg = iconsFilled[svg]
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`);
+  } else {
+    svg = icons[svg]
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`);
+  }
+
 };
+
+const props = defineProps({
+  position: { type: Number, default: 0 },
+  label1: { type: String, default: 'label 1' },
+  img1: { type: String, default: 'svg' },
+  img2: { type: String, default: 'svg' },
+  label2: { type: String, default: 'label 2' },
+  has1: { type: Boolean, default: true },
+  has2: { type: Boolean, default: true },
+})
 
 
 const lom = ref(true);
 
 const emit = defineEmits(['click:1', 'click:2'])
 
+watch(() => props.position, v => {
+  if (v === 1) {
+    emit('click:1')
+    lom.value = true
+  } else {
+    emit('click:2')
+    lom.value = false
+  }
+})
+
+watch(() => props.has1, v => {
+  if (v === false) {
+    emit('click:2')
+    lom.value = false
+  } else {
+    emit('click:1')
+    lom.value = true
+  }
+})
+
+onMounted(() => {
+
+})
+
 const clicker = (val) => {
-    if(val === 1) {
-        emit('click:1')
-        lom.value = true
-    } else {
-        emit('click:2')
-        lom.value = false
-    }
+  if (val === 1) {
+    emit('click:1')
+    lom.value = true
+  } else {
+    emit('click:2')
+    lom.value = false
+  }
 };
 
 </script>
@@ -53,7 +89,7 @@ const clicker = (val) => {
 .switchGrid {
   position: relative;
   width: 300px;
-  height: 60px;
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -87,19 +123,25 @@ const clicker = (val) => {
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.switchGrid button svg {
+  margin-inline: 5px;
+}
+
 /* Inactif (ressorti, comme un bouton qui dépasse) */
 .switchGrid button:not(.active) {
   height: 30px;
   background: var(--color-whitly);
   border-radius: 8px;
-  box-shadow: 
-     2px  2px 4px 2px #aca7afc2;
-  transform: translateY(-2px); /* bouton ressorti */
+  box-shadow:
+    2px 2px 4px 2px #aca7afc2;
+  transform: translateY(-1px);
+  /* bouton ressorti */
 }
+
 .dark .switchGrid button:not(.active) {
   background: var(--color-darkly);
-  box-shadow: 
-      2px 2px 4px 2px rgba(0, 0, 0, 0.761);
+  box-shadow:
+    2px 2px 4px 2px rgba(0, 0, 0, 0.761);
 }
 
 /* Actif (enfoncé comme un clic) */
@@ -107,11 +149,30 @@ const clicker = (val) => {
   height: 30px;
   background: var(--color-whitly);
   border-radius: 8px;
-  transform: translateY(2px); /* bouton enfoncé */
+  transform: translateY(1px);
+  /* bouton enfoncé */
+  box-shadow:
+    inset 0 0 4px rgba(0, 170, 255, 0.5),
+    inset 0 0 8px rgba(0, 170, 255, 0.4),
+    inset 0 0 4px rgba(0, 170, 255, 0.35);
 }
+
 .dark .switchGrid button.active {
   background: var(--color-darkly);
+  box-shadow:
+    inset 0 0 4px rgba(0, 170, 255, 0.7),
+    inset 0 0 8px rgba(0, 170, 255, 0.6),
+    inset 0 0 4px rgba(0, 170, 255, 0.5),
+    inset 0 0 4px rgba(0, 170, 255, 0.35);
 }
 
+.switchGrid button.active svg {
+  color: rgba(0, 170, 255, 0.5);
 
+}
+
+.dark .switchGrid button.active svg {
+  color: rgba(0, 170, 255, 0.7);
+
+}
 </style>

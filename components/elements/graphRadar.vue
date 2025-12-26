@@ -84,7 +84,6 @@ watch(
       }))
 
       datasets.value = { labels: txs[0].labels, datasets: newData }
-      console.log('datasets.value: ', datasets.value)
     }
   },
   { immediate: true, deep: true }

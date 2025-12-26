@@ -1,75 +1,122 @@
 <?php
 header("Content-Type: application/json; charset=UTF-8");
 
-// Inclure le fichier de configuration de la base de données
+// --- CONFIGURATION BASE DE DONNÉES ---
 $configPath = __DIR__ . '/../../../../backend/config/dbConfig.php';
 
 if (!file_exists($configPath)) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Configuration file not found.',
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Configuration file not found.']);
     exit;
 }
 
-require_once $configPath;
 
-// --- Charger API Anderson ---
+
+
+// --- CONFIGURATION ANDERSON ---
 $anderson = __DIR__ . '/../../../../backend/config/andersonConfig.php';
 if (!file_exists($anderson)) {
-    echo json_encode(['success' => false, 'message' => 'File not found.']);
+    echo json_encode(['success' => false, 'message' => 'Anderson config file not found.']);
+    $mysqli->close();
     exit;
 }
+
 $dataAnderson = include $anderson;
 if (empty($dataAnderson) || empty($dataAnderson[0]['key'])) {
-    echo json_encode(['success' => false, 'message' => 'No Anderson API key found']);
+    echo json_encode(['success' => false, 'message' => 'No Anderson API key found.']);
+    $mysqli->close();
     exit;
 }
-$api_key = $dataAnderson[0]['key'];
 
-// --- Récupérer les commandes en shipping avec tracking_code ---
-$sql = "SELECT id, tracking_code, status FROM orders WHERE status = 'shipping' AND tracking_code IS NOT NULL AND tracking_code != ''";
+$api_key = trim($dataAnderson[0]['key']);
+
+require $configPath; // charge et ouvre la connexion MySQL
+
+// ✅ Vérification connexion MySQL
+if (!isset($mysqli) || !$mysqli instanceof mysqli) {
+    echo json_encode(['success' => false, 'message' => 'MySQL object not initialized.']);
+    exit;
+}
+if ($mysqli->connect_errno) {
+    echo json_encode(['success' => false, 'message' => 'MySQL connection error: ' . $mysqli->connect_error]);
+    exit;
+}
+if (!$mysqli->ping()) {
+    echo json_encode(['success' => false, 'message' => 'MySQL connection lost.']);
+    exit;
+}
+
+
+// --- RÉCUPÉRATION COMMANDES EN COURS ---
+$sql = "SELECT id, tracking_code, status 
+        FROM orders 
+        WHERE status = 'shipping' 
+        AND tracking_code IS NOT NULL 
+        AND tracking_code != ''";
+        
+        
+
 $result = $mysqli->query($sql);
+
 if (!$result) {
-    echo json_encode(['success' => false, 'message' => $mysqli->error]);
+    echo json_encode(['success' => false, 'message' => 'Query failed: ' . $mysqli->error]);
+    $mysqli->close();
     exit;
 }
 
 $updated = 0;
-while ($row = $result->fetch_assoc()) {
-    $tracking = $row['tracking_code'];
-    $orderId = $row['id'];
+$totalChecked = 0;
 
-    // Appel API Anderson
+while ($row = $result->fetch_assoc()) {
+    $totalChecked++;
+    $tracking = $row['tracking_code'];
+    $orderId = (int) $row['id'];
+
+    // --- APPEL API ANDERSON ---
     $url = "https://anderson-ecommerce.ecotrack.dz/api/v1/get/tracking/info?tracking=" . urlencode($tracking);
     $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $api_key",
-        "Accept: application/json"
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            "Authorization: Bearer $api_key",
+            "Accept: application/json"
+        ],
+        CURLOPT_TIMEOUT => 20
     ]);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-
-    if ($httpCode !== 200 || !$response) continue;
+    
+    
+    
+    if ($httpCode !== 200 || !$response) {
+        continue; // ignorer cette commande si la requête échoue
+    }
 
     $data = json_decode($response, true);
-    if (!$data || empty($data['activity'])) continue;
+    if (!is_array($data) || empty($data['activity'])) {
+        continue;
+    }
 
-    // Déterminer le dernier statut
-    $lastStatus = end($data['activity'])['status'] ?? '';
+    $lastStatus = strtolower(end($data['activity'])['status'] ?? '');
 
-    // Mapper le statut Anderson vers ton DB
+    // --- MAPPING DES STATUTS ---
     switch ($lastStatus) {
         case 'livred':
         case 'payed':
         case 'encaissed':
-            $newStatus = 'accomplished';
+        case 'livre_non_encaisse':
+        case 'encaisse_non_paye': 
+        case 'paiements_prets': 
+        case 'paye_et_archive': 
+            $newStatus = 'completed';
             break;
-        case 'return_asked':
-        case 'return_in_transit':
-        case 'Return_received':
+        case 'retour_chez_livreur':
+        case 'retour_transit_entrepot':
+        case 'retour_en_traitement':
+        case 'retour_recu':
+        case 'retour_archive':
+        case 'returned' :
+        case 'annule':
             $newStatus = 'returned';
             break;
         default:
@@ -77,23 +124,26 @@ while ($row = $result->fetch_assoc()) {
             break;
     }
 
-    // Mettre à jour la commande si changement de statut
     if ($newStatus !== $row['status']) {
-        // Récupérer infos client
-        $stmt2 = $mysqli->prepare("SELECT customer_name, phone, delivery_zone, total_price FROM orders WHERE id = ?");
+        // --- RÉCUPÉRATION DES INFOS CLIENT ---
+        $stmt2 = $mysqli->prepare("SELECT name, phone, delivery_zone, total_price FROM orders WHERE id = ?");
+        if (!$stmt2) continue;
+
         $stmt2->bind_param("i", $orderId);
         $stmt2->execute();
         $stmt2->bind_result($customerName, $phone, $deliveryZone, $totalPrice);
         $stmt2->fetch();
         $stmt2->close();
 
-        // Mettre à jour la commande
+        // --- MISE À JOUR STATUT COMMANDE ---
         $stmt = $mysqli->prepare("UPDATE orders SET status = ? WHERE id = ?");
-        $stmt->bind_param("si", $newStatus, $orderId);
-        $stmt->execute();
-        $stmt->close();
+        if ($stmt) {
+            $stmt->bind_param("si", $newStatus, $orderId);
+            $stmt->execute();
+            $stmt->close();
+        }
 
-        // Envoi email
+        // --- ENVOI EMAIL DE NOTIFICATION ---
         $sendData = http_build_query([
             'orderID'      => $orderId,
             'name'         => $customerName,
@@ -104,21 +154,24 @@ while ($row = $result->fetch_assoc()) {
             'totalPrice'   => $totalPrice
         ]);
 
-        $curl = curl_init();
+        $curl = curl_init("https://management.hoggari.com/backend/email/sendTrack.php");
         curl_setopt_array($curl, [
-            CURLOPT_URL => "https://management.hoggari.com/backend/email/sendTrackingUpdate.php",
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $sendData,
-            CURLOPT_HTTPHEADER => ["Content-Type: application/x-www-form-urlencoded"]
+            CURLOPT_HTTPHEADER => ["Content-Type: application/x-www-form-urlencoded"],
+            CURLOPT_TIMEOUT => 15
         ]);
-        $response = curl_exec($curl);
+        curl_exec($curl);
         curl_close($curl);
 
         $updated++;
     }
-
 }
 
-echo json_encode(['success' => true, 'message' => $updated]);
+
+
+$result->free();
 $mysqli->close();
+
+?>

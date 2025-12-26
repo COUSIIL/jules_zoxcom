@@ -1,3 +1,4 @@
+
 /* ==========================================================================
    Component Styles
    ========================================================================== */
@@ -30,7 +31,6 @@
   border: 1px solid var(--color-rangy);
   background-color: var(--color-whity);
   color: var(--color-darkly);
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .flag{
@@ -210,7 +210,6 @@
   color: var(--color-whitly);
   font-size: 14px;
   pointer-events: none;
-  transition: all 0.2s ease;
   border-radius: 12px;
 }
 
@@ -276,7 +275,6 @@
   color: var(--color-whitly);
   font-size: 14px;
   pointer-events: none;
-  transition: all 0.2s ease;
   border-radius: 12px;
 }
 
@@ -703,7 +701,6 @@
   padding: 4px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.3s ease;
 }
 .dark .childElement2 .edit-icon {
   background: rgb(47, 47, 47);
@@ -835,7 +832,6 @@
   border-radius: 6px;
   padding: 5px;
   overflow: hidden;
-  transition: all 0.3s ease;
   margin: 5px;
 }
 
@@ -853,7 +849,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.3s ease;
 }
 
 .note button svg{
@@ -1031,7 +1026,6 @@
   color: var(--color-whitly);
   font-size: 14px;
   pointer-events: none;
-  transition: all 0.2s ease;
   border-radius: 12px;
 }
 
@@ -1193,7 +1187,6 @@
   width: 100%;
   max-width: 800px;
   border-radius: 6px;
-  transition: all 0.3s ease;
   padding-block: 10px;
   margin-block: 5px;
   overflow: hidden;
@@ -1249,7 +1242,7 @@
   border-radius: 5px;
   padding: 5px;
   overflow: hidden;
-  transition: all 0.3s ease;
+
   margin: 5px;
 }
 .dark .des{
@@ -1514,7 +1507,6 @@
   background-color: #6a5acd; /* TODO: Add to variables */
   color: white;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .login-form__submit-btn:disabled {

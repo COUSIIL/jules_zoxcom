@@ -70,10 +70,18 @@ $routes = [
     // --- Orders ---
     "postOrder"                    => "../backend/sql/post/order.php",
     "getOrders"                    => "../backend/sql/get/order.php",
-    "getOrder"                    => "../backend/sql/get/singleOrder.php",
+    "getOrder"                     => "../backend/sql/get/singleOrder.php",
     "updateOrderValue"             => "../backend/sql/update/order.php",
+    "editOrder"                    => "../backend/sql/update/editOrder.php",
     "deleteOrder"                  => "../backend/sql/delete/order.php",
     "sendEmailOrder"               => "../backend/email/sendOrder.php",
+
+    // --- OrderDZ conf
+    "postOrderDz"                  => "../backend/orderdz/postOrder.php",
+    "getOrderDz"                   => "../backend/orderdz/getOrder.php",
+    "testOrderDz"                  => "../backend/orderdz/test.php",
+
+    "orderDzModule"                => "../backend/sql/post/orderDzModule.php",
 
     // --- Discounts ---
     "postDiscount"                 => "../backend/sql/post/discount.php",
@@ -113,6 +121,11 @@ $routes = [
     "viewPage"                     => "../backend/sql/post/viewPage.php",
     "getViewPage"                  => "../backend/sql/get/viewPage.php",
 
+    // --- Reminder ---
+    "createReminder"                     => "../backend/sql/post/reminder.php",
+    "editReminder"                     => "../backend/sql/update/reminder.php",
+    "remouveReminder"                     => "../backend/sql/delete/reminder.php",
+    "getReminder"                     => "../backend/sql/get/reminder.php",
 
     // --- Modules UPS, Anderson, Yalidine, Guepex ---
     "upsModule"                    => "../backend/sql/post/upsModule.php",

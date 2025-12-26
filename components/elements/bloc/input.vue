@@ -63,7 +63,7 @@
     return resizeSvg(props.img, 18, 18)
   })
 
-  const emit = defineEmits(['update:modelValue', 'blur:modelValue', 'toggleLock']) // 👈 ajouter toggleLock
+  const emit = defineEmits(['update:modelValue', 'onBlur', 'toggleLock']) // 👈 ajouter toggleLock
 
 
   const inputValue = ref(props.modelValue || '')
@@ -81,7 +81,7 @@
 
   function onBlur(event) {
     inputValue.value = event.target.value
-    emit('blur:modelValue', inputValue.value)
+    emit('onBlur', inputValue.value)
   }
 
 </script>

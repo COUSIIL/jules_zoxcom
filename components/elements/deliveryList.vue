@@ -288,7 +288,7 @@ const save = async (index) => {
     delivery_content: pureContent
   }
 
-  console.log('payload: ', payload)
+  //console.log('payload: ', payload)
 
 
   // 4. Envoi
@@ -492,7 +492,7 @@ const getDelivery = async() => {
         }
     })
 
-    console.log('result: ', deliveryList.value)
+    //console.log('result: ', deliveryList.value)
     emit('deliveryList', deliveryList.value)
     } else {
     console.log('result: ', result.message)

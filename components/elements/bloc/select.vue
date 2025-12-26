@@ -28,13 +28,13 @@
 
         <ul v-if="showDropdown" class="dropdown-list1">
           <li
-            v-for="option in props.options"
+            v-for="option in inputOptions"
             class="dropdown-item1"
             @click="() => selectOption(option)"
           >
             <span class="option-label">
 
-              <img v-if="option.img && !isSvgString(option.img)" :src="`/${option.img}`" alt="icon" />
+              <img v-if="option.img && !isSvgString(option.img)" class="img-circle" :src="`/${option.img}`" alt="icon" />
               
               <div v-else-if="option.img" class="img-circle" v-html="option.img">
 
@@ -81,15 +81,15 @@ const { t } = useLang()
 const props = defineProps({
   modelValue: [String, Number],
   modelImage: String,
-  options: {default: [], value: Array},
+  options: {default: [], type: Array},
   placeHolder: String,
   img: String,
   required: Boolean,
   color: String,
   label: String,
-  disabled: {default: false, value: Boolean},
+  disabled: {default: false, type: Boolean},
   class: String,
-  showIt: {default: false, value: Boolean},
+  showIt: {default: false, type: Boolean},
 })
 
   const resizeSvg = (svg, width, height) => {
@@ -98,10 +98,11 @@ const props = defineProps({
       .replace(/height="[^"]+"/, `height="${height}"`)
   }
 
-const emit = defineEmits(['update:modelValue', 'update:modelLabel', 'toggleLock', 'close'])
+const emit = defineEmits(['update:modelValue', 'update:modelLabel', 'update:modelImage', 'toggleLock', 'close'])
 
 const showDropdown = ref(false)
 const inputValue = ref(props.modelValue || '')
+const inputOptions = ref(props.options || [])
 
 watch(() => props.modelValue, newVal => {
   inputValue.value = newVal ?? ''
@@ -109,6 +110,10 @@ watch(() => props.modelValue, newVal => {
 
 watch(() => props.showIt, newVal => {
   showDropdown.value = newVal
+})
+
+watch(() => props.options, newVal => {
+  inputOptions.value = newVal
 })
 
 function isSvgString(content) {
@@ -148,8 +153,8 @@ function selectOption(option) {
   emit('update:modelImage', option['img'])
   emit('close')
   showDropdown.value = false
-  props.showIt = false
-  props.options = []
+  //props.showIt = false
+  //props.options = []
 }
 </script>
 
@@ -164,7 +169,11 @@ function selectOption(option) {
 
 .img-circle {
   width: 30px;
+  min-width: 30px;
+  max-width: 30px;
   height: 30px;
+  min-height: 30px;
+  max-height: 30px;
   border-radius: 50%;
   object-fit: cover;
   display: block; /* ou inline-block selon ton contexte */
@@ -239,7 +248,7 @@ function selectOption(option) {
 }
 
 .dropdown-list1 {
-  position: fixed;
+  position:fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%); /* Centrage parfait */

@@ -1,5 +1,5 @@
 <template>
-    <button
+    <button v-if="!isSimple"
         type="button"
         class="btnBoxer"
         :class="{ active: lom}"
@@ -15,6 +15,18 @@
         
     </button>
 
+    <button v-else
+        type="button"
+        class="btnBoxer2"
+        @click="clicker()"
+      >
+        <div v-html="resizeSvg(svg, width, height)" class="mySvg" :style="{ color: iconColor + ' !important'}"></div>
+
+        <p v-if="text">
+          {{text}}
+        </p>
+    </button>
+
 </template>
 
 <script setup>
@@ -27,7 +39,8 @@ const props = defineProps({
     svg: {String, default: 'back'},
     iconColor: {String, default: 'currentColor'},
     width: { type: [String, Number], default: 20 },
-    height: { type: [String, Number], default: 20 }
+    height: { type: [String, Number], default: 20 },
+    isSimple: {type: Boolean, default: false}
 })
 
 var resizeSvg = (svg, width, height) => {
@@ -84,6 +97,34 @@ const clicker = () => {
     background 0.35s ease,
     box-shadow 0.35s ease,
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btnBoxer2 {
+  background-color: var(--color-whiby);
+  min-height: 25px;
+  min-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(12px, 1.6vw, 14px);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 30px;
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .btnBoxer2 {
+  background-color: var(--color-darkow);
+}
+.btnBoxer2 p {
+  min-width: 70px;
+  margin-right: 5px; 
 }
 
 /* Inactif (ressorti, comme un bouton qui dépasse) */

@@ -3,11 +3,12 @@
         <textarea 
           class="searchBar" 
           :value="searcher" 
+          @keyup.enter="sendSearch"
           @input="$emit('update:searcher', $event.target.value)" 
-          :placeholder="t('Search by | order-id | phone | name')">
-        </textarea>
+          :placeholder="t('Search by | order-id | phone | name')"
+        />
     
-        <button @click="sendSearch">
+        <button @click="sendSearch" @blur="searcher && sendSearch()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none">
                 <path d="M17.5 17.5L22 22" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M20 11C20 6.02944 15.9706 2 11 2C6.02944 2 2 6.02944 2 11C2 15.9706 6.02944 20 11 20C15.9706 20 20 15.9706 20 11Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
@@ -49,16 +50,18 @@ export default {
     width: 100%;
     max-width: 450px;
     background-color: white;
-    border: 2px solid var(--color-gorry);
     border-radius: 25px;
     padding: 5px;
     overflow: hidden;
     transition: all 0.3s ease;
     margin: 5px;
+    box-shadow: 
+      2px  2px 4px 1px #aca7afc2;
 }
 .dark .search{
     background-color: var(--color-darkly);
-    border: 2px solid var(--color-garry);
+    box-shadow: 
+        2px 2px 4px 1px rgba(0, 0, 0, 0.761)
 }
 
 .search button{
@@ -91,11 +94,6 @@ export default {
     color: var(--color-darkly);
 }
 
-/* Effet focus */
-.searchBar:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 8px rgba(0, 123, 255, 0.2);
-}
 
 /* Mode sombre */
 .dark .searchBar {
@@ -104,10 +102,6 @@ export default {
     border-color: var(--color-darky);
 }
 
-.dark .searchBar:focus {
-    border-color: #00bcd4;
-    box-shadow: 0 0 8px rgba(0, 188, 212, 0.3);
-}
 
 /* Ajustement automatique de la hauteur */
 .searchBar.auto-expand {

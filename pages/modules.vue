@@ -13,9 +13,13 @@
         <div class="boxContainer">
             <Guepex/>
         </div>
+
         <div class="boxContainer">
-            <InstagramScraper/>
+            <OrderDz/>
         </div>
+        <!--div class="boxContainer">
+            <InstagramScraper/>
+        </!--div-->
     </div>
     
 
@@ -25,9 +29,10 @@
 
 import Ups from '../components/modules/ups.vue';
 import Anderson from '../components/modules/anderson.vue';
+import OrderDz from '../components/modules/orderDz.vue';
 import Yalidine from '../components/modules/yalidine.vue';
 import Guepex from '../components/modules/guepex.vue';
-import InstagramScraper from '../components/modules/InstagramScraper.vue';
+//import InstagramScraper from '../components/modules/InstagramScraper.vue';
 
 
 

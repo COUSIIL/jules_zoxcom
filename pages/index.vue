@@ -7,9 +7,9 @@
       <Donut :data="fullData"/>
     </div>
 
-    <div style="width: 100%;">
+    <!--div style="width: 100%;">
       <Radar :data="fullData2"/>
-    </div>
+    </!--div-->
 
   
     <div v-if="isMounted" class="orders-dashboard">

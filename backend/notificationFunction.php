@@ -29,7 +29,7 @@ function send_json_response($success, $data = null, $error = null, $http_code = 
 }
 
 
-function sendWebPushNotification($mysqli, $title, $message, $link = '/notifications', $icon = '/icons/order.png') {
+function sendWebPushNotification($mysqli, $title, $message, $link = 'https://management.hoggari.com', $icon = '/z.svg') {
     $vendorPath = __DIR__ . '/../vendor/autoload.php'; 
     $configPath = __DIR__ . '/../notification.config.php';
 

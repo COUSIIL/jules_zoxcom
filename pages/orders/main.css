@@ -1,0 +1,775 @@
+
+/* Variables locales pour personnalisation rapide */
+.containerOrder {
+  --copyCard-radius: 14px;
+  --copyCard-padding: 12px;
+  --copyCard-gap: 5px;
+  --max-list-width: 980px;
+  --accent: #26b426;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+/* Liste */
+.uler {
+
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  list-style: none;
+}
+
+.ulerli {
+  width: calc(100% - 10px);
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+
+}
+
+
+.containerOrder .order-item {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+.box1 {
+  width: 100%;
+  min-width: 50px; /* IMPORTANT: permet au contenu de s'ellipsiser dans un grid/flex containerOrder */
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  flex-direction: column;
+  background: var(--color-whitly); /* fond clair au centre */
+  padding: 2px;
+  border-radius: 8px 0px 8px 8px;
+  box-shadow: 
+      2px  2px 2px 0px #aca7afc2;
+}
+.dark .box1 {
+  background: var(--color-darkly);
+  box-shadow: 
+        2px 2px 2px 0px rgba(0, 0, 0, 0.761);
+}
+
+.box1 p {
+  width: 100%;
+  min-width: 50px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+
+}
+
+/* Container principal : ligne tant que possible, wrap si manque d'espace */
+.box2 {
+  display: flex;
+  flex-direction: row; /* par défaut en ligne */
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap; /* permet un minimum de flexibilité */
+  gap: 6px;
+
+  width: 100%;
+  min-width: 50px;
+  font-size: clamp(12px, 1.6vw, 14px);
+  font-weight: 500;
+  margin-inline: 5px;
+}
+
+
+
+
+/* Chaque "groupe" contient plusieurs items (ex: order + phone).
+   On laisse chaque groupe occuper au moins une "colonne" flexible. */
+.boxGroup {
+  
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+
+  /* flexible : peut grandir et rétrécir.
+     Le "basis" (ici 220px) est la taille préférée avant wrapping. */
+  flex: 1 1 220px;
+  min-width: 0; /* IMPORTANT pour autoriser le shrink du contenu */
+  padding-inline: 6px;
+}
+
+/* Chaque élément intérieur (icone + texte) */
+.boxItem {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;      /* IMPORTANT : permet au <p> de s'ellipsiser/shrinker */
+  flex: 0 1 auto;    /* ne force pas la ligne à prendre tout l'espace */
+  padding: 4px 2px;
+}
+
+/* Icône : garder taille fixe */
+.boxItem > div {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+}
+
+/* Texte : gérer overflow et ellipsis quand l'espace manque */
+.boxItem .text {
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* encore important pour l'ellipsis dans flexbox */
+  font-size: inherit;
+}
+
+
+
+/* --- responsive : sur conteneurs très étroits, empiler verticalement */
+@media (max-width: 520px) {
+  .box2 {
+    flex-direction: column;
+    align-items: flex-start; /* ou center selon ton besoin */
+  }
+  .boxGroup {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  /* si tu veux que le texte permette des sauts de ligne au lieu d'ellipsis : */
+  .boxItem .text.wrap-when-small {
+    white-space: normal;
+    overflow: visible;
+  }
+}
+
+
+
+.boxRow {
+  width: 100%;
+  min-width: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 5px;
+  gap: 5px;
+
+}
+
+
+/* Badge ID */
+.containerOrder .order-item .title1 {
+  height: 80%;
+  min-height: 50px;
+  width: 30px;
+  min-width: 0; /* IMPORTANT: permet au contenu de s'ellipsiser dans un grid/flex containerOrder */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(12px, 1.6vw, 14px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: center;
+  font-weight: 700;
+  flex: 0 0 auto;
+  margin-inline: 5px;
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
+  transition:
+    color 0.35s ease,
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    
+
+}
+
+.title1:not(.active) {
+  border-radius: 8px;
+  box-shadow: 
+     2px  2px 2px 1px #aca7afc2;
+  transform: translateY(-2px); /* bouton ressorti */
+}
+.dark .title1:not(.active) {
+  box-shadow: 
+      2px 2px 2px 1px rgba(0, 0, 0, 0.761);
+}
+
+/* Actif (enfoncé comme un clic) */
+.title1 .active {
+  border-radius: 8px;
+  box-shadow: none;
+  transform: translateY(2px); /* bouton enfoncé */
+}
+.dark .title1 .active {
+  box-shadow: none;
+}
+
+
+
+.status-confirmed-border {
+  border: 1px solid color-mix(in srgb, var(--color-blumy) 50%, transparent);
+}
+.status-shipping-border {
+  border: 1px solid color-mix(in srgb, var(--color-yelly) 50%, transparent);
+}
+.status-waiting-border {
+  border: 1px solid color-mix(in srgb, var(--color-rangy) 50%, transparent);
+}
+.status-pending-border {
+  border: 1px solid color-mix(in srgb, var(--color-rangy) 50%, transparent);
+}
+.status-unreaching-border {
+  border: 1px solid color-mix(in srgb, var(--color-gorry) 50%, transparent);
+}
+.status-returned-border {
+  border: 1px solid color-mix(in srgb, var(--color-ioly) 50%, transparent);
+}
+.status-canceled-border {
+  border: 1px solid color-mix(in srgb, var(--color-rady) 50%, transparent);
+}
+.status-completed-border {
+  border: 1px solid color-mix(in srgb, var(--color-greeny) 50%, transparent);
+}
+
+.status-confirmed {
+    background-color: var(--color-blumy);
+}
+.status-shipping {
+    background-color: var(--color-yelly);
+}
+.status-waiting {
+    background-color: var(--color-rangy);
+}
+.status-pending {
+    background-color: var(--color-rangy);
+}
+.status-unreaching {
+    background-color: var(--color-gorry);
+}
+.status-returned {
+    background-color: var(--color-ioly);
+}
+.status-canceled {
+    background-color: var(--color-rady);
+}
+.status-completed {
+    background-color: var(--color-greeny);
+}
+
+
+
+.noteBox {
+  width: 100%;
+  min-height: 20px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-end-end-radius: 4px;
+  border-end-start-radius: 4px;
+}
+
+.order-details {
+  width: 90%;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+/* --- Neumorphic copyCard --- */
+.copyCard {
+  width: 100%;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--color-whity);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: left;
+}
+
+.dark .copyCard {
+  background: var(--color-darky);
+}
+
+.copyCard h4 {
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-zioly1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.copyCard p {
+  margin: 2px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.copyCard p b {
+  margin-inline: 5px;
+}
+
+.rowFlex {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rowFlex2 {
+  width: 100%;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+}
+.columnFlex {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: left;
+  flex-direction: column;
+}
+
+.ci {
+  padding: 10px;
+  border-radius: 50%;
+  background-color: var(--color-darkow20);
+  cursor: pointer;
+}
+.dark .ci {
+  background-color: var(--color-whitly20);
+}
+
+
+
+/* --- Grid Layout --- */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+  .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* --- Produits --- */
+.products ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: var(--color-whity);
+}
+.dark .products ul {
+  background: var(--color-darky);
+}
+
+/* --- Carte Produit --- */
+.product {
+  width: 100%;
+  display: flex;
+  gap: 16px;
+  
+}
+
+.product-img-wrapper {
+  flex-shrink: 0;
+  width: 90px;
+  height: 90px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --- Infos produit --- */
+.product-info {
+  flex: 1;
+  display: flex;
+  justify-content: left;
+  gap: 8px;
+}
+
+.product-name {
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+}
+
+.qty {
+  font-size: 13px;
+  color: var(--color-zioly2);
+}
+
+/* --- Détails (taille, couleur, qty) --- */
+.sub-item {
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  background: #fff;
+  box-shadow: 2px 2px 4px #c9c9c9;
+  gap: 5px;
+}
+
+.dark .tag {
+  background: #2a2a2a;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.color-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin: 2px;
+  border: 1px solid #ccc;
+}
+
+/* --- Prix --- */
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.price .old {
+  font-size: 13px;
+  color: #888;
+  text-decoration: line-through;
+}
+
+.price .new {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-greeny);
+}
+
+.price .promo .new {
+  color: #e63946; /* Rouge promo */
+}
+
+
+/* --- Total --- */
+.total {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.total h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-greeny);
+}
+
+.floatingBtn {
+  min-width: 220px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 18px 8px 0px 0px;
+  box-shadow: 
+      2px  2px 2px 0px #aca7afc2;
+  background-color: var(--color-whitly);
+
+}
+.dark .floatingBtn{
+  background-color: var(--color-darkly);
+  box-shadow: 
+      2px  2px 2px 0px rgba(0, 0, 0, 0.761);
+}
+
+.floatingBtn2 {
+  min-width: 220px;
+  max-width: 800px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 18px;
+  box-shadow: 
+      2px  2px 2px 0px #aca7afc2;
+  background-color: var(--color-whitly);
+}
+.dark .floatingBtn2{
+  background-color: var(--color-darkly);
+  box-shadow: 
+      2px  2px 2px 0px rgba(0, 0, 0, 0.761);
+}
+
+.actionBar {
+  width: 100%;
+  max-width: 800px;
+  height: 40px;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+.actionBar2 {
+  width: 100%;
+  max-width: 800px;
+  height: 0px;
+  top: -7px;
+  position: relative;
+  display: flex;
+  justify-content: right;
+  align-items: center;
+}
+
+
+.cutDiver {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  border-radius: 0px 0px 12px 0px;
+  background-color: var(--color-whity);
+}
+.dark .cutDiver {
+  background-color: var(--color-darky);
+}
+
+.radioBtn {
+  backdrop-filter: 20px;
+  transform: translateY(-2px); /* bouton ressorti */
+  height: 25px;
+  width: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+}
+
+
+.note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.note-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-text {
+  flex: 1;
+}
+
+
+.note-wrapper {
+  position: relative;
+}
+
+.note-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+.note-text {
+  font-size: 12px;
+}
+.note-user {
+  font-size: 14px;
+  font-weight: 600;
+  margin-inline: 2px;
+}
+.activityText {
+  font-size: 14px;
+  color: var(--color-yelly);
+  margin-inline: 2px;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.circleImg {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin: 5px;
+  object-fit: cover;        /* garde les proportions */
+  object-position: center;  /* centre le contenu */
+}
+
+.line {
+  width: 100%;
+  max-width: 800px;
+  height: 5px;
+  background-color: var(--color-zioly4);
+  margin-block: 5px;
+}
+.dark .line {
+  background-color: var(--color-zioly4);
+}
+
+.editableSection {
+  margin-block: 10px;
+  padding: 5px;
+  border: 5px solid var(--color-whiby);
+  border-radius: 20px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.dark .editableSection {
+  border: 5px solid var(--color-darkow);
+}
+
+/* Effet de dégradé animé fluide */
+.click {
+  background: linear-gradient(90deg, var(--color-whiby20), #ecdcdc4d, var(--color-whiby20));
+  background-size: 300% 100%;
+  animation: smoothGradient 0.8s ease-in-out forwards;
+}
+
+.dark .click {
+  background: linear-gradient(90deg, var(--color-darkow20), #4631314d, var(--color-darkow20));
+  background-size: 300% 100%;
+  animation: smoothGradientDark 0.8s ease-in-out forwards;
+}
+
+/* Animation claire */
+@keyframes smoothGradient {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation sombre */
+@keyframes smoothGradientDark {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation de sortie fluide (sans opacity brusque) */
+.click.exit {
+  animation: gradientOut 0.4s ease-in forwards;
+}
+
+@keyframes gradientOut {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+.owner_state {
+  height: 35px;
+  width: 100%;
+  background-color: var(--color-bloy);
+  border-radius: 8px 0px 0px 0px;
+  display: flex;
+  justify-content: left;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+}
+.owner_state h1 {
+  font-size: 14px;
+  font-weight: bold;
+  width: 80px;
+  text-align: left;
+}
+
+.owner_state p {
+  font-size: 12px;
+}
+
+.owner_state img {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  border-radius: 50%;
+  margin-inline: 5px;
+}

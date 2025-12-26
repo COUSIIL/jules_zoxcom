@@ -83,7 +83,7 @@
   import { useRouter } from 'nuxt/app';
 
   import CallToAction from '../components/elements/bloc/callToActionBtn.vue';
-  import AddMember from '../components/elements/addMember.vue';
+  import AddMember from '../../components/elements/addMember.vue';
   import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
   import Message from '../components/elements/bloc/message.vue';
 

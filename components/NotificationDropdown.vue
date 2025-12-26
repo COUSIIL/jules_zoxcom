@@ -23,16 +23,16 @@
         @click="handleNotificationClick(notification)"
         class="notification-item"
       >
-        <div v-if="notification.type == 'system'" class="icon_box">
-          <div v-html="resizeSvg(icons['purshase'], 30, 30)" class="icon_content">
-
-          </div>
+        <div v-if="notification.type === 'system'" class="icon_box">
+          <div v-html="resizeSvg(icons['purshase'], 30, 30)" class="icon_content"></div>
         </div>
+
         <div class="notification-content">
           <strong class="notification-title">{{ notification.title }}</strong>
           <p class="notification-body">{{ notification.body }}</p>
           <time class="notification-time">{{ formatTimeAgo(notification.created_at) }}</time>
         </div>
+
         <div v-if="!notification.is_read" class="unread-dot"></div>
       </li>
     </ul>
@@ -45,80 +45,82 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { useNotifications, type Notification } from '~/composables/useNotifications';
-import { useRouter } from 'vue-router';
-import { watch, ref } from 'vue';
-import icons from '~/public/icons.json'
+<script setup>
+import { useNotifications } from '../composables/useNotifications'
+import { useRouter } from 'vue-router'
+import { watch, ref, onMounted } from 'vue'
 
-const resizeSvg = (svg: '', width: 24, height: 24) => {
+const emit = defineEmits(['close'])
+
+const {
+  notifications,
+  unreadCount,
+  isLoading,
+  markAsRead,
+  markAllAsRead
+} = useNotifications()
+
+const router = useRouter()
+
+const icons = ref({})
+onMounted(async () => {
+  try {
+    const res = await fetch('/icons.json')
+    icons.value = await res.json()
+  } catch (err) {
+    console.error('Erreur de chargement des icônes :', err)
+  }
+})
+
+const resizeSvg = (svg, width = 24, height = 24) => {
+  if (!svg) return ''
   return svg
     .replace(/width="[^"]+"/, `width="${width}"`)
     .replace(/height="[^"]+"/, `height="${height}"`)
 }
 
-const emit = defineEmits(['close']);
-
-const {
-  notifications, // <- ça bouge tout le temps (reactif)
-  unreadCount,
-  isLoading,
-  markAsRead,
-  markAllAsRead
-} = useNotifications();
-
-const router = useRouter();
-
-// On stocke une copie fixe au montage
-
-
-
-const fixedNotifications = ref<Notification[]>([]);
+const fixedNotifications = ref([])
 
 const stop = watch(notifications, (newVal) => {
   if (newVal.length > 0) {
-    fixedNotifications.value = [...newVal];
-    stop(); // stoppe l'écoute -> reste figé
+    fixedNotifications.value = [...newVal]
+    stop()
   }
+})
 
-});
-
-const handleNotificationClick = async (notification: Notification) => {
+const handleNotificationClick = async (notification) => {
   if (!notification.is_read) {
-    console.log('notification.id: ', notification.id)
-    await markAsRead(notification.id);
+    await markAsRead(notification.id)
   }
-
   if (notification.meta?.route) {
-    router.push(notification.meta.route);
+    router.push(notification.meta.route)
   }
-
-  emit('close');
-};
+  emit('close')
+}
 
 const handleMarkAllRead = async () => {
-  await markAllAsRead();
-};
+  await markAllAsRead()
+}
 
-const formatTimeAgo = (dateString: string) => {
-  const date = new Date(dateString);
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " ans";
-  interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " mois";
-  interval = seconds / 86400;
-  if (interval > 1) return "il y a " + Math.floor(interval) + " j";
-  interval = seconds / 3600;
-  if (interval > 1) return "il y a " + Math.floor(interval) + " h";
-  interval = seconds / 60;
-  if (interval > 1) return "il y a " + Math.floor(interval) + " min";
-  return "à l'instant";
-};
+const formatTimeAgo = (dateString) => {
+  const date = new Date(dateString)
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
+  let interval = seconds / 31536000
+  if (interval > 1) return Math.floor(interval) + ' ans'
+  interval = seconds / 2592000
+  if (interval > 1) return Math.floor(interval) + ' mois'
+  interval = seconds / 86400
+  if (interval > 1) return 'il y a ' + Math.floor(interval) + ' j'
+  interval = seconds / 3600
+  if (interval > 1) return 'il y a ' + Math.floor(interval) + ' h'
+  interval = seconds / 60
+  if (interval > 1) return 'il y a ' + Math.floor(interval) + ' min'
+  return "à l'instant"
+}
 </script>
 
 
-<style scoped>
+<style>
 .dropdown-panel {
   position: fixed;
   top: 50px;
@@ -160,12 +162,14 @@ const formatTimeAgo = (dateString: string) => {
   color: var(--color-blumy);
 }
 
-
-.dropdown-header, .dropdown-footer {
+.dropdown-header,
+.dropdown-footer {
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-whiby);
 }
-.dark .dropdown-header, .dropdown-footer {
+
+.dark .dropdown-header,
+.dropdown-footer {
   border-bottom: 1px solid var(--color-darkiw);
 }
 
@@ -213,6 +217,7 @@ const formatTimeAgo = (dateString: string) => {
   font-weight: bold;
   background-color: var(--color-whitly);
 }
+
 .dark .notification-item.is-unread {
   background-color: var(--color-darkow);
 }
@@ -220,10 +225,9 @@ const formatTimeAgo = (dateString: string) => {
 .notification-content {
   flex-grow: 1;
   display: flex;
-  flex-direction: column; /* empile les enfants verticalement */
-  align-items: flex-start; /* force l'alignement à gauche */
+  flex-direction: column;
+  align-items: flex-start;
 }
-
 
 .notification-title {
   font-size: 14px;
@@ -234,14 +238,12 @@ const formatTimeAgo = (dateString: string) => {
   font-size: 13px;
   color: #475569;
   margin: 4px 0 0;
-  font-weight: normal;
 }
 
 .notification-time {
   font-size: 11px;
   color: #64748b;
   margin-top: 4px;
-  font-weight: normal;
 }
 
 .unread-dot {
@@ -253,7 +255,8 @@ const formatTimeAgo = (dateString: string) => {
   flex-shrink: 0;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   padding: 40px 16px;
   text-align: center;
   color: #64748b;

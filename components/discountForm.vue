@@ -182,8 +182,11 @@ methods: {
 
         this.disLog = this.t("waiting response...");
         const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=postDiscount', {
-        method: 'POST',
-        body: postDiscount,
+          method: 'POST',
+          headers: { 
+            "Content-Type": "application/json" 
+          },
+          body: postDiscount,
         });
         if(!response2.ok){
             this.disLog = this.t("error in response");

@@ -3,11 +3,13 @@ import { ref, watch, onMounted } from 'vue';
 import RectBtn from '../../elements/newBloc/rectBtn.vue';
 import iconsFilled from '../../../public/iconsFilled.json';
 
+
 const props = defineProps({
   modelValue: { type: Array, default: () => [] }, // Tableau de notes
   color: { type: String, default: '#ffef6c' },
   size: { type: [Number, String], default: 200 },
-  rotate: { type: Number, default: 0 }
+  rotate: { type: Number, default: 0 },
+  auth: {type: Object, default: {}}
 });
 
 
@@ -46,14 +48,14 @@ const addNote = () => {
     return;
   }
   const text = newNoteRef.value.innerText.trim();
-  console.log('texte saisi:', text);
+
   if (!text) return;
 
   const newNotes = [
     ...props.modelValue,
-    { text, user: 'Vous', profile_image: '', color: props.color }
+    { text: text, user: props.auth.username, profile_image: props.auth.profile_image, color: props.color }
   ];
-  console.log('newNotes: ', newNotes)
+
   emit('update:modelValue', newNotes);
 
   newNoteRef.value.innerText = '';
@@ -149,14 +151,17 @@ const editNote = (index, text) => {
   width: 100%;
   height: 100%;
   border-radius: 8px;
-  box-shadow:
-    0 6px 18px rgba(0,0,0,0.18),
-    0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 
+      2px  2px 2px 0px #aca7afc2;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   position: relative;
+}
+.dark .postit-body {
+  box-shadow: 
+        2px 2px 2px 0px rgba(0, 0, 0, 0.761);
 }
 
 .postit-content {
@@ -168,8 +173,9 @@ const editNote = (index, text) => {
   font-size: 14px;
   line-height: 1.3;
   color: #222;
-  background: transparent;
+  background: var(--color-yelly20);
   caret-color: #111;
+  border-radius: 8px;
 }
 
 .plus-icon {

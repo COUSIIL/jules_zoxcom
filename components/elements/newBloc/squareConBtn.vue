@@ -5,7 +5,7 @@
         :class="{ active: lom }"
         @click="clicker()"
       >
-      <div class="svgBox" v-html="resizeSvg(icons[icon], width, height)">
+      <div class="svgBox" v-html="resizeSvg(iconsFilled[icon], width, height)">
 
       </div>
     </button>
@@ -14,12 +14,25 @@
 
 <script setup>
 
-import icons from '../../../public/iconsFilled.json';
+import iconsFilled from '../../../public/iconsFilled.json';
+import icons from '../../../public/icons.json';
 
 const resizeSvg = (svg, width, height) => {
-  return svg
-    .replace(/width="[^"]+"/, `width="${width}"`)
-    .replace(/height="[^"]+"/, `height="${height}"`);
+  if(svg) {
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`);
+  } else if (icons[svg]) {
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`);
+  } else {
+    svg = icons['svg']
+    return svg
+      .replace(/width="[^"]+"/, `width="${width}"`)
+      .replace(/height="[^"]+"/, `height="${height}"`);
+  }
+  
 };
 
 const props = defineProps({

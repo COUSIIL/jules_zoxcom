@@ -54,6 +54,7 @@ $createTables = [
         total_price DECIMAL(10,2) NOT NULL,
         status VARCHAR(255) NOT NULL DEFAULT 'waiting',
         tracking_code VARCHAR(255) NOT NULL DEFAULT '',
+        reminder_id INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )",
     "CREATE TABLE IF NOT EXISTS order_items (
@@ -80,7 +81,7 @@ $createTables = [
         promo DECIMAL(10,2) NOT NULL,
         ids INT(11),
         indx INT(11),
-        FOREIGN KEY (product_id) REFERENCES order_items(id) ON DELETE CASCADE
+        FOREIGN KEY (indx) REFERENCES order_items(id) ON DELETE CASCADE
     )",
     "CREATE TABLE IF NOT EXISTS customers (
         id INT AUTO_INCREMENT PRIMARY KEY, 
@@ -434,7 +435,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $model_promo = $model['promo'];
                     $id = $model['id'];
                     $indx = $model['indx'];
-                    $stmtProduct->bind_param("iisssiddii", $orderId, $orderItemId, $model_color, $model_color_name, $model_size, $model_qty, $model_total, $model_promo,  $id, $indx);
+                    $stmtProduct->bind_param("iisssiddii", $orderId, $product_id, $model_color, $model_color_name, $model_size, $model_qty, $model_total, $model_promo,  $id, $orderItemId);
                     $stmtProduct->execute();
                 }
             }
@@ -474,12 +475,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // --- Envoi WebPush ---
         sendWebPushNotification(
-                $mysqli,
-                "Nouvelle commande reçue",
-                "Une nouvelle commande vient d’être passée (#$orderId).",
-                "/orders/$orderId",
-                "/icons/order.png"
-            );
+            $mysqli,
+            "Nouvelle commande reçue",
+            "Une nouvelle commande vient d’être passée (#$orderId).",
+            "/orders/$orderId",
+            "/z.svg"
+        );
 
 
 
