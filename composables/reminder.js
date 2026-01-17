@@ -13,12 +13,13 @@ const dataLoad = ref()
 const orderIdRemindRemouved  = ref(-1)
 
 export const useReminder = () => {
-    const createRemind = async (note, reminder_date) => {
+    const createRemind = async (note, reminder_date, user_id) => {
         loading.value = true;
         const remindRay = JSON.stringify({
                 note: note,
                 reminder_date: reminder_date,
                 work: 1,
+                user_id: user_id
         });
 
         const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=createReminder', {

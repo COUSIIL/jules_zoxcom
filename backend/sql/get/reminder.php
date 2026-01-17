@@ -39,7 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Préparer la requête selon la présence de l'ID
 if ($id) {
-    $stmt = $mysqli->prepare("SELECT * FROM `reminder` WHERE id = ?");
+    $stmt = $mysqli->prepare("
+        SELECT r.*, u.username, u.profile_image as user_image, o.id as order_id
+        FROM `reminder` r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN orders o ON o.reminder_id = r.id
+        WHERE r.id = ?
+    ");
     if (!$stmt) {
         echo json_encode(['success' => false, 'message' => 'Prepare failed: ' . $mysqli->error]);
         exit;
@@ -58,7 +64,13 @@ if ($id) {
     $stmt->close();
 } else {
     // Sinon récupérer tous les rappels
-    $query = "SELECT * FROM `reminder` ORDER BY reminder_date ASC";
+    $query = "
+        SELECT r.*, u.username, u.profile_image as user_image, o.id as order_id
+        FROM `reminder` r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN orders o ON o.reminder_id = r.id
+        ORDER BY r.reminder_date ASC
+    ";
     $result = $mysqli->query($query);
 
     if ($result === false) {
