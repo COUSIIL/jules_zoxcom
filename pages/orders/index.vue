@@ -713,7 +713,7 @@ const getUsers = async () => {
   const result = await response.json()
   membersLength.value = result.data.length
   members.value = result.data
-  console.log('members', members.value)
+  //console.log('members', members.value)
   for (const member of members.value) {
     newMembers.value[member.username] = {
       username: member.username,

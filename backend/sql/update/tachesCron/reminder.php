@@ -26,8 +26,14 @@ if (!$mysqli || $mysqli->connect_errno) {
 // --- DATE DU JOUR ---
 $today = date('Y-m-d');
 
+// --- CHECK STATUS COLUMN ---
+$checkCol = $mysqli->query("SHOW COLUMNS FROM `reminder` LIKE 'status'");
+if ($checkCol && $checkCol->num_rows == 0) {
+    $mysqli->query("ALTER TABLE `reminder` ADD COLUMN `status` INT DEFAULT 0");
+}
+
 // --- RÉCUPÉRER LES RAPPELS DU JOUR ---
-$sql = "SELECT id, work, note, reminder_date FROM reminder WHERE DATE(reminder_date) = ?";
+$sql = "SELECT id, work, note, reminder_date FROM reminder WHERE DATE(reminder_date) = ? AND status = 0";
 $stmt = $mysqli->prepare($sql);
 $stmt->bind_param("s", $today);
 $stmt->execute();
@@ -71,6 +77,11 @@ while ($row = $result->fetch_assoc()) {
 
     if ($httpCode === 200 && strpos($response, '"success":true') !== false) {
         $sent++;
+        // Update status
+        $upd = $mysqli->prepare("UPDATE reminder SET status = 1 WHERE id = ?");
+        $upd->bind_param("i", $reminderID);
+        $upd->execute();
+        $upd->close();
     } else {
         $errors[] = "Échec pour le rappel ID $reminderID";
     }
