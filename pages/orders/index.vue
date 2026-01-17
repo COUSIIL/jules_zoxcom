@@ -397,7 +397,7 @@
                   :resultProduct="resultProduct" :deliveryMethod="dts.method" :deliverySty="dts.deliverySty"
                   :total="parseInt(dts.total)" :id="parseInt(dts.id)" :selectedFees="dts.selectedFees"
                   :isDesk="dts.has_desk" @update:wilaya="vl => updateCommune(index, vl)"
-                  @update:deskFees="updateFees('home', index)" @update:homeFees="updateFees('desk', index)"
+                  @update:deskFees="updateFees('desk', index)" @update:homeFees="updateFees('home', index)"
                   @updated="editOrder(index, false), getOrders()" @update:products="vl => updateProducts(index, vl)"
                   @update:commune="vl => updateSelectedFees(index, vl)" />
               </div>
@@ -564,10 +564,16 @@ const multyOption = ref([
   { value: 'cancel', label: 'Cancel selected orders', img: '' }
 ])
 const delegateOption = ref([{ value: 'delegate', label: 'Delegate to OrderDz', img: 'orderDz.png' }])
-const moreOptions = ref([
-  { value: 'delegate', label: 'automatic order tracking', img: resizeSvg(icons['external_off'], 25, 25) },
-  { value: 'export', label: 'export', img: resizeSvg(icons['export'], 25, 25) }
-])
+const moreOptions = ref([])
+
+watchEffect(() => {
+  const options = []
+  if (isWorkingDelegate.value) {
+    options.push({ value: 'delegate', label: 'automatic order tracking', img: resizeSvg(icons['external_off'], 25, 25) })
+  }
+  options.push({ value: 'export', label: 'export', img: resizeSvg(icons['export'], 25, 25) })
+  moreOptions.value = options
+})
 
 const exportOptions = ref([
   { value: 'CSV', label: 'export as CSV', img: resizeSvg(icons['csv'], 25, 25) },
@@ -916,13 +922,15 @@ const shipping = async (index) => {
 
   const isHome = Number(order.type) === 0; // ✅ 0 = Home, 1 = Stop Desk
 
-  if (totalDeliver.value !== parseFloat(order.total)) {
+  const totalVal = Array.isArray(totalDeliver.value) ? parseFloat(totalDeliver.value[0]) : parseFloat(totalDeliver.value);
+
+  if (totalVal !== parseFloat(order.total)) {
     await deliverOrder(
       order,
       order.items,
       isHome ? 'Home' : 'Stop Desk',
       order.method,
-      totalDeliver.value,
+      totalVal,
       0,
       order.deliveryZone
     );

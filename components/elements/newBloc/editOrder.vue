@@ -236,8 +236,6 @@ const discount = ref()
 const discountV = ref()
 const isSuccess = ref(false)
 const disLog = ref('')
-const feesCount = ref(0)
-const initialFees = ref(0)
 const negativity = ref(false)
 
 
@@ -305,6 +303,12 @@ async function updateOrder() {
 
   const listSrc = productList.value.length > 0 ? productList.value : props.products
 
+  if (!listSrc || listSrc.length === 0) {
+    alert(t('please add at least one product'))
+    isUpdating.value = false
+    return
+  }
+
   formattedProducts = listSrc.map(p => ({
     idP: parseInt(p.id),
     idM: parseInt(p.idM || p.id),
@@ -326,12 +330,17 @@ async function updateOrder() {
     }))
   }));
 
+  let finalCommune = localCommune.value
+  if (typeof finalCommune === 'object' && finalCommune !== null && finalCommune.nom) {
+    finalCommune = finalCommune.nom
+  }
+
   const payload = {
     orderId: props.id,
     name: localName.value,
     phone: localPhone.value,
     wilaya: localWilaya.value,
-    commune: localCommune.value,
+    commune: finalCommune,
     adresse: localAdresse.value,
     deliveryMethod: props.deliveryMethod,
     deliveryType: localType.value,
@@ -386,21 +395,12 @@ async function calculerPrix() {
 
   let prixQty = 0;
 
-
-  if (!feesCount.value || feesCount.value < 1) {
-    initialFees.value = props.deliveryFees
-    //localFees.value = initialFees.value
-    feesCount.value = 1
-  } else {
-    if(localType.value == 1) {
-      localFees.value = parseFloat(props.selectedFees.tarif_stopdesk)
-    } else {
-      localFees.value = parseFloat(props.selectedFees.tarif)
-    }
-  }
-
-
-
+  // Recalculate fees from selectedFees if available, otherwise trust localFees/props.deliveryFees
+  // However, since parent manages fees via props.deliveryFees based on type, we should primarily trust that.
+  // But if we want instant feedback on type switch before parent update?
+  // Parent update is triggered via emit and prop update.
+  // So relying on localFees (which is synced with props.deliveryFees) is safer.
+  // We remove the conflicting logic.
 
   if (productList.value.length > 0) {
 
