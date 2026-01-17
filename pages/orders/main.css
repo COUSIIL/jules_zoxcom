@@ -335,6 +335,9 @@
 }
 .copyCard p b {
   margin-inline: 5px;
+  text-overflow: clip;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .rowFlex {
@@ -773,3 +776,5 @@
   border-radius: 50%;
   margin-inline: 5px;
 }
+
+

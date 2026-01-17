@@ -1,13 +1,17 @@
 <template>
-  <div v-if="prop.isVisible" class="newSideBar-overlay" @click="viewMenu"></div>
+  <div v-if="isOpen" class="newSideBar-overlay" @click="close"></div>
 
-  <div
-    :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isHovered || prop.isVisible }]"
-    @mouseover="handleHover(true)"
-    @mouseleave="handleHover(false)"
-  >
+
+    <div class="sidebar-handle"
+      v-if="prop.isVisible"
+      @mouseenter="handleHover(true)"
+      @mouseleave="handleHover(false)">
+    </div>
+
+    <div :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isOpen }]">
+
     <div class="newSideBar__version-info">
-      v1 {{ t('valid until: ') }} 	23/03/2026
+      v1 {{ t('valid until: ') }} 	23/03/2026 
     </div>
 
     <FlagBtn @click="close"/>
@@ -77,9 +81,16 @@
       </div>
 
       <div class="newSideBar__item" @click="close">
-        <NuxtLink class="newSideBar__link" to="/moddives" exact-active-class="is-active">
+        <NuxtLink class="newSideBar__link" to="/moddules" exact-active-class="is-active">
           <div class="newSideBar__icon" v-html="icons['puzzle']"></div>
-          <h3 class="newSideBar__text">{{ t('moddives') }}</h3>
+          <h3 class="newSideBar__text">{{ t('moddules') }}</h3>
+        </NuxtLink>
+      </div>
+
+      <div class="newSideBar__item" @click="close">
+        <NuxtLink class="newSideBar__link" to="/image_video" exact-active-class="is-active">
+          <div class="newSideBar__icon" v-html="icons['imageVideo']"></div>
+          <h3 class="newSideBar__text">{{ t('image to video') }}</h3>
         </NuxtLink>
       </div>
 
@@ -153,9 +164,10 @@ import { ref } from 'vue'
 
 const isLargeScreen = useState('isLargeScreen')
 
-var prop = defineProps({
-  isVisible: Boolean,
-})
+const prop = defineProps({ isVisible: Boolean })
+const isHovered = ref(false)
+
+const isOpen = computed(() => prop.isVisible || isHovered.value)
 
 const justClicked = ref(false)
 
@@ -173,18 +185,147 @@ const handleLogout = () => {
   emit('handleLogout')
 }
 
-const isHovered = ref(false)
-
 function handleHover(state) {
   if (justClicked.value === false) isHovered.value = state
 }
 
 const close = () => {
-  justClicked.value = true
-  isHovered.value = false
-  emit('close')
-  setTimeout(() => {
-    justClicked.value = false
-  }, 500)
+  justClicked.value = true;
+  isHovered.value = false;
+  emit('close');
+  setTimeout(() => { justClicked.value = false }, 500);
 }
+
 </script>
+
+<style scoped>
+  /* ==========================================================================
+   newSideBar
+   ========================================================================== */
+.newSideBar {
+  height: 100%;
+  position: fixed;
+  top: 50px;
+  right: 0;
+  transform: translateX(100%);
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 5000;
+  background: var(--color-whitly);
+  box-shadow: 0px 8px 6px var(--color-tioly);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.newSideBar--large {
+  width: 250px;
+  transform: translateX(100%);
+}
+
+.newSideBar--small {
+  width: 200px;
+}
+
+.sidebar-handle{
+  position: fixed;
+  top: 50px;
+  right: 0;
+  width: 12px;
+  height: calc(100% - 50px);
+  z-index: 4999; /* juste sous sidebar */
+}
+.newSideBar:not(.is-open){ pointer-events:none; }
+.newSideBar.is-open{ 
+  transform: translateX(0);
+  pointer-events:auto; }
+
+.dark .newSideBar {
+  background: var(--color-darkly);
+  box-shadow: 0px 8px 6px var(--color-darky);
+}
+
+.newSideBar::-webkit-scrollbar {
+  width: 6px;
+}
+.newSideBar::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 3px;
+}
+.newSideBar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.newSideBar__link-list {
+  list-style: none;
+  margin: 0;
+}
+
+.newSideBar__item {
+  border-radius: 8px;
+  margin: 10px;
+}
+
+.newSideBar__link {
+  height: 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-zioly4);
+  text-decoration: none;
+  width: 100%;
+  padding: 5px;
+}
+
+.newSideBar__link.is-active {
+  background-color: var(--color-whizy);
+  border-radius: 8px;
+}
+
+.dark .newSideBar__link {
+  color: var(--color-whizy);
+}
+
+.dark .newSideBar__link.is-active {
+  background-color: var(--color-darkow);
+  border-radius: 8px;
+}
+
+.newSideBar__icon {
+  padding-inline: 0;
+}
+
+.newSideBar__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.newSideBar__text {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  margin-inline: 5px;
+}
+
+.newSideBar__footer-spacer {
+  height: 50px;
+}
+
+.newSideBar-overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: 5000; /* Below the newSideBar */
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+}
+
+.newSideBar__version-info {
+  font-size: 14px;
+  font-weight: bold;
+  padding: 15px;
+  text-align: center;
+
+}
+</style>

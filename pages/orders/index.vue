@@ -157,8 +157,8 @@
           
 
         <div class="box1">
-          <div v-if="dts.owner && newMembers[dts.owner]?.profile_image" class="owner_state">
-            <img :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
+          <div v-if="dts.owner" class="owner_state">
+            <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
             <h1>
               {{ dts.owner }} :
             </h1>
@@ -391,9 +391,9 @@
                   </!--div-->
                   <RectBtn svg="x" @click:ok="editOrder(index, false)" :isSimple="true" />
                 </div>
-                <EditOrder v-if="dts.commune[0]" :wilayas="dts.wilayas" :communes="dts.commune" :name="dts.name"
-                  :phone="dts.phone" :wilaya="dts.deliveryZone" :adresse="dts.mZone" :commune="dts.selectedCommune || dts.sZone"
-                  :deliveryType="parseFloat(dts.type)" :deliveryFees="parseFloat(dts.deliveryValue)" :products="dts.items"
+                <EditOrder v-if="dts?.commune" :wilayas="dts.wilayas" :communes="dts.commune" :name="dts.name"
+                  :phone="dts.phone" :wilaya="dts.deliveryZone" :adresse="dts.mZone" :commune="dts.selectedCommune"
+                  :deliveryType="parseFloat(dts.deliveryType)" :deliveryFees="parseFloat(dts.deliveryValue)" :products="dts.items"
                   :resultProduct="resultProduct" :deliveryMethod="dts.method" :deliverySty="dts.deliverySty"
                   :total="parseInt(dts.total)" :id="parseInt(dts.id)" :selectedFees="dts.selectedFees"
                   :isDesk="dts.has_desk" @update:wilaya="vl => updateCommune(index, vl)"
@@ -426,7 +426,7 @@
 
       </div>
     </div>
-    <RectBtn text="more" @click="limitNewDt()" />
+    <RectBtn style="margin-bottom: 50px;" text="more" @click="limitNewDt()" />
   </div>
 </template>
 
@@ -490,6 +490,7 @@ const currentColor = ref('#ffef6c')
 const idToRemind = ref(0)
 const currentIndex = ref(0)
 const searchValue = ref("")
+
 
 const showDeliver = ref(false);
 const isShipping = ref(false);
@@ -712,6 +713,7 @@ const getUsers = async () => {
   const result = await response.json()
   membersLength.value = result.data.length
   members.value = result.data
+  console.log('members', members.value)
   for (const member of members.value) {
     newMembers.value[member.username] = {
       username: member.username,
@@ -860,6 +862,7 @@ const editStatus = async (vl, index, id) => {
   if(id) {
     statusID.value = id
   }
+
   if (vl === 'shipping') {
     const order = dt.value[statusIndex.value];
     nameDeliver.value = [order.name];
@@ -915,13 +918,24 @@ const shipping = async (index) => {
   }
 
   const isHome = Number(order.type) === 0; // ✅ 0 = Home, 1 = Stop Desk
+  var newMethod
+  for(let wil in wilayas.value) {
+    if(wilayas.value[wil].wilaya_name == order.deliveryZone) {
+      if(isHome) {
+        newMethod = wilayas.value[wil].home_method
+      } else {
+        newMethod = wilayas.value[wil].desk_method 
+      }
+      break
+    }
+  }
 
   if (totalDeliver.value !== parseFloat(order.total)) {
     await deliverOrder(
       order,
       order.items,
       isHome ? 'Home' : 'Stop Desk',
-      order.method,
+      newMethod,
       totalDeliver.value,
       0,
       order.deliveryZone
@@ -1282,11 +1296,6 @@ const hrefLink = (link) => {
 const editOrder = async (index, val) => {
   editOrderChanger.value = true
 
-  // attendre la récupération des données de livraison
-
-  limitedDt.value[index].deliverySty = deliverySty.value
-
-
   // durée visible de l'animation "in"
   setTimeout(() => {
     const el = document.querySelector('.editableSection.click')
@@ -1306,7 +1315,16 @@ const editOrder = async (index, val) => {
   limitedDt.value[index].isEditing = val
   if (!val) {
     limitedDt.value[index].wilayas = []
+    limitedDt.value[index].selectedCommune = null
+    limitedDt.value[index].deliveryType = limitedDt.value[index].type
+    editOrderChanger.value = false
+    
+    return
   }
+
+  
+  limitedDt.value[index].deliverySty = deliverySty.value
+  //console.log('limitedDt.value[index].deliverySty: ', limitedDt.value[index].deliverySty)
 
   // s'assurer que wilayas est bien un tableau
   if (!Array.isArray(wilayas.value)) {
@@ -1314,9 +1332,9 @@ const editOrder = async (index, val) => {
     return
   }
 
-
   limitedDt.value[index].wilayas = []
   var currentWilaya
+
 
   // remplir la liste des wilayas
   for (const i of wilayas.value) {
@@ -1330,36 +1348,60 @@ const editOrder = async (index, val) => {
       img: ''
     })
   }
-  setDelivery()
+
+  
+  
+  
   await updateCommune(index, currentWilaya)
 
-
-
+  
 
 }
 
-const updateSelectedFees = async (index, vl) => {
+const updateSelectedFees = async (index, vl, isFirst) => {
   //console.log('vl: ', vl)
   limitedDt.value[index].selectedFees = []
-  for (const i of municipalitys.value) {
-    if (i.nom == vl.nom) {
-      await setCommune(i)
-      break
+  limitedDt.value[index].deleveryValue = null
+  if(isFirst) {
+    await setCommune(municipalitys.value[0])
+    limitedDt.value[index].selectedCommune = municipalitys.value[0]
+  } else {
+    var newMunic
+    if(municipalitys.value?.data) {
+      newMunic = municipalitys.value.data
+    } else {
+      newMunic = municipalitys.value
+    }
+    for (const i of newMunic) {
 
+      if ((i.nom == vl.name) || (i.name == vl.name)) {
+        await setCommune(i)
+        break
+
+      }
+      limitedDt.value[index].selectedCommune = vl.name
     }
   }
 
-  //console.log('vl: ', vl)
+  if(!limitedDt.value[index]?.deliveryType) {
+    limitedDt.value[index].deliveryType = limitedDt.value[index].type
+  }
 
-  limitedDt.value[index].selectedCommune = vl.nom
-  limitedDt.value[index].selectedFees = selectedFees.value
-  limitedDt.value[index].has_desk = isDesk.value
+  if (limitedDt.value[index].deliveryType === '1') {
+    
+    updateFees('desk', index)
+  } else {
 
-
+    updateFees('home', index)
+  }
 
 }
 
 const updateCommune = async (index, wilaya) => {
+
+  //console.log('wilaya: ', wilaya)
+  
+  
 
   if (!Array.isArray(wilaya)) {
     for (const wil of wilayas.value) {
@@ -1369,9 +1411,35 @@ const updateCommune = async (index, wilaya) => {
     }
   }
 
+  var newMunic
 
+  if(!limitedDt.value[index].selectedCommune) {
+    limitedDt.value[index].selectedCommune = limitedDt.value[index].sZone
+    await getCommune(wilaya, limitedDt.value[index].selectedCommune)
 
-  await getCommune(wilaya)
+    
+
+    if(municipalitys.value?.data) {
+      newMunic = municipalitys.value.data
+    } else {
+      newMunic = municipalitys.value
+    }
+  } else {
+    await getCommune(wilaya)
+
+    if(municipalitys.value?.data) {
+      newMunic = municipalitys.value.data
+    } else {
+      newMunic = municipalitys.value
+    }
+    if(newMunic[0]?.nom) {
+      limitedDt.value[index].selectedCommune = newMunic[0].nom
+    } else {
+      limitedDt.value[index].selectedCommune = newMunic[0].name
+    }
+    
+  }
+
 
   if (!Array.isArray(limitedDt.value[index].commune)) {
     limitedDt.value[index].commune = []
@@ -1381,19 +1449,25 @@ const updateCommune = async (index, wilaya) => {
     limitedDt.value[index].commune = []
   }
 
-  //console.log('municipalitys.value: ', municipalitys.value)
+  for (const i of newMunic) {
+    
+    var newName = ''
+    if(i.nom) {
+      newName = i.nom
+    } else {
+      newName = i.name
+    }
 
-  // remplir la liste des wilayas
-  for (const i of municipalitys.value) {
-    if (i.has_stop_desk === 0) {
+    if (i.has_stop_desk == 0) {
+      
       limitedDt.value[index].commune.push({
-        label: i.nom,
+        label: newName,
         value: i,
         img: ''
       })
     } else {
       limitedDt.value[index].commune.push({
-        label: i.nom + ' (Desk)',
+        label: newName + ' (Desk)',
         value: i,
         img: ''
       })
@@ -1401,37 +1475,21 @@ const updateCommune = async (index, wilaya) => {
 
   }
 
-  if(!limitedDt.value[index].selectedCommune) {
-    limitedDt.value[index].selectedFees = []
-    for (const i of municipalitys.value) {
-      if (i.nom == limitedDt.value[index].sZone) {
-        await setCommune(i)
-        break
-
-      }
-    }
-
-    limitedDt.value[index].has_desk = isDesk.value
-    limitedDt.value[index].selectedCommune = limitedDt.value[index].sZone
+  if(selectedFees.value) {
     limitedDt.value[index].selectedFees = selectedFees.value
-
-    if(limitedDt.value[index].type === '1') {
-      updateFees('desk', index)
-    } else {
-      updateFees('home', index)
-    }
-
     
-
-    
-  } else {
-    updateSelectedFees(index, municipalitys.value[0])
   }
 
+  if(!limitedDt.value[index]?.deliveryType) {
+    limitedDt.value[index].deliveryType = limitedDt.value[index].type
+  }
   
-
-
-
+  
+  if (limitedDt.value[index].deliveryType === '1') {
+    updateFees('desk', index)
+  } else {
+    updateFees('home', index)
+  }
 
 }
 
@@ -1441,27 +1499,41 @@ function updateProducts(index, lv) {
 }
 
 function updateFees(type, index) {
-  var currentWilayaId
 
-  // remplir la liste des wilayas
-  for (const i of wilayas.value) {
-    if (limitedDt.value[index].deliveryZone == i.wilaya_name) {
-      currentWilayaId = i.wilaya_id
-      break
-    }
+  limitedDt.value[index].deliveryType = ''
 
+  limitedDt.value[index].has_desk = isDesk.value
+
+  if(!isDesk.value) {
+    
+    limitedDt.value[index].deliveryType = '1'
+    
+    setDelivery(0)
+
+    const newFees = selectedFees.value
+
+    limitedDt.value[index].selectedFees = newFees
+    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif
+  
+  } else if(type === 'home') {
+    limitedDt.value[index].deliveryType = '1'
+    
+    setDelivery(0)
+
+    const newFees = selectedFees.value
+
+    limitedDt.value[index].selectedFees = newFees
+    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif
+  } else if(type === 'desk') {
+    limitedDt.value[index].deliveryType = '0'
+
+    setDelivery(1)
+
+    const newFees = selectedFees.value
+
+    limitedDt.value[index].selectedFees = newFees
+    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif_stopdesk
   }
-
-  setTimeout(() => {
-    if (type === "desk") {
-      limitedDt.value[index].deliveryValue = deliveryFees.value[currentWilayaId - 1].tarif_stopdesk
-    } else {
-      limitedDt.value[index].deliveryValue = deliveryFees.value[currentWilayaId - 1].tarif
-    }
-
-  }, 500)
-
-  //console.log('type: ', limitedDt.value[index].type)
 
 
 

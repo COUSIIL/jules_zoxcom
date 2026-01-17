@@ -45,41 +45,43 @@ const props = defineProps({
 })
 
 
-const lom = ref(true);
+let lom = ref();
 
 const emit = defineEmits(['click:1', 'click:2'])
 
 watch(() => props.position, v => {
   if (v === 1) {
-    emit('click:1')
     lom.value = true
   } else {
-    emit('click:2')
     lom.value = false
   }
 })
 
 watch(() => props.has1, v => {
-  if (v === false) {
-    emit('click:2')
+  if (v === true) {
     lom.value = false
   } else {
-    emit('click:1')
     lom.value = true
   }
 })
 
 onMounted(() => {
-
-})
-
-const clicker = (val) => {
-  if (val === 1) {
+  if (props.position === 1) {
     emit('click:1')
     lom.value = true
   } else {
     emit('click:2')
     lom.value = false
+  }
+})
+
+const clicker = (val) => {
+  if (val === 1) {
+    emit('click:1')
+    //lom.value = false
+  } else {
+    emit('click:2')
+    //lom.value = true
   }
 };
 

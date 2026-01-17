@@ -24,7 +24,7 @@
         class="notification-item"
       >
         <div v-if="notification.type === 'system'" class="icon_box">
-          <div v-html="resizeSvg(icons['purshase'], 30, 30)" class="icon_content"></div>
+          <div v-html="resizeSvg(iconsFilled['shopping'], 30, 30)" class="icon_content"></div>
         </div>
 
         <div class="notification-content">
@@ -52,6 +52,11 @@ import { watch, ref, onMounted } from 'vue'
 
 const emit = defineEmits(['close'])
 
+import iconsFilled from '../public/iconsFilled.json'
+//import icons from '../public/icons.json'
+
+const { t } = useLang()
+
 const {
   notifications,
   unreadCount,
@@ -62,15 +67,6 @@ const {
 
 const router = useRouter()
 
-const icons = ref({})
-onMounted(async () => {
-  try {
-    const res = await fetch('/icons.json')
-    icons.value = await res.json()
-  } catch (err) {
-    console.error('Erreur de chargement des icônes :', err)
-  }
-})
 
 const resizeSvg = (svg, width = 24, height = 24) => {
   if (!svg) return ''
@@ -156,6 +152,9 @@ const formatTimeAgo = (dateString) => {
 }
 
 .icon_content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 25px;
   height: 25px;
   margin: 7.5px;
@@ -209,9 +208,18 @@ const formatTimeAgo = (dateString) => {
   border-bottom: 1px solid #f1f5f9;
 }
 
+.dark .notification-item {
+  border-bottom: 1px solid var(--color-darkiw);
+}
+
 .notification-item:hover {
   background-color: #f8fafc;
 }
+
+.dark .notification-item:hover {
+  background-color: var(--color-darkow);
+}
+
 
 .notification-item.is-unread {
   font-weight: bold;
@@ -231,18 +239,15 @@ const formatTimeAgo = (dateString) => {
 
 .notification-title {
   font-size: 14px;
-  color: #1e293b;
 }
 
 .notification-body {
   font-size: 13px;
-  color: #475569;
   margin: 4px 0 0;
 }
 
 .notification-time {
   font-size: 11px;
-  color: #64748b;
   margin-top: 4px;
 }
 
@@ -259,7 +264,6 @@ const formatTimeAgo = (dateString) => {
 .empty-state {
   padding: 40px 16px;
   text-align: center;
-  color: #64748b;
 }
 
 .dropdown-footer {
@@ -269,7 +273,6 @@ const formatTimeAgo = (dateString) => {
 }
 
 .dropdown-footer a {
-  color: #3b82f6;
   text-decoration: none;
   font-weight: 500;
 }

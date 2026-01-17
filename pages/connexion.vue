@@ -86,7 +86,7 @@ const testLogin = async () => {
   if (stored) {
     const data = JSON.parse(stored)
     if (data && data.user) {
-      console.log('data.user: ', data.user, ' ', 'data: ', data)
+      //console.log('data.user: ', data.user, ' ', 'data: ', data)
       router.push({ path: '/team/' + data.user}).then(() => {
         router.go(0) // recharge la page
       })
@@ -131,6 +131,9 @@ const handleLogin = async () => {
     )
 
     if (!response.ok) {
+
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
       errorMessage.value = t('error server')
       return
     }
@@ -146,7 +149,12 @@ const handleLogin = async () => {
         body: JSON.stringify({ token: token2 }),
       })
 
-      if (!response2.ok) throw new Error('Invalid response')
+      if (!response2.ok) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        errorMessage.value = t('Invalid response')
+        return
+      } 
 
       const result = await response2.json()
       const data2 = { ...result.data, token: token2 }
@@ -158,10 +166,17 @@ const handleLogin = async () => {
       })
       
     } else {
+      
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
       errorMessage.value = data.message || t('identitie not correct')
+      return
     }
   } catch (error) {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
     errorMessage.value = t('error connexion')
+    
   } finally {
     loading.value = false
   }

@@ -24,7 +24,7 @@ const resetStorage = () => {
 
 </script>
 
-<style scoped>
+<style>
 .router_link {
   display: flex;
   justify-content: center;

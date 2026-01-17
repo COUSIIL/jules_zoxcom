@@ -30,20 +30,10 @@
       </div>
 
       <div class="actions">
-        <button
-          class="delete-btn"
-          @click="onDelete(index)"
-          aria-label="X"
-        >
-          X
-        </button>
-        <button
-          class="edit-btn"
-          @click="onSelect(index)"
-          aria-label="Modifier produit"
-        >
-          edit
-        </button>
+        <RectBtn style="width: 10%;" svg="x" iconColor="#ff5555" @click:ok="onDelete(index)" />
+
+        <RectBtn style="width: 10%;" svg="edit" @click:ok="onSelect(index)" />
+
       </div>
     </div>
 
@@ -86,6 +76,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import ProductSelector from './productSelector.vue'
+import RectBtn from './newBloc/rectBtn.vue';
 
 const props = defineProps({
   products: { type: Array, default: () => [] },
@@ -193,23 +184,15 @@ watch(() => props.products, (newVal) => {
   width: 100%;
 }
 
-.actions { width:84px; display:flex; justify-content:flex-end; }
-
-.edit-btn {
-  background: linear-gradient(90deg,#2d8cf0,#1a73e8);
-  margin-inline: 2px;
-  color: #fff; border: none; padding: 8px 12px; border-radius: 12px; cursor:pointer;
-  font-weight:600; min-width:78px;
+.actions { 
+  width:84px; 
+  display:flex; 
+  justify-content:center; 
+  align-items:center; 
+  flex-direction:column; 
+  gap:6px; 
 }
-.edit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(26,115,232,0.16); }
 
-.delete-btn {
-  background: linear-gradient(90deg,#ff5555,#ce3030);
-  margin-inline: 2px;
-  color: #fff; border: none; padding: 8px 8px; border-radius: 12px; cursor:pointer;
-  font-weight:600; min-width:50px;
-}
-.delete-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(26,115,232,0.16); }
 
 /* MODAL / OVERLAY */
 .overlay {

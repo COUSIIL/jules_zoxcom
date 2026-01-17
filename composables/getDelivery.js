@@ -16,6 +16,9 @@ export const useDelivery = () => {
     const selectedFees = ref([])
 
 
+
+
+
     async function getDelivery() {
 
         await getStoreDelivery()
@@ -38,7 +41,11 @@ export const useDelivery = () => {
             for (var i of result.data) {
                 try {
                     const contentObj = JSON.parse(i.delivery_content)
-                    deliverySty.value.push(contentObj)
+                    if (typeof contentObj === 'object' && contentObj !== null) {
+                        deliverySty.value.push(contentObj)
+                    } else {
+                        deliverySty.value.push(JSON.parse(contentObj))
+                    }
                 } catch (e) {
                     console.error('error in parsing data')
                 }
@@ -48,7 +55,9 @@ export const useDelivery = () => {
 
             var myWilaya
 
+
             for (var d in result.data) {
+
 
                 if (result.data[d].delivery_name === deliveryMethod.value) {
 
@@ -61,10 +70,16 @@ export const useDelivery = () => {
             }
 
             for (var i = 0; i < myWilaya.length; i++) {
-                if (myWilaya[i].wilaya_active) {
+                if (myWilaya[i].wilaya_active && myWilaya[i]?.wilaya_id) {
                     wilayas.value.push({ wilaya_id: myWilaya[i].wilaya_id, wilaya_name: myWilaya[i].wilaya_name, desk_method: myWilaya[i].delivery_desk, home_method: myWilaya[i].delivery_home })
 
                     deliveryFees.value.push({ wilaya_id: myWilaya[i].wilaya_id, tarif: myWilaya[i].home_price, tarif_stopdesk: myWilaya[i].desk_price, desk_active: myWilaya[i].desk_active, home_active: myWilaya[i].home_active })
+                } else if(myWilaya[i].wilaya_active && myWilaya[i]?.id) {
+
+                    wilayas.value.push({ wilaya_id: myWilaya[i].id, wilaya_name: myWilaya[i].name, desk_method: myWilaya[i].delivery_desk, home_method: myWilaya[i].delivery_home })
+
+                    deliveryFees.value.push({ wilaya_id: myWilaya[i].id, tarif: myWilaya[i].home_price, tarif_stopdesk: myWilaya[i].desk_price, desk_active: myWilaya[i].desk_active, home_active: myWilaya[i].home_active })
+
                 }
 
             }
@@ -96,9 +111,13 @@ export const useDelivery = () => {
 
         if (textResponse.success) {
 
+
             for (var dev of textResponse.data) {
                 if (dev.name === 'DinarZ') {
                     deliveryMethod.value = dev.method
+                } else {
+                    deliveryMethod.value = dev.method
+
                 }
 
                 break
@@ -110,8 +129,10 @@ export const useDelivery = () => {
 
     }
 
-    async function getCommune(wilaya) {
+    async function getCommune(wilaya, commu) {
         isUpdatingWilaya.value = true;
+        municipalitys.value = []
+
         const id = {
             wilaya_id: wilaya.wilaya_id
         }
@@ -121,6 +142,8 @@ export const useDelivery = () => {
         }
         var response
         var result
+
+        
         if (wilaya.home_method === 'ups') {
             response = await fetch("https://management.hoggari.com/backend/api.php?action=getCommune", {
                 method: "POST",
@@ -134,34 +157,123 @@ export const useDelivery = () => {
             });
             result = await response.json();
         } else if (wilaya.home_method === 'yalidine') {
+            console.log('yalidine')
             response = await fetch("https://management.hoggari.com/backend/api.php?action=getYalidineCommune", {
                 method: "POST",
                 body: JSON.stringify(id)
             });
             result = await response.json();
         } else if (wilaya.home_method === 'guepex') {
+            
             response = await fetch("https://management.hoggari.com/backend/api.php?action=getGuepexCommune", {
                 method: "POST",
                 body: JSON.stringify(id)
             });
             result = await response.json();
+
         }
+        if (wilaya.desk_method === 'ups') {
+            response = await fetch("https://management.hoggari.com/backend/api.php?action=getCommune", {
+                method: "POST",
+                body: JSON.stringify(id)
+            });
+            result = await response.json();
+        } else if (wilaya.desk_method === 'anderson') {
+            response = await fetch("https://management.hoggari.com/backend/api.php?action=getAndersonCommune", {
+                method: "POST",
+                body: JSON.stringify(id)
+            });
+            result = await response.json();
+        } else if (wilaya.desk_method === 'yalidine') {
+            console.log('yalidine')
+            response = await fetch("https://management.hoggari.com/backend/api.php?action=getYalidineCommune", {
+                method: "POST",
+                body: JSON.stringify(id)
+            });
+            result = await response.json();
+        } else if (wilaya.desk_method === 'guepex') {
+            
+            response = await fetch("https://management.hoggari.com/backend/api.php?action=getGuepexCommune", {
+                method: "POST",
+                body: JSON.stringify(id)
+            });
+            result = await response.json();
+
+        }
+
+
         try {
 
             if (!response || !response.ok) {
                 throw new Error(`HTTP error! ${response}`);
             }
 
-            municipalitys.value = result
+            if(result?.data) {
+                municipalitys.value = result.data
+            } else {
+                municipalitys.value = result
+            }
+
 
             //selectedFees.value = deliveryFees.value[wilaya.wilaya_id - 1]
+            //console.log('municipalitys.value: ', municipalitys.value)
+            if(commu) {
 
-            if (municipalitys.value.data) {
-                setCommune(municipalitys.value.data.data[0])
-                municipalitys.value = result.data.data
+                if (municipalitys.value?.length > 0) {
+                    if(municipalitys.value[0].nom) {
+                        for (const comu of municipalitys.value) {
+                            if (comu.nom == commu) {
+                                await setCommune(comu)
+                                break
+                                //municipalitys.value = result.data.data
+                            }
+                        }
+                    } else {
+                        for (const comu of municipalitys.value) {
+                            if (comu.name == commu) {
+                                await setCommune(comu)
+                                break
+                                //municipalitys.value = result.data.data
+                            }
+                        }
+                    }
+                    
+                    
+                } else if(municipalitys.value?.data.length > 0) {
+                    municipalitys.value = municipalitys.value.data
+
+                    if(municipalitys.value[0].nom) {
+                        for (const comu of municipalitys.value) {
+                            if (comu.nom == commu) {
+                                await setCommune(comu)
+                                break
+                                //municipalitys.value = result.data.data
+                            }
+                        }
+                    } else {
+                        for (const comu of municipalitys.value) {
+                            if (comu.name == commu) {
+                                await setCommune(comu)
+                                break
+                                //municipalitys.value = result.data.data
+                            }
+                        }
+                    }
+                    
+                    
+                }
             } else {
-                setCommune(municipalitys.value[0])
+                
+                if(municipalitys.value?.data) {
+                    await setCommune(municipalitys.value.data[0])
+                } else {
+                    await setCommune(municipalitys.value[0])
+                }
+                
             }
+            
+                
+            
             isUpdatingWilaya.value = false;
         } catch (error) {
             console.error('Une erreur est survenue:', error)
@@ -172,44 +284,45 @@ export const useDelivery = () => {
     }
 
     async function setCommune(com) {
-
-        if (com.nom) {
+        
+        if (com?.nom) {
             selectedMunicipality.value = com.nom
         } else {
             selectedMunicipality.value = com.name
         }
-        if (!com.has_stop_desk) {
+
+        await getDeliveryFees(com)
+
+        if (!com?.has_stop_desk || com.has_stop_desk === 0) {
             isDesk.value = false
+            //console.log('false: ', isDesk.value)
         } else {
             isDesk.value = true
+            //console.log('true: ', isDesk.value)
         }
-        await getDeliveryFees(com.wilaya_id)
-
-
-
-        for (var index in deliveryFees.value) {
-            if (deliveryFees.value[index].wilaya_id === com.wilaya_id) {
-                selectedFees.value = deliveryFees.value[index]
-                break
-            }
-
-        }
+        //console.log('selectedFees.value: ', selectedFees.value)
 
 
 
     }
 
-    async function getDeliveryFees(id) {
+    async function getDeliveryFees(com) {
+        let id
 
-        var response
-        var result
-        //i hope i can touch you ther
-        //the secret place i want to see, to touch
-        //i can't believe my head my heart
-        //all my sensation standing up
-        //give me pleas this little thing
-        //forgive me my room
-        //i can't hear you any more, i can't hear you any moooooore, any more
+        if(com?.wilaya_id) {
+            id = com.wilaya_id
+        } else {
+            id = com
+        }
+
+        
+        //i hope i can touch you ther,
+        //the secret place i want to see,
+        //i can't believe my head my heart,
+        //all my sensation standing up,
+        //give me pleas this little thing,
+        //forgive me my room,
+        //i can't hear you any more.
 
 
 
@@ -217,8 +330,60 @@ export const useDelivery = () => {
 
         isUpdatingWilaya.value = true;
 
+        var newWilayaList = {desk: [], home: []}
 
-        if (deliveryMethod.value === 'ups') {
+        for(let h of wilayas.value) {
+            if (h?.desk_method) {
+                if (newWilayaList.desk.includes(h.desk_method)) {
+                    continue
+                } else {
+                    newWilayaList.desk.push(h.desk_method)
+                }
+            }
+            if (h?.home_method) {
+                if (newWilayaList.home.includes(h.home_method)) {
+                    continue
+                } else {
+                    newWilayaList.home.push(h.home_method)
+                }
+            }
+            
+        }
+
+        for(let l of newWilayaList.desk) {
+            await getFees(l, 'desk')
+                
+        }
+        for(let l of newWilayaList.home) {
+            await getFees(l, 'home')
+            
+        }
+
+        //console.log('deliveryFees.value[delIndex.value]: ', deliveryFees.value[delIndex.value])
+
+
+        for (var index in deliveryFees.value) {
+            if (deliveryFees.value[index].wilaya_id === id) {
+                selectedFees.value = deliveryFees.value[index]
+                break
+            }
+
+        }
+
+
+        //deliveryFees.value = result['livraison']
+        isUpdatingWilaya.value = false;
+
+
+
+    }
+
+    async function getFees (method, type) {
+
+        var response
+        var result
+
+        if (method === 'ups') {
             try {
                 response = await fetch('https://management.hoggari.com/backend/api.php?action=getUpsFees')
             } catch (e) {
@@ -233,7 +398,7 @@ export const useDelivery = () => {
             }
             result = await response.json()
 
-            if (deliveryFees.value[delIndex.value]['desk_active']) {
+            if (type === 'desk' && deliveryFees.value[delIndex.value]['desk_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif_stopdesk']) {
                     for (let res of result['livraison']) {
                         if (res.wilaya_id === deliveryFees.value[delIndex.value]['wilaya_id']) {
@@ -242,8 +407,7 @@ export const useDelivery = () => {
                         }
                     }
                 }
-            }
-            if (deliveryFees.value[delIndex.value]['home_active']) {
+            } else if (type === 'home' && deliveryFees.value[delIndex.value]['home_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif']) {
                     for (let res of result['livraison']) {
                         if (res.wilaya_id === deliveryFees.value[delIndex.value]['wilaya_id']) {
@@ -253,8 +417,9 @@ export const useDelivery = () => {
                     }
                 }
             }
+            
 
-        } else if (deliveryMethod.value === 'anderson') {
+        } else if (method === 'anderson') {
             try {
                 response = await fetch('https://management.hoggari.com/backend/api.php?action=getAndersonFees')
             } catch (e) {
@@ -272,17 +437,16 @@ export const useDelivery = () => {
 
             //console.log('result: ', result)
 
-            if (deliveryFees.value[delIndex.value]['desk_active']) {
+            if (type === 'desk' && deliveryFees.value[delIndex.value]['desk_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif_stopdesk']) {
                     for (let res of result['livraison']) {
                         if (res.wilaya_id === deliveryFees.value[delIndex.value]['wilaya_id']) {
                             deliveryFees.value[delIndex.value]['tarif_stopdesk'] = res['tarif_stopdesk']
-                            break
+                           break
                         }
                     }
                 }
-            }
-            if (deliveryFees.value[delIndex.value]['home_active']) {
+            } else if (type === 'home' && deliveryFees.value[delIndex.value]['home_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif']) {
                     for (let res of result['livraison']) {
                         if (res.wilaya_id === deliveryFees.value[delIndex.value]['wilaya_id']) {
@@ -292,7 +456,8 @@ export const useDelivery = () => {
                     }
                 }
             }
-        } else if (deliveryMethod.value === 'yalidine') {
+            
+        } else if (method === 'yalidine') {
 
             const response = await fetch(`https://management.hoggari.com/backend/api.php?action=getYalidineFees&wilaya_id=${selectedWilaya.value['wilaya_id']}`, {
                 method: "GET",
@@ -302,29 +467,31 @@ export const useDelivery = () => {
             });
 
             result = await response.json()
+            //console.log('yalidine: ', result)
 
-            if (deliveryFees.value[delIndex.value]['desk_active']) {
+            if (type === 'desk' && deliveryFees.value[delIndex.value]['desk_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif_stopdesk']) {
                     for (let res in result.data.per_commune) {
                         if (result.data.per_commune[res].commune_name === selectedMunicipality.value) {
                             deliveryFees.value[delIndex.value]['tarif_stopdesk'] = result.data.per_commune[res]['express_desk']
-                            break
+                                break
                         }
                     }
                 }
-            }
-            if (deliveryFees.value[delIndex.value]['home_active']) {
+            } else if (type === 'home' && deliveryFees.value[delIndex.value]['home_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif']) {
                     for (let res in result.data.per_commune) {
                         if (result.data.per_commune[res].commune_name === selectedMunicipality.value) {
                             deliveryFees.value[delIndex.value]['tarif'] = result.data.per_commune[res]['express_home']
-                            break
+                                break
                         }
                     }
                 }
             }
 
-        } else if (deliveryMethod.value === 'guepex') {
+            
+
+        } else if (method === 'guepex') {
             try {
                 response = await fetch(`https://management.hoggari.com/backend/api.php?action=getGuepexFees&wilaya_id=${selectedWilaya.value['wilaya_id']}`, {
                     method: "GET",
@@ -339,33 +506,30 @@ export const useDelivery = () => {
             }
 
             result = await response.json()
+            //console.log('guepex: ', result)
 
-            if (deliveryFees.value[delIndex.value]['desk_active']) {
+            if (type === 'desk' && deliveryFees.value[delIndex.value]['desk_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif_stopdesk']) {
                     for (let res in result.data.per_commune) {
                         if (result.data.per_commune[res].commune_name === selectedMunicipality.value) {
-                            deliveryFees.value[delIndex.value]['tarif_stopdesk'] = result.data.per_commune[res]['express_desk']
+                        deliveryFees.value[delIndex.value]['tarif_stopdesk'] = result.data.per_commune[res]['express_desk']
                             break
+                            
                         }
                     }
                 }
-            }
-            if (deliveryFees.value[delIndex.value]['home_active']) {
+            } else if (type === 'home' && deliveryFees.value[delIndex.value]['home_active']) {
                 if (!deliveryFees.value[delIndex.value]['tarif']) {
                     for (let res in result.data.per_commune) {
                         if (result.data.per_commune[res].commune_name === selectedMunicipality.value) {
                             deliveryFees.value[delIndex.value]['tarif'] = result.data.per_commune[res]['express_home']
-                            break
+                                break
                         }
                     }
                 }
             }
+            
         }
-
-
-        //deliveryFees.value = result['livraison']
-        isUpdatingWilaya.value = false;
-
     }
 
     function setUpMethod(id) {
@@ -385,15 +549,20 @@ export const useDelivery = () => {
 
         }
 
-        if (wilayas.value[wilIndex.value].home_method && !deliveryIndex.value) {
-            deliveryMethod.value = wilayas.value[wilIndex.value].home_method
-        } else if (wilayas.value[wilIndex.value].desk_method && deliveryIndex.value) {
+
+        if (wilayas.value[wilIndex.value].desk_method && deliveryIndex.value === '1') {
+            
             deliveryMethod.value = wilayas.value[wilIndex.value].desk_method
+        } else if (wilayas.value[wilIndex.value].home_method) {
+            deliveryMethod.value = wilayas.value[wilIndex.value].home_method
         }
+
+
 
     }
 
-    function setDelivery(i = 0) {
+    function setDelivery(i) {
+
         deliveryIndex.value = i
 
         setUpMethod(selectedWilaya.value)
@@ -413,6 +582,7 @@ export const useDelivery = () => {
         selectedFees,
         setCommune,
         isDesk
+        
 
 
     }

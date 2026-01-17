@@ -1,9 +1,12 @@
 <?php
 // api.php
 
+
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -31,6 +34,9 @@ $routes = [
     "chatGPT"                      => "../backend/IA/chatGpt/chat.php",
     "chatMistral"                  => "../backend/IA/mistral/chat.php",
     "chatGemini"                   => "../backend/IA/gemini/chat.php",
+    "giminiGeneratePlan"           => "../backend/IA/gemini/generate_plan.php",
+    "giminiImageToVideo"           => "../backend/IA/gemini/image_to_video.php",
+    "giminiPoll"                   => "../backend/IA/gemini/polling.php",
 
     // --- Image & Upload ---
     "convertImageToHtml"           => "../backend/imageToHtml/convert.php",

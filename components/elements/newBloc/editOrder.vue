@@ -45,20 +45,15 @@
 
     <!-- PRICE CORRECTOR -->
     <div class="price-corrector">
-      <button class="apply-btn" @click="negativity = !negativity">
-        <p v-if="negativity">
-          -
-        </p>
-        <p v-else>
-          +
-        </p>
-        
-      </button>
+
+      <RectBtn v-if="negativity" style="width: 10%;" iconColor="#ff5555" svg="minus" @click:ok="negativity = false" />
+
+      <RectBtn v-else style="width: 10%;" iconColor="var(--color-blumy)" svg="plus" @click:ok="negativity = true" />
+
       <Inputer v-model="priceCorrection" placeHolder="price correction" type="number" :img="icons['discount']" />
 
-      <button class="apply-btn" @click="applyPriceCorrection">
-        Apply
-      </button>
+
+      <RectBtn style="width: 10%;" iconColor="var(--color-greeny)" svg="check" @click:ok="applyPriceCorrection" />
     </div>
 
 
@@ -95,6 +90,7 @@ import Switcher from '../newBloc/switcher.vue'
 //import ProductSelector from '../productSelector.vue'
 import OrderProductsList from '../orderProductsList.vue'
 import CallToAction from '../bloc/callToActionBtn.vue'
+import RectBtn from '../newBloc/rectBtn.vue';
 
 const { t } = useLang()
 
@@ -139,32 +135,31 @@ const props = defineProps({
   isDesk: { type: Boolean, default: false },
 })
 
-const localFees = ref(props.deliveryFees)
+const localFees = ref()
 const localCommune = ref(props.commune)
 const localWilaya = ref(props.wilaya)
 const prixTotal = ref(props.total)
 
 watch(() => props.deliveryFees, v => {
-  localFees.value = Number(v) || 0
+  localFees.value = v
   calculerPrix()
 })
 
 watch(() => props.total, v => {
   prixTotal.value = Number(v) || 0
-  console.log('prixTotal.value: ', prixTotal.value)
 })
+
+
+
+const localType = ref(props.deliveryType)
 
 watch(() => props.deliveryType, v => {
-  localType.value = Number(v) || 0
-  console.log('localType.value: ', localType.value)
+  localType.value = Number(v)
 })
-
-const localType = ref(0)
 
 onMounted(() => {
   localFees.value = props.deliveryFees
   prixTotal.value = props.total
-  localType.value = props.deliveryType
   localCommune.value = props.commune
   localWilaya.value = props.wilaya
 
@@ -174,7 +169,6 @@ onMounted(() => {
 
 
 watch(() => props.commune, v => {
-  console.log('props.commune: ', props.commune)
   if(v) {
     console.log('v: ', v)
     localCommune.value = v
@@ -539,7 +533,7 @@ async function calculerPrix() {
 </script>
 
 
-<style scoped>
+<style>
 .orderEdit {
   display: flex;
   justify-content: center;
@@ -577,30 +571,6 @@ async function calculerPrix() {
   align-items: center;
 }
 
-.apply-btn {
-  height: 40px;
-  padding: 10px 16px;
-  border-radius: 12px;
-  background: var(--color-primary, #4facfe);
-  color: white;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: 0.3s ease;
-  white-space: nowrap;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-width: 10px;
-}
-.apply-btn p {
-  width: 100%;
-  text-align: center;
-}
-
-.apply-btn:hover {
-  background: var(--color-primary-dark, #3a8adb);
-}
 
 
 .total-box {

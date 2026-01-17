@@ -1,6 +1,6 @@
 <template>
 
-  <Header />
+  <WebNavBar />
   <NuxtPage />
   <NotificationBar ref="notificationBar" message="" />
 
@@ -9,7 +9,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
-import Header from './components/webNavBar.vue';
+import WebNavBar from './components/webNavBar.vue';
 import NotificationBar from './components/NotificationBar.vue';
 import { useNotifications } from './composables/useNotifications';
 
@@ -57,13 +57,21 @@ function checkScreenSize() {
 }
 
 
-onMounted(() => {
+onMounted(async () => {
   if (!process.client) return;
 
   try {
     const auth = JSON.parse(localStorage.getItem('auth'));
     isAuth.value = !!auth;
-    if (!auth) router.push('/connexion');
+
+    if (!auth) {
+      router.push('/connexion');
+    } else {
+      const res = await checkConnexion(auth.token)
+      if(!res?.success) {
+        handleLogout()
+      }
+    } 
   } catch (e) {
     console.error("Failed to parse auth status from localStorage", e);
     isAuth.value = false;
@@ -75,6 +83,24 @@ onMounted(() => {
   checkScreenSize();
   window.addEventListener('resize', checkScreenSize);
 });
+
+const handleLogout = () => {
+  localStorage.setItem('auth', null);
+  localStorage.setItem('user', null);
+  window.location.href = '/connexion' // Rediriger vers la page de connexion après déconnexion
+}
+
+const checkConnexion = async (token) => {
+  const response2 = await fetch('https://management.hoggari.com/backend/api.php?action=checkConnexion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: token }),
+  })
+
+  if (!response2.ok) throw new Error('Invalid response')
+
+  return await response2.json()
+}
 
 
 onBeforeUnmount(() => {
