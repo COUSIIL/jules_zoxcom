@@ -397,7 +397,8 @@
                   :resultProduct="resultProduct" :deliveryMethod="dts.method" :deliverySty="dts.deliverySty"
                   :total="parseInt(dts.total)" :id="parseInt(dts.id)" :selectedFees="dts.selectedFees"
                   :isDesk="dts.has_desk" @update:wilaya="vl => updateCommune(index, vl)"
-                  @update:deskFees="updateFees('home', index)" @update:homeFees="updateFees('desk', index)"
+                    @update:deskFees="updateFees('desk', index)"
+                    @update:homeFees="updateFees('home', index)"
                   @updated="editOrder(index, false), getOrders()" @update:products="vl => updateProducts(index, vl)"
                   @update:commune="vl => updateSelectedFees(index, vl)" />
               </div>
@@ -1358,30 +1359,33 @@ const editOrder = async (index, val) => {
 
 }
 
-const updateSelectedFees = async (index, vl, isFirst) => {
+const updateSelectedFees = async (index, vl) => {
   //console.log('vl: ', vl)
   limitedDt.value[index].selectedFees = []
   limitedDt.value[index].deleveryValue = null
-  if(isFirst) {
-    await setCommune(municipalitys.value[0])
-    limitedDt.value[index].selectedCommune = municipalitys.value[0]
+  if(vl?.has_stop_desk == 1) {
+    limitedDt.value[index].has_desk = true
+    isDesk.value = true
   } else {
-    var newMunic
-    if(municipalitys.value?.data) {
-      newMunic = municipalitys.value.data
-    } else {
-      newMunic = municipalitys.value
-    }
-    for (const i of newMunic) {
-
-      if ((i.nom == vl.name) || (i.name == vl.name)) {
-        await setCommune(i)
-        break
-
-      }
-      limitedDt.value[index].selectedCommune = vl.name
-    }
+    limitedDt.value[index].has_desk = false
+    isDesk.value = false
   }
+  var newMunic
+  if(municipalitys.value?.data) {
+    newMunic = municipalitys.value.data
+  } else {
+    newMunic = municipalitys.value
+  }
+  for (const i of newMunic) {
+
+    if ((i.nom == vl.name) || (i.name == vl.name)) {
+      await setCommune(i)
+      break
+
+    }
+    limitedDt.value[index].selectedCommune = vl.name
+  }
+  
 
   if(!limitedDt.value[index]?.deliveryType) {
     limitedDt.value[index].deliveryType = limitedDt.value[index].type
@@ -1498,46 +1502,20 @@ function updateProducts(index, lv) {
   limitedDt.value[index].wilayas = []
 }
 
-function updateFees(type, index) {
+const updateFees = (type, index) => {
+  // S'il n'y a pas de point relais, on retombe toujours sur le tarif "home"
+  const useDeskFees = type === 'desk' && isDesk.value
 
-  limitedDt.value[index].deliveryType = ''
+  limitedDt.value[index].deliveryType = useDeskFees ? '0' : '1'
+  setDelivery(useDeskFees ? 1 : 0)
 
-  limitedDt.value[index].has_desk = isDesk.value
+  const newFees = selectedFees.value
+  limitedDt.value[index].selectedFees = newFees
 
-  if(!isDesk.value) {
-    
-    limitedDt.value[index].deliveryType = '1'
-    
-    setDelivery(0)
-
-    const newFees = selectedFees.value
-
-    limitedDt.value[index].selectedFees = newFees
-    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif
-  
-  } else if(type === 'home') {
-    limitedDt.value[index].deliveryType = '1'
-    
-    setDelivery(0)
-
-    const newFees = selectedFees.value
-
-    limitedDt.value[index].selectedFees = newFees
-    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif
-  } else if(type === 'desk') {
-    limitedDt.value[index].deliveryType = '0'
-
-    setDelivery(1)
-
-    const newFees = selectedFees.value
-
-    limitedDt.value[index].selectedFees = newFees
-    limitedDt.value[index].deliveryValue = limitedDt.value[index].selectedFees.tarif_stopdesk
-  }
-
-
-
+  limitedDt.value[index].deliveryValue =
+    useDeskFees ? newFees.tarif_stopdesk : newFees.tarif
 }
+
 
 
 

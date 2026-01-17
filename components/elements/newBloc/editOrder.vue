@@ -139,6 +139,8 @@ const localFees = ref()
 const localCommune = ref(props.commune)
 const localWilaya = ref(props.wilaya)
 const prixTotal = ref(props.total)
+const initialFees = ref(props.deliveryFees)
+
 
 watch(() => props.deliveryFees, v => {
   localFees.value = v
@@ -252,6 +254,7 @@ const updateWilaya = (vl) => {
   calculerPrix()
 }
 const updateCommune = (vl) => {
+  console.log('vl: ', vl)
   emit('update:commune', vl)
     calculerPrix()
 }
