@@ -1506,8 +1506,8 @@ const updateFees = (type, index) => {
   // S'il n'y a pas de point relais, on retombe toujours sur le tarif "home"
   const useDeskFees = type === 'desk' && isDesk.value
 
-  limitedDt.value[index].deliveryType = useDeskFees ? '0' : '1'
-  setDelivery(useDeskFees ? 1 : 0)
+  limitedDt.value[index].deliveryType = useDeskFees ? '1' : '0'
+  setDelivery(useDeskFees ? '1' : '0')
 
   const newFees = selectedFees.value
   limitedDt.value[index].selectedFees = newFees

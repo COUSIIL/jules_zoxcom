@@ -26,7 +26,7 @@
     <div class="boxColumn">
       <h3>{{ t('delivery type') }}</h3>
 
-      <Switcher :label1="t('stop desk')" :label2="t('home')" img1="location" img2="home" :position="localType"
+      <Switcher :label1="deskLabel" :label2="homeLabel" img1="location" img2="home" :position="localType"
         :has1="isDesk" :has2="true" @click:1="updateDeskFees" @click:2="updateHomeFees" />
     </div>
 
@@ -93,6 +93,16 @@ import CallToAction from '../bloc/callToActionBtn.vue'
 import RectBtn from '../newBloc/rectBtn.vue';
 
 const { t } = useLang()
+
+const deskLabel = computed(() => {
+  const fee = props.selectedFees?.tarif_stopdesk
+  return fee ? `${t('stop desk')} (${fee} DA)` : t('stop desk')
+})
+
+const homeLabel = computed(() => {
+  const fee = props.selectedFees?.tarif
+  return fee ? `${t('home')} (${fee} DA)` : t('home')
+})
 
 const props = defineProps({
   id: { type: Number, default: 0 },
