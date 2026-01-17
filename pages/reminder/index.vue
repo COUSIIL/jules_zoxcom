@@ -31,8 +31,21 @@
       >
         <div class="reminder-header">
           <div class="reminder-info">
-            <span class="reminder-id">#{{ remind.id }}</span>
-            <span class="reminder-date">{{ remind.reminder_date }}</span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span class="reminder-id">#{{ remind.id }}</span>
+              <span class="reminder-date">{{ remind.reminder_date }}</span>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+              <div v-if="remind.username" style="display: flex; align-items: center; gap: 5px; font-size: 0.85rem; color: #555;">
+                <img v-if="remind.user_image" :src="`https://management.hoggari.com/uploads/profile/${remind.user_image}`" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;" />
+                <span class="dark:text-white">{{ remind.username }}</span>
+              </div>
+
+              <div v-if="remind.order_id" style="font-size: 0.8rem; background: var(--color-yelly); color: #000; padding: 2px 8px; border-radius: 4px;">
+                Order #{{ remind.order_id }}
+              </div>
+            </div>
           </div>
 
           <div class="reminder-actions">

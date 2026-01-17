@@ -117,7 +117,7 @@
         // 🕓 Convertir la date avant l'envoi
         const formattedDate = formatDateToSQL(reminder_date.value)
 
-        await createRemind(note.value, formattedDate)
+        await createRemind(note.value, formattedDate, props.auth.id)
 
         if (dataRemindCreated.value) {
             emit('update:modelValue', dataRemindCreated.value)

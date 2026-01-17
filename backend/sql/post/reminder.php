@@ -53,6 +53,10 @@ if ($table_check_result->num_rows == 0) {
     }
 }
 
+// Ajouter la colonne user_id si elle n'existe pas
+$mysqli->query("ALTER TABLE `reminder` ADD COLUMN IF NOT EXISTS user_id INT NULL AFTER id");
+
+
 // Lire la requête JSON envoyée par le client
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -68,12 +72,13 @@ if (is_array($note_raw) || is_object($note_raw)) {
 
 $reminder_date = $data['reminder_date'] ?? '';
 $work = isset($data['work']) ? (int)$data['work'] : 0;
+$user_id = isset($data['user_id']) ? (int)$data['user_id'] : null;
 $data_time = date('Y-m-d H:i:s');
 
 // Insertion
-$insert_query = $mysqli->prepare("INSERT INTO `reminder` (reminder_date, work, note, data_time) VALUES (?, ?, ?, ?)");
+$insert_query = $mysqli->prepare("INSERT INTO `reminder` (reminder_date, work, note, data_time, user_id) VALUES (?, ?, ?, ?, ?)");
 if ($insert_query) {
-    $insert_query->bind_param("siss", $reminder_date, $work, $note, $data_time);
+    $insert_query->bind_param("sissi", $reminder_date, $work, $note, $data_time, $user_id);
     if ($insert_query->execute()) {
         echo json_encode([
             'success' => true,
@@ -83,7 +88,8 @@ if ($insert_query) {
                 'reminder_date' => $reminder_date,
                 'work' => $work,
                 'note' => $note,
-                'data_time' => $data_time
+                'data_time' => $data_time,
+                'user_id' => $user_id
             ]
         ]);
     } else {

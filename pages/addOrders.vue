@@ -250,7 +250,7 @@
                     
                 </h3>
                     
-                    <select class="btn2" style="width: 90%; max-width: 450px;" v-model="country" required>
+                    <select class="btn2" style="width: 90%; max-width: 450px;" v-model="country" @change="handleCountryChange" required>
                         <option v-for="(country, index) in deliveryList" :key="country.id">
                          {{ country.name }}
                         </option>
@@ -268,7 +268,7 @@
                     </h3>
 
                     
-                    <select v-if="country" class="btn2" style="width: 90%; max-width: 450px;" v-model="method" required>
+                    <select v-if="country" class="btn2" style="width: 90%; max-width: 450px;" v-model="method" @change="handleMethodChange" required>
                         <option v-for="(methodItem, i) in getMethods(country)" :key="i" :value="methodItem">
                             {{ methodItem.name }}
                         </option>
@@ -515,6 +515,11 @@
                 return;
             }
 
+            if (selectedProd.value.length === 0) {
+                 saveLog.value = t('please add at least one product.');
+                 return;
+            }
+
             const orderData = {
                 data_time: Math.floor(Date.now() / 1000),
                 name: name.value,
@@ -597,6 +602,23 @@
                 if (zone2.value) {
                 zone1.value = false; // Désactive percentage si fixedValue est activé
                 }
+        }
+
+        function handleCountryChange() {
+            method.value = '';
+            select.value = '';
+            zone1.value = false;
+            zone2.value = false;
+            deliveryPrice.value = 0;
+            updateTotal();
+        }
+
+        function handleMethodChange() {
+            select.value = '';
+            zone1.value = false;
+            zone2.value = false;
+            deliveryPrice.value = 0;
+            updateTotal();
         }
 
         function getMethods(selectedCountry) {
@@ -977,6 +999,8 @@
             
             handleZone2Change,
             handleZone1Change,
+            handleCountryChange,
+            handleMethodChange,
             zone1,
             zone2,
             deliveryPrice,
