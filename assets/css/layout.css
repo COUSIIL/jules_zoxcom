@@ -12,15 +12,32 @@
 /* ==========================================================================
    Global Styles
    ========================================================================== */
+
+   /* Réactive la sélection partout */
+* {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
 html {
   font-family: var(--font-primary);
   background-color: var(--color-whity);
   color: var(--color-darkly);
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 html.dark {
   background-color: var(--color-darky);
   color: var(--color-whitly);
+}
+
+body {
+  -webkit-user-select: text;
+  user-select: text;
+}
+body.sidebar-open {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 

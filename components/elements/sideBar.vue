@@ -1,9 +1,9 @@
 <template>
+  <div v-if="prop.isVisible" class="sidebar-overlay" @click="close"></div>
+
   <div
     ref="sidebarRef"
-    :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isHovered || prop.isVisible }]"
-    @mouseover="handleHover(true)"
-    @mouseleave="handleHover(false)"
+    :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': prop.isVisible }]"
   >
     <div class="newSideBar__version-info">
       v1 {{ t('valid until: ') }} 	23/03/2026 
@@ -76,9 +76,9 @@
       </div>
 
       <div class="newSideBar__item" @click="close">
-        <NuxtLink class="newSideBar__link" to="/moddules" exact-active-class="is-active">
+        <NuxtLink class="newSideBar__link" to="/modules" exact-active-class="is-active">
           <div class="newSideBar__icon" v-html="icons['puzzle']"></div>
-          <h3 class="newSideBar__text">{{ t('moddules') }}</h3>
+          <h3 class="newSideBar__text">{{ t('modules') }}</h3>
         </NuxtLink>
       </div>
 
@@ -160,30 +160,13 @@ import { ref, watch, onUnmounted } from 'vue'
 const isLargeScreen = useState('isLargeScreen')
 
 const sidebarRef = ref(null)
+//const isHovered = ref(false)
+
 
 var prop = defineProps({
   isVisible: Boolean,
 })
 
-const handleClickOutside = (event) => {
-  if (sidebarRef.value && !sidebarRef.value.contains(event.target)) {
-    close()
-  }
-}
-
-watch(() => prop.isVisible, (newValue) => {
-  if (newValue) {
-    setTimeout(() => {
-      window.addEventListener('click', handleClickOutside)
-    }, 0)
-  } else {
-    window.removeEventListener('click', handleClickOutside)
-  }
-})
-
-onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside)
-})
 
 const justClicked = ref(false)
 
@@ -201,13 +184,13 @@ const handleLogout = () => {
   emit('handleLogout')
 }
 
-function handleHover(state) {
+/*function handleHover(state) {
   if (justClicked.value === false) isHovered.value = state
-}
+}*/
 
 const close = () => {
   justClicked.value = true;
-  isHovered.value = false;
+  //isHovered.value = false;
   emit('close');
   setTimeout(() => { justClicked.value = false }, 500);
 }
@@ -218,18 +201,27 @@ const close = () => {
   /* ==========================================================================
    newSideBar
    ========================================================================== */
-.newSideBar {
-  height: 100%;
+.sidebar-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 4999;         /* sous la sidebar */
+  background: transparent; /* ou rgba(0,0,0,.25) */
+}
+
+.newSideBar{
   position: fixed;
   top: 50px;
   right: 0;
+  height: 100%;
   transform: translateX(100%);
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 5000;
   background: var(--color-whitly);
-  box-shadow: 0px 8px 6px var(--color-tioly);
   overflow-y: auto;
-  scrollbar-width: thin;
+}
+
+.newSideBar.is-open{
+  transform: translateX(0);
 }
 
 .newSideBar--large {
@@ -249,7 +241,7 @@ const close = () => {
   height: calc(100% - 50px);
   z-index: 4999; /* juste sous sidebar */
 }
-.newSideBar:not(.is-open){ pointer-events:none; }
+.newSideBar:not(.is-open){ pointer-events:auto; }
 .newSideBar.is-open{ 
   transform: translateX(0);
   pointer-events:auto; }
@@ -327,15 +319,6 @@ const close = () => {
   height: 50px;
 }
 
-.newSideBar-overlay {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 5000; /* Below the newSideBar */
-  top: 0;
-  left: 0;
-  pointer-events: auto;
-}
 
 .newSideBar__version-info {
   font-size: 14px;
