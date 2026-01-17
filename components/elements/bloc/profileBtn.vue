@@ -1,6 +1,6 @@
 <template>
   <div v-if="isLargeScreen"  style="height: 30px; display: flex; justify-content: space-between; align-items: center;">
-    <NuxtLink class="title2" to="/connexion">
+    <NuxtLink class="title2" :to="targetLink">
       <div v-if="isAuth" class="circleProfile">
         <img :src="`https://management.hoggari.com/uploads/profile/${profileImage}`" :alt="user">
       </div>
@@ -12,7 +12,7 @@
   </div>
 
   <div v-else style="height: 30px; display: flex; justify-content: space-between; align-items: center;">
-    <NuxtLink class="title3" to="/connexion">
+    <NuxtLink class="title3" :to="targetLink">
       <div v-if="isAuth" class="circleProfile">
         <img :src="`https://management.hoggari.com/uploads/profile/${profileImage}`" :alt="user">
       </div>
@@ -30,6 +30,7 @@
   const isLargeScreen = useState('isLargeScreen')
 
   const profileImage = ref('')
+  const targetLink = ref('/connexion')
 
   onMounted(() => {
     testLogin()
@@ -47,6 +48,11 @@
       const data2 = JSON.parse(stored) // maintenant c’est un objet JS
        // tu peux y accéder directement
       profileImage.value = data2.profile_image
+      if (data2.username) {
+        targetLink.value = `/team/${data2.username}`
+      } else if (data2.user) {
+        targetLink.value = `/team/${data2.user}`
+      }
     }
   }
 </script>
