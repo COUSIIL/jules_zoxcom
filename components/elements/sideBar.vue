@@ -1,15 +1,10 @@
 <template>
-  <div v-if="isOpen" class="newSideBar-overlay" @click="close"></div>
-
-
-    <div class="sidebar-handle"
-      v-if="prop.isVisible"
-      @mouseenter="handleHover(true)"
-      @mouseleave="handleHover(false)">
-    </div>
-
-    <div :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isOpen }]">
-
+  <div
+    ref="sidebarRef"
+    :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isHovered || prop.isVisible }]"
+    @mouseover="handleHover(true)"
+    @mouseleave="handleHover(false)"
+  >
     <div class="newSideBar__version-info">
       v1 {{ t('valid until: ') }} 	23/03/2026 
     </div>
@@ -159,15 +154,36 @@
 <script setup>
 import FlagBtn from './bloc/flagBtn.vue'
 import icons from '~/public/icons.json'
-import { ref } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 //import './css/sideBar.css'
 
 const isLargeScreen = useState('isLargeScreen')
 
-const prop = defineProps({ isVisible: Boolean })
-const isHovered = ref(false)
+const sidebarRef = ref(null)
 
-const isOpen = computed(() => prop.isVisible || isHovered.value)
+var prop = defineProps({
+  isVisible: Boolean,
+})
+
+const handleClickOutside = (event) => {
+  if (sidebarRef.value && !sidebarRef.value.contains(event.target)) {
+    close()
+  }
+}
+
+watch(() => prop.isVisible, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      window.addEventListener('click', handleClickOutside)
+    }, 0)
+  } else {
+    window.removeEventListener('click', handleClickOutside)
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
+})
 
 const justClicked = ref(false)
 
