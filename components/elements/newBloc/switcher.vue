@@ -71,7 +71,7 @@ watch(() => props.has1, v => {
 })
 
 onMounted(() => {
-  if (props.position === 1) {
+  if (props.position === 1 && props.has1) {
     emit('click:1')
     lom.value = true
   } else {

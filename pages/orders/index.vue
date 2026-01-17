@@ -1313,8 +1313,8 @@ const editOrder = async (index, val) => {
   }, 300)
 
   // activer le mode édition pour la commande sélectionnée
-  limitedDt.value[index].isEditing = val
   if (!val) {
+    limitedDt.value[index].isEditing = false
     limitedDt.value[index].wilayas = []
     limitedDt.value[index].selectedCommune = null
     limitedDt.value[index].deliveryType = limitedDt.value[index].type
@@ -1355,7 +1355,7 @@ const editOrder = async (index, val) => {
   
   await updateCommune(index, currentWilaya)
 
-  
+  limitedDt.value[index].isEditing = true
 
 }
 
@@ -1453,6 +1453,7 @@ const updateCommune = async (index, wilaya) => {
     limitedDt.value[index].commune = []
   }
 
+  var selectedCommuneObj = null
   for (const i of newMunic) {
     
     var newName = ''
@@ -1460,6 +1461,10 @@ const updateCommune = async (index, wilaya) => {
       newName = i.nom
     } else {
       newName = i.name
+    }
+
+    if (newName == limitedDt.value[index].selectedCommune) {
+      selectedCommuneObj = i
     }
 
     if (i.has_stop_desk == 0) {
@@ -1477,6 +1482,17 @@ const updateCommune = async (index, wilaya) => {
       })
     }
 
+  }
+
+  if (selectedCommuneObj) {
+    await setCommune(selectedCommuneObj)
+    if(selectedCommuneObj.has_stop_desk == 1) {
+      limitedDt.value[index].has_desk = true
+      isDesk.value = true
+    } else {
+      limitedDt.value[index].has_desk = false
+      isDesk.value = false
+    }
   }
 
   if(selectedFees.value) {
