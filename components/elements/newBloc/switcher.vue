@@ -4,12 +4,17 @@
 
     <button v-if="props.has1" type="button" :class="{ active: lom }" @click="clicker(1)">
       <div v-if="props.img1" v-html="resizeSvg(img1, 24, 24)"></div>
-      {{ label1 }}
+      <h1>
+        {{ label1 }}
+      </h1>
+      
     </button>
 
     <button v-if="props.has2" type="button" :class="{ active: !lom }" @click="clicker(2)">
       <div v-if="props.img2" v-html="resizeSvg(img2, 24, 24)"></div>
-      {{ label2 }}
+      <h1>
+        {{ label2 }}
+      </h1>
     </button>
   </div>
 </template>
@@ -90,7 +95,7 @@ const clicker = (val) => {
 <style>
 .switchGrid {
   position: relative;
-  width: 300px;
+  width: 100%;
   height: 40px;
   display: flex;
   justify-content: center;
@@ -99,6 +104,7 @@ const clicker = (val) => {
   overflow: hidden;
   margin: 10px;
   gap: 5px;
+  padding-inline: 5px;
 }
 
 
@@ -106,7 +112,7 @@ const clicker = (val) => {
 /* Boutons */
 .switchGrid button {
   flex: 1;
-  max-width: 120px;
+  min-width: 120px;
   border: none;
   background: transparent;
   font-weight: bold;
@@ -123,6 +129,15 @@ const clicker = (val) => {
     background 0.35s ease,
     box-shadow 0.35s ease,
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switchGrid button h1 {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+
 }
 
 .switchGrid button svg {

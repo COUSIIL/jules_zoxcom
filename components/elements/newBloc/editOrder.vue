@@ -30,8 +30,6 @@
         :has1="isDesk" :has2="true" @click:1="updateDeskFees" @click:2="updateHomeFees" />
     </div>
 
-    <h3>{{ localFees }} DA</h3>
-
     <!-- ADDRESS -->
     <Inputer v-model="localAdresse" placeHolder="adresse" :img="icons['adresse']" />
 
@@ -96,11 +94,14 @@ const { t } = useLang()
 
 const deskLabel = computed(() => {
   const fee = props.selectedFees?.tarif_stopdesk
+
+  
   return fee ? `${t('stop desk')} (${fee} DA)` : t('stop desk')
 })
 
 const homeLabel = computed(() => {
   const fee = props.selectedFees?.tarif
+  
   return fee ? `${t('home')} (${fee} DA)` : t('home')
 })
 
@@ -271,11 +272,15 @@ const updateCommune = (vl) => {
 const updateSty = (vl) => emit('update:sty', vl)
 const updateDeskFees = () => {
   localType.value = 1
+
+  localFees.value = props.selectedFees?.tarif_stopdesk
+
   emit('update:deskFees')
   calculerPrix()
 }
 const updateHomeFees = () => {
   localType.value = 0
+  localFees.value = props.selectedFees?.tarif
   emit('update:homeFees')
   calculerPrix()
 }
@@ -409,6 +414,7 @@ async function calculerPrix() {
   // So relying on localFees (which is synced with props.deliveryFees) is safer.
   // We remove the conflicting logic.
 
+
   if (productList.value.length > 0) {
 
     for (const i of productList.value) {
@@ -423,10 +429,10 @@ async function calculerPrix() {
       }
     }
 
-    prixTotal.value = prixQty + localFees.value
+    prixTotal.value = prixQty + parseFloat(localFees.value)
   } else {
     prixQty = props.total - initialFees.value
-    prixTotal.value = prixQty + localFees.value
+    prixTotal.value = prixQty + parseFloat(localFees.value)
   }
 
   

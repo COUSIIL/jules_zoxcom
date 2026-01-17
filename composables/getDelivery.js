@@ -239,7 +239,7 @@ export const useDelivery = () => {
                     }
                     
                     
-                } else if(municipalitys.value?.data.length > 0) {
+                } else if(municipalitys.value?.data?.length > 0) {
                     municipalitys.value = municipalitys.value.data
 
                     if(municipalitys.value[0].nom) {
