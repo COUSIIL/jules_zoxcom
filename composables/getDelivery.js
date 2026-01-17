@@ -219,7 +219,7 @@ export const useDelivery = () => {
             //console.log('municipalitys.value: ', municipalitys.value)
             if(commu) {
 
-                if (municipalitys.value?.length > 0) {
+                if (Array.isArray(municipalitys.value) && municipalitys.value.length > 0) {
                     if(municipalitys.value[0].nom) {
                         for (const comu of municipalitys.value) {
                             if (comu.nom == commu) {
@@ -239,7 +239,7 @@ export const useDelivery = () => {
                     }
                     
                     
-                } else if(municipalitys.value?.data.length > 0) {
+                } else if(municipalitys.value?.data && Array.isArray(municipalitys.value.data) && municipalitys.value.data.length > 0) {
                     municipalitys.value = municipalitys.value.data
 
                     if(municipalitys.value[0].nom) {
@@ -264,9 +264,9 @@ export const useDelivery = () => {
                 }
             } else {
                 
-                if(municipalitys.value?.data) {
+                if(municipalitys.value?.data && municipalitys.value.data.length > 0) {
                     await setCommune(municipalitys.value.data[0])
-                } else {
+                } else if (Array.isArray(municipalitys.value) && municipalitys.value.length > 0) {
                     await setCommune(municipalitys.value[0])
                 }
                 
@@ -284,10 +284,11 @@ export const useDelivery = () => {
     }
 
     async function setCommune(com) {
-        
+        if (!com) return
+
         if (com?.nom) {
             selectedMunicipality.value = com.nom
-        } else {
+        } else if (com?.name) {
             selectedMunicipality.value = com.name
         }
 
