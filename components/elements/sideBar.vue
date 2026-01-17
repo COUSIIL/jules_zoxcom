@@ -1,7 +1,6 @@
 <template>
-  <div v-if="prop.isVisible" class="newSideBar-overlay" @click="viewMenu"></div>
-
   <div
+    ref="sidebarRef"
     :class="['newSideBar', isLargeScreen ? 'newSideBar--large' : 'newSideBar--small', { 'is-open': isHovered || prop.isVisible }]"
     @mouseover="handleHover(true)"
     @mouseleave="handleHover(false)"
@@ -148,13 +147,35 @@
 <script setup>
 import FlagBtn from './bloc/flagBtn.vue'
 import icons from '~/public/icons.json'
-import { ref } from 'vue'
+import { ref, watch, onUnmounted } from 'vue'
 //import './css/sideBar.css'
 
 const isLargeScreen = useState('isLargeScreen')
 
+const sidebarRef = ref(null)
+
 var prop = defineProps({
   isVisible: Boolean,
+})
+
+const handleClickOutside = (event) => {
+  if (sidebarRef.value && !sidebarRef.value.contains(event.target)) {
+    close()
+  }
+}
+
+watch(() => prop.isVisible, (newValue) => {
+  if (newValue) {
+    setTimeout(() => {
+      window.addEventListener('click', handleClickOutside)
+    }, 0)
+  } else {
+    window.removeEventListener('click', handleClickOutside)
+  }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
 })
 
 const justClicked = ref(false)
