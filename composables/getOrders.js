@@ -1,8 +1,10 @@
 import { ref } from 'vue';
+import { useAuth } from './useAuth';
 
 // --- Le Composable ---
 
 export const useOrders = () => {
+    const { auth } = useAuth();
     const data = ref()
     const log = ref('')
     const existe = ref(false)
@@ -228,9 +230,9 @@ export const useOrders = () => {
                     if (data2.success) {
                         if (data2 && data2.tracking) {
                             
-                            await updateOrderValue((order.id), 'tracking_code', data2.tracking);
+                            await updateOrderValue((order.id), 'tracking_code', data2.tracking, auth.value?.username);
                         }
-                        await updateOrderValue((order.id), 'status', 'shipping');
+                        await updateOrderValue((order.id), 'status', 'shipping', auth.value?.username);
                     } else {
                         console.error(`UPS error: ${data2.message}`);
                     }
@@ -307,9 +309,9 @@ export const useOrders = () => {
                     const data2 = await response2.json();
                     if (data2.success) {
                         if (data2 && data2.tracking) {
-                            await updateOrderValue((order.id), 'tracking_code', data2.tracking);
+                            await updateOrderValue((order.id), 'tracking_code', data2.tracking, auth.value?.username);
                         }
-                        await updateOrderValue((order.id), 'status', 'shipping');
+                        await updateOrderValue((order.id), 'status', 'shipping', auth.value?.username);
                     } else {
                         console.error(`Anderson error: ${data2.message}`);
                     }

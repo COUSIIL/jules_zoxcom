@@ -124,6 +124,24 @@ if (!$stmt->execute()) {
 $stmt->close();
 
 /* =======================
+   History logic
+======================= */
+if ($owner) {
+    $historyValue = is_array($value) ? json_encode($value) : $value;
+    // Shorten value if too long
+    if (strlen($historyValue) > 65000) {
+        $historyValue = substr($historyValue, 0, 65000) . '...';
+    }
+
+    $stmtH = $mysqli->prepare("INSERT INTO order_history (order_id, user, action, value) VALUES (?, ?, ?, ?)");
+    if ($stmtH) {
+        $stmtH->bind_param("isss", $id, $owner, $status, $historyValue);
+        $stmtH->execute();
+        $stmtH->close();
+    }
+}
+
+/* =======================
    Confirmed logic
 ======================= */
 
