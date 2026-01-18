@@ -8,7 +8,7 @@
         />
 
   <div :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}">
-    <div class="boxContainer1">
+    <div class="boxContainerRole">
 
       <div style="display: flex; justify-content: center; align-items: center; margin-inline: 10px; gap: 5px;">
           <div v-html="resizeSvg(icons['hierarchy'], 20, 20)">
@@ -25,47 +25,50 @@
     </div>
 
     <div v-for="(role, index) in roles" :key="role.id" class="center_column">
-      <div class="boxContainer2">
+        <div v-if="hasPermission('edit_roles') || hasPermission('delete_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')" style="width: 100%; display: flex; justify-content: right; align-items: center;">
+          <div class="action_bar">
+            <!-- Edit -->
+             <RectBtn v-if="hasPermission('edit_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')" svg="edit"
+              @click:ok="openModal(role)" :isSimple="true" />
+
+            <!-- Delete -->
+             <RectBtn v-if="hasPermission('delete_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')" iconColor="#ff5555" svg="trashX"
+              @click:ok="deleteRole(role.id)" :isSimple="true" />
+
+        </div>
+      </div>
+      
+      <div class="boxContainerRole2">
           <div class="center_flex" style="justify-content: flex-start; width: auto; flex-grow: 1;">
 
-            <div class="no_image" style="background-color: var(--color-whizy); display: flex; justify-content: center; align-items: center;">
-                 <div v-html="resizeSvg(icons['key'], 40, 40)"></div>
+            <div class="no_image">
+                 <div class="clr_svg" v-html="resizeSvg(icons['key'], 40, 40)"></div>
             </div>
 
             <div class="insider">
               <div class="titleTeam">
                 {{ role.name }}
               </div>
-              <div class="minTitle">
-                {{ role.description }}
-              </div>
-              <div class="minTitle" style="font-size: 12px; color: #888;">
+              
+              <div class="minTitleRole" style="font-size: 12px; color: #888;">
                 {{ role.permissions.length }} permissions
               </div>
             </div>
 
+            
+
           </div>
 
-          <div class="center_flex" style="justify-content: flex-end; gap: 20px; width: auto;">
-              <!-- Edit -->
-              <div v-if="hasPermission('edit_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')"
-                   v-html="resizeSvg(icons['edit'], 24, 24)"
-                   @click.stop="openModal(role)"
-                   style="cursor: pointer; color: #ffc107;"
-                   title="Modifier">
-              </div>
-
-              <!-- Delete -->
-              <div v-if="hasPermission('delete_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')"
-                   v-html="resizeSvg(icons['deleteImg'], 24, 24)"
-                   @click.stop="deleteRole(role.id)"
-                   style="cursor: pointer; color: #dc3545;"
-                   title="Supprimer">
-              </div>
-          </div>
-
+          
+        <div class="minTitleRole">
+          {{ role.description }}
+        </div>
 
       </div>
+
+      
+
+      
 
     </div>
 
@@ -91,6 +94,7 @@
   import LoaderBlack from '../../components/elements/animations/loaderBlack.vue';
   import Message from '../../components/elements/bloc/message.vue';
   import RoleModal from '../../components/roles/RoleModal.vue';
+  import RectBtn from '../../components/elements/newBloc/rectBtn.vue';
 
   import icons from '~/public/icons.json'
 
@@ -189,7 +193,7 @@
 
 <style scoped>
 
-  .boxContainer1 {
+  .boxContainerRole {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -203,33 +207,33 @@
     margin-block: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
   }
-  .dark .boxContainer1{
+  .dark .boxContainerRole{
     background-color: var(--color-darkly);
   }
 
-  .boxContainer2 {
+  .boxContainerRole2 {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-direction: row;
+    align-items: left;
+    justify-content: center;
+    flex-direction: column;
     width: 100%;
     max-width: 800px;
     min-width: 300px;
     background-color: var(--color-whitly);
     border-radius: 6px;
     transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
+    margin-bottom: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
     padding: 10px;
     cursor: pointer;
   }
-  .dark .boxContainer2{
+  .dark .boxContainerRole2{
     background-color: var(--color-darkly);
   }
 
 
   .no_image {
+    display: flex; justify-content: center; align-items: center;
     width: 60px;
     height: 60px;
     min-width: 60px;
@@ -243,6 +247,7 @@
 
   .center_column {
     width: 90%;
+    max-width: 800px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -254,6 +259,23 @@
     align-items: center;
     gap: 10px;
   }
+  .action_bar {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    background-color: var(--color-whitly);
+    border-radius: 6px;
+    padding: 5px;
+    margin-block: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+    gap: 10px;
+  }
+  .dark .action_bar {
+    background-color: var(--color-darkly);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 1);
+
+  }
+
 
   .insider {
     display: flex;
@@ -268,12 +290,14 @@
   .dark .titleTeam {
     color: var(--color-whitly);
   }
-  .minTitle {
+  .minTitleRole {
+    width: 100%;
     font-size: 14px;
     color: #666;
   }
-  .dark .minTitle {
+  .dark .minTitleRole {
     color: #aaa;
   }
+
 
 </style>

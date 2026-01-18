@@ -1,9 +1,9 @@
 <template>
   <div v-if="isMounted" class="customer-wrapper">
 
-    <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center;">
+    <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; align-items: center;">
         <Search style="flex: 1;" v-model:searcher="searchValue" @search-submitted="getCustomers(searchValue)" />
-        <RectBtn text="Export CSV" svg="download" @click:ok="exportData" :isSimple="true" />
+        <!--RectBtn text="Export CSV" svg="download" @click:ok="exportData" :isSimple="true" /-->
     </div>
 
     <div v-if="isUpdating">
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 10px;">
+      <div class="floatingAction">
         <div class="box power-box">
           <div v-html="resizeSvg(icons['fire'], 20, 20)"></div>
           <label style="font-weight: bold; color: #ff5555;">{{ customer.power }}</label>
@@ -232,7 +232,7 @@ watch(searchValue, (newVal) => {
 .dark .customer-card {
   background-color: var(--color-darkly);
   color: var(--color-whizy);
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 1);
 }
 
 .dark .load-more-btn {
@@ -286,6 +286,24 @@ watch(searchValue, (newVal) => {
 
 .x:hover {
     transform: scale(1.1);
+}
+
+.floatingAction {
+  position: relative;
+  right: 40px;
+  bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 350px) {
+  .floatingAction {
+    right: 140px;
+    transform: translateX(50%); /* pour bien centrer */
+  }
 }
 
 </style>

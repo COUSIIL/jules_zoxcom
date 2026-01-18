@@ -68,7 +68,7 @@
             </p>
           </div>
 
-          <div v-if="hasPermission('assign_roles') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
+          <div v-if="hasPermission('assign_roles') || hasPermission('manage_roles') || hasPermission('all_permissions') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
              <label style="font-size: 12px; font-weight: bold;">Rôle:</label>
              <select v-model="user.role_id" @change="changeRole(user)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 100%;">
                 <option :value="null">Aucun</option>
@@ -76,7 +76,7 @@
              </select>
           </div>
 
-          <div v-if="hasPermission('delete_users')" class="center_flex" @click.stop>
+          <div v-if="hasPermission('delete_users') || hasPermission('manage_roles') || hasPermission('all_permissions')" class="center_flex" @click.stop>
             <div v-html="resizeSvg(icons['deleteImg'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #dc3545;"></div>
           </div>
         
