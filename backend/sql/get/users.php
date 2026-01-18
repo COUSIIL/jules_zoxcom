@@ -60,7 +60,10 @@ foreach ($alters as $alter) {
 }
 
 // Requête pour récupérer les utilisateurs sans le token
-$query = "SELECT id, username, name, family_name, email, profile_image, created_at, role, ip_adresse FROM users ORDER BY id DESC";
+$query = "SELECT u.id, u.username, u.name, u.family_name, u.email, u.profile_image, u.created_at, u.role, u.role_id, r.name as role_name, u.ip_adresse
+          FROM users u
+          LEFT JOIN roles r ON u.role_id = r.id
+          ORDER BY u.id DESC";
 $result = $mysqli->query($query);
 
 if (!$result) {

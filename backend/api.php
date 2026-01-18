@@ -113,6 +113,12 @@ $routes = [
     "connexion"                    => "../backend/sql/connexion/connexion.php",
     "checkConnexion"               => "../backend/sql/connexion/checkConnexion.php",
 
+    // --- Roles & Permissions ---
+    "getRoles"                     => "../backend/sql/get/roles.php",
+    "saveRole"                     => "../backend/sql/post/saveRole.php",
+    "deleteRole"                   => "../backend/sql/delete/role.php",
+    "assignRole"                   => "../backend/sql/post/assignRole.php",
+
     // --- Email ---
     "createEmail"                  => "../backend/sql/post/email.php",
     "getEmail"                     => "../backend/sql/get/email.php",
