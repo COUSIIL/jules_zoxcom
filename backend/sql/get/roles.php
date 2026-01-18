@@ -58,16 +58,61 @@ while ($row = $result->fetch_assoc()) {
     $roles[] = $row;
 }
 
-// Liste des permissions disponibles (hardcoded for UI reference)
+// Liste des permissions disponibles
 $availablePermissions = [
+    // Dashboard
     ['slug' => 'view_dashboard', 'name' => 'Voir le tableau de bord'],
-    ['slug' => 'manage_orders', 'name' => 'Gérer les commandes (Ajout/Modif/Suppr)'],
-    ['slug' => 'view_orders', 'name' => 'Voir les commandes'],
-    ['slug' => 'manage_products', 'name' => 'Gérer les produits'],
-    ['slug' => 'manage_users', 'name' => 'Gérer les utilisateurs'],
-    ['slug' => 'manage_roles', 'name' => 'Gérer les rôles et permissions'],
+
+    // Commandes
+    ['slug' => 'read_orders', 'name' => 'Voir les commandes'],
+    ['slug' => 'create_orders', 'name' => 'Créer des commandes'],
+    ['slug' => 'edit_orders', 'name' => 'Modifier les commandes'],
+    ['slug' => 'delete_orders', 'name' => 'Supprimer les commandes'],
+
+    // Produits
+    ['slug' => 'read_products', 'name' => 'Voir les produits'],
+    ['slug' => 'create_products', 'name' => 'Créer des produits'],
+    ['slug' => 'edit_products', 'name' => 'Modifier les produits'],
+    ['slug' => 'delete_products', 'name' => 'Supprimer les produits'],
+
+    // Clients
+    ['slug' => 'read_customers', 'name' => 'Voir les clients'],
+    ['slug' => 'create_customers', 'name' => 'Créer des clients'],
+    ['slug' => 'edit_customers', 'name' => 'Modifier les clients'],
+    ['slug' => 'delete_customers', 'name' => 'Supprimer les clients'],
+
+    // Utilisateurs (Team)
+    ['slug' => 'read_users', 'name' => 'Voir les utilisateurs'],
+    ['slug' => 'create_users', 'name' => 'Créer des utilisateurs'],
+    ['slug' => 'edit_users', 'name' => 'Modifier les utilisateurs'],
+    ['slug' => 'delete_users', 'name' => 'Supprimer les utilisateurs'],
+    ['slug' => 'assign_roles', 'name' => 'Assigner des rôles'],
+
+    // Rôles
+    ['slug' => 'read_roles', 'name' => 'Voir les rôles'],
+    ['slug' => 'create_roles', 'name' => 'Créer des rôles'],
+    ['slug' => 'edit_roles', 'name' => 'Modifier les rôles'],
+    ['slug' => 'delete_roles', 'name' => 'Supprimer les rôles'],
+
+    // Livraison
+    ['slug' => 'read_delivery', 'name' => 'Voir la livraison'],
+    ['slug' => 'create_delivery', 'name' => 'Créer des méthodes de livraison'],
+    ['slug' => 'edit_delivery', 'name' => 'Modifier la livraison'],
+    ['slug' => 'delete_delivery', 'name' => 'Supprimer la livraison'],
+
+    // Finance/Analytics
     ['slug' => 'view_finance', 'name' => 'Voir la finance'],
+    ['slug' => 'view_analytics', 'name' => 'Voir les statistiques'],
+
+    // Paramètres
     ['slug' => 'manage_settings', 'name' => 'Gérer les paramètres'],
+
+    // Legacy (Backward Compatibility)
+    ['slug' => 'manage_orders', 'name' => 'Gérer les commandes (Legacy)'],
+    ['slug' => 'view_orders', 'name' => 'Voir les commandes (Legacy)'],
+    ['slug' => 'manage_products', 'name' => 'Gérer les produits (Legacy)'],
+    ['slug' => 'manage_users', 'name' => 'Gérer les utilisateurs (Legacy)'],
+    ['slug' => 'manage_roles', 'name' => 'Gérer les rôles (Legacy)'],
 ];
 
 echo json_encode([

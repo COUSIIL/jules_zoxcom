@@ -27,12 +27,14 @@ while ($row = $res->fetch_assoc()) {
     $perms[] = $row['permission_slug'];
 }
 
-if (!in_array('manage_roles', $perms)) {
+$id = $input['id'] ?? null;
+
+$requiredPerm = $id ? 'edit_roles' : 'create_roles';
+
+if (!in_array($requiredPerm, $perms) && !in_array('manage_roles', $perms)) {
     echo json_encode(['success' => false, 'message' => 'Permission refusée.']);
     exit;
 }
-
-$id = $input['id'] ?? null;
 $name = trim($input['name'] ?? '');
 $description = trim($input['description'] ?? '');
 $permissions = $input['permissions'] ?? [];
