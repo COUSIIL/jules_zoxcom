@@ -183,6 +183,10 @@ $routes = [
 
 // Vérifiez si l'action demandée existe
 if (isset($_GET['action']) && isset($routes[$_GET['action']])) {
+    if ($_GET['action'] === 'exportCustomers') {
+        include $routes[$_GET['action']];
+        exit();
+    }
     $response = runScript($routes[$_GET['action']]);
 } else {
     http_response_code(400);

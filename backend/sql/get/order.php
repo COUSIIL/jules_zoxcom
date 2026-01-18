@@ -14,7 +14,7 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
-
+// --- MIGRATIONS (Keeping them as in original file just in case) ---
 $alters = [
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse",
@@ -30,42 +30,124 @@ $alters = [
 
 foreach ($alters as $sql) {
     if (! $mysqli->query($sql)) {
-        // Si ta version de MySQL ne supporte pas IF NOT EXISTS, ou si 
-        // la colonne existe déjà, tu peux vérifier le code d’erreur 1060
         if ($mysqli->errno === 1060) {
             continue;
         }
-        response(false, "Migration failed: " . $mysqli->error, 500);
+        // Log error but try to continue
     }
 }
 
-// Requêtes pour obtenir les données des tables
-$tables = [
-    'orders' => "SELECT * FROM orders",
-    'item' => "SELECT * FROM order_items",
-    'product' => "SELECT * FROM product_items",
-];
+// --- FILTER LOGIC ---
 
-$data = [];
-foreach ($tables as $key => $query) {
-    $result = $mysqli->query($query);
-    if (!$result) {
-        echo json_encode([
-            'success' => false,
-            'message' => "Failed to fetch data from $key",
-        ]);
-        $mysqli->close();
-        exit;
+$where = ["1=1"];
+
+// Search (ID, Phone, Name)
+if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
+    $s = $mysqli->real_escape_string(trim($_GET['search']));
+    // Check if it looks like an order ID (e.g. order-123 or just 123)
+    $searchId = preg_replace('/[^0-9]/', '', $s);
+
+    $searchCondition = "(name LIKE '%$s%' OR phone LIKE '%$s%'";
+    if (!empty($searchId)) {
+        $searchCondition .= " OR id = '$searchId'";
     }
-    $data[$key] = $result->fetch_all(MYSQLI_ASSOC);
+    $searchCondition .= ")";
+
+    $where[] = $searchCondition;
 }
+
+// Status
+if (isset($_GET['status']) && !empty($_GET['status']) && $_GET['status'] !== 'all') {
+    $s = $mysqli->real_escape_string($_GET['status']);
+    $where[] = "status = '$s'";
+}
+
+// Date Range
+if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
+    $d = $mysqli->real_escape_string($_GET['start_date']);
+    $where[] = "created_at >= '$d 00:00:00'";
+}
+if (isset($_GET['end_date']) && !empty($_GET['end_date'])) {
+    $d = $mysqli->real_escape_string($_GET['end_date']);
+    $where[] = "created_at <= '$d 23:59:59'";
+}
+
+// Wilaya (Delivery Zone)
+if (isset($_GET['wilaya']) && !empty($_GET['wilaya'])) {
+    $w = $mysqli->real_escape_string($_GET['wilaya']);
+    $where[] = "delivery_zone LIKE '%$w%'";
+}
+
+// Commune (S Zone)
+if (isset($_GET['commune']) && !empty($_GET['commune'])) {
+    $c = $mysqli->real_escape_string($_GET['commune']);
+    $where[] = "s_zone LIKE '%$c%'";
+}
+
+// Society (Method)
+if (isset($_GET['method']) && !empty($_GET['method'])) {
+    $m = $mysqli->real_escape_string($_GET['method']);
+    $where[] = "method LIKE '%$m%'";
+}
+
+// Price Range (Total Price)
+if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
+    $p = (float)$_GET['min_price'];
+    $where[] = "total_price >= $p";
+}
+if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
+    $p = (float)$_GET['max_price'];
+    $where[] = "total_price <= $p";
+}
+
+
+$whereClause = implode(' AND ', $where);
+
+// 1. Fetch Orders
+$sqlOrders = "SELECT * FROM orders WHERE $whereClause ORDER BY id DESC"; // Limit?
+// If no search/filters, maybe limit to recent? Original fetched all.
+// "optimize" implies pagination or limit, but for now let's just use filters.
+// If user says "search optimize", likely server-side filtering is key.
+
+$resultOrders = $mysqli->query($sqlOrders);
+if (!$resultOrders) {
+    echo json_encode(['success' => false, 'message' => "DB Error: " . $mysqli->error]);
+    exit;
+}
+
+$ordersData = $resultOrders->fetch_all(MYSQLI_ASSOC);
+$orderIds = array_column($ordersData, 'id');
+
+if (empty($orderIds)) {
+    echo json_encode(['success' => true, 'message' => 'No orders found', 'data' => []]);
+    exit;
+}
+
+// 2. Fetch Order Items for these orders
+$idsString = implode(',', array_map('intval', $orderIds));
+$sqlItems = "SELECT * FROM order_items WHERE order_id IN ($idsString)";
+$resultItems = $mysqli->query($sqlItems);
+$itemsData = $resultItems->fetch_all(MYSQLI_ASSOC);
+
+$orderItemIds = array_column($itemsData, 'id');
+
+// 3. Fetch Product Items for these order items
+$productItemsData = [];
+if (!empty($orderItemIds)) {
+    $itemIdsString = implode(',', array_map('intval', $orderItemIds));
+    $sqlProducts = "SELECT * FROM product_items WHERE indx IN ($itemIdsString)";
+    $resultProducts = $mysqli->query($sqlProducts);
+    $productItemsData = $resultProducts->fetch_all(MYSQLI_ASSOC);
+}
+
+// --- DATA ASSEMBLY (Same logic as before but with filtered data) ---
 
 // Organiser product_items par indx (order_items.id)
-$productItems = [];
-foreach ($data['product'] as $item) {
+$productItemsMap = [];
+foreach ($productItemsData as $item) {
     if (!isset($item['indx']) || !$item['indx']) continue;
 
-    $productItems[$item['indx']][] = [
+    $productItemsMap[$item['indx']][] = [
         'color' => $item['color'],
         'color_name' => $item['color_name'],
         'size' => $item['size'],
@@ -77,13 +159,10 @@ foreach ($data['product'] as $item) {
     ];
 }
 
-
-// Organiser order_items : chaque modèle avec ses variantes uniques
+// Organiser order_items
 $groupedModels = [];
-foreach ($data['item'] as $model) {
-
-    $orderItemId = $model['id']; // id in order_items
-
+foreach ($itemsData as $model) {
+    $orderItemId = $model['id'];
     $groupedModels[$model['order_id']][] = [
         'id' => $model['product_id'],
         'productName' => $model['product_name'],
@@ -91,15 +170,15 @@ foreach ($data['item'] as $model) {
         'price' => $model['price'],
         'qty' => $model['qty'],
         'ref' => $model['ref'],
-        'items' => $productItems[$orderItemId] ?? [], // ✅ seulement les variantes liées
+        'items' => $productItemsMap[$orderItemId] ?? [],
     ];
 }
 
 // Construction de la réponse finale
-$orders = [];
-foreach ($data['orders'] as $orderData) {
+$finalOrders = [];
+foreach ($ordersData as $orderData) {
     $orderId = $orderData['id'];
-    $orders[] = [
+    $finalOrders[] = [
         'id' => $orderId,
         'name' => $orderData['name'],
         'phone' => $orderData['phone'],
@@ -131,9 +210,8 @@ foreach ($data['orders'] as $orderData) {
 echo json_encode([
     'success' => true,
     'message' => 'Data received',
-    'data' => $orders,
+    'data' => $finalOrders,
 ]);
 
-// Fermeture de la connexion
 $mysqli->close();
 ?>

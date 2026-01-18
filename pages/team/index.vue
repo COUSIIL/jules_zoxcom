@@ -1,6 +1,6 @@
 <template>
 
-  <LoaderBlack v-if="isSaving" width="80px"/>
+  <LoaderBlack v-if="isSaving || loading" width="80px"/>
 
   <Message :isVisible="isMessage"
           :message="message"
@@ -8,16 +8,15 @@
         />
 
   <div :style="{maxWidth: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}">
-    <div class="boxContainer1">
+
+    <!-- Header Box -->
+    <div class="boxContainerRole">
   
       <div style="display: flex; justify-content: center; align-items: center; margin-inline: 10px; gap: 5px;">
-          <div v-html="resizeSvg(icons['team'], 20, 20)">
-
-          </div>
+          <div v-html="resizeSvg(icons['team'], 20, 20)"></div>
           <h1>
           {{ membersLength }} {{ t('members') }}
           </h1>
-          
       </div>
 
       <CallToAction :text="t('add member')" :svg="icons['addMember']" @clicked="activate"/>
@@ -26,83 +25,97 @@
 
     <AddMember v-if="isActive" @saving="saving" @success="success" @cancel="cancel" @message="messager" @x="isActive = false"/>
 
+    <!-- User List -->
     <div v-for="(user, index) in members" :key="index" class="center_column">
-      <div class="boxContainer2" @click="router.push(`/team/${user['username']}`)">
-          <div class="center_flex">
-            <img v-if="user['profile_image']" :src="'https://management.hoggari.com/uploads/profile/' + user['profile_image']" :alt="user['profile_image']">
-            <div v-else class="no_image">
 
-            </div>
+      <!-- Action Bar (Delete/Edit permissions) -->
+       <div v-if="hasPermission('delete_users') || hasPermission('manage_roles') || hasPermission('all_permissions')" style="width: 100%; display: flex; justify-content: right; align-items: center;">
+          <div class="action_bar">
+            <div v-html="resizeSvg(icons['deleteImg'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #dc3545;"></div>
+          </div>
+      </div>
+
+      <!-- User Card -->
+      <div class="boxContainerRole2" @click="router.push(`/team/${user['username']}`)">
+
+          <div class="center_flex" style="justify-content: flex-start; width: auto; flex-grow: 1;">
+
+            <img v-if="user['profile_image']" :src="'https://management.hoggari.com/uploads/profile/' + user['profile_image']" :alt="user['profile_image']" class="profile_img">
+            <div v-else class="no_image"></div>
+
             <div class="insider">
               <div class="titleTeam">
                 {{ user['username'] }}
               </div>
-              <div class="minTitle">
-                {{ user['role_name'] }}
-              </div>
-              <div class="minTitle">
+              <div class="minTitleRole">
                 {{ user['name'] }} {{ user['family_name'] }}
               </div>
-              <div class="minTitle">
-                {{ user['created_at'] }}
+              <div class="minTitleRole" style="font-size: 12px; color: #888;">
+                {{ user['role_name'] || t('No Role') }}
               </div>
             </div>
-    
+
           </div>
 
-          <div v-if="user['email']" class="center_flex">
-            <div v-html="resizeSvg(icons['mail'], 20, 20)">
-
+          <div class="infos_row">
+            <div v-if="user['email']" class="center_flex_small">
+              <div v-html="resizeSvg(icons['mail'], 16, 16)"></div>
+              <p>{{ user['email'] }}</p>
             </div>
-            <p>
-              {{ user['email'] }}
-            </p>
-          </div>
-
-          <div v-if="user['phone']" class="center_flex">
-            <div v-html="resizeSvg(icons['phone'], 20, 20)">
-
+            <div v-if="user['phone']" class="center_flex_small">
+              <div v-html="resizeSvg(icons['phone'], 16, 16)"></div>
+              <p>{{ user['phone'] }}</p>
             </div>
-            <p>
-              {{ user['phone'] }}
-            </p>
+             <div class="center_flex_small">
+                <p style="font-size: 12px; color: #aaa;">{{ user['created_at'] }}</p>
+             </div>
           </div>
 
-          <div v-if="hasPermission('assign_roles') || hasPermission('manage_roles') || hasPermission('all_permissions') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
-             <label style="font-size: 12px; font-weight: bold;">Rôle:</label>
-             <select v-model="user.role_id" @change="changeRole(user)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 100%;">
-                <option :value="null">Aucun</option>
-                <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
-             </select>
-          </div>
-
-          <div v-if="hasPermission('delete_users') || hasPermission('manage_roles') || hasPermission('all_permissions')" class="center_flex" @click.stop>
-            <div v-html="resizeSvg(icons['deleteImg'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #dc3545;"></div>
+          <!-- Role Selector Trigger -->
+          <div v-if="hasPermission('assign_roles') || hasPermission('manage_roles') || hasPermission('all_permissions') && roles.length > 0" class="role_section" @click.stop>
+             <!-- Using a button/label to trigger the selector modal -->
+             <div class="role_trigger" @click="openRoleSelector(user)">
+                <div v-html="resizeSvg(icons['key'], 18, 18)"></div>
+                <span>{{ user['role_name'] || t('Assign Role') }}</span>
+                <div v-html="resizeSvg(icons['edit'], 14, 14)" style="margin-left: auto;"></div>
+             </div>
           </div>
         
       </div>
-
-      
     </div>
     
+  </div>
+
+  <!-- Role Selector Modal -->
+  <div style="height: 0; overflow: visible;">
+    <Selector
+      :options="roleOptions"
+      :showIt="showRoleSelector"
+      :modelValue="selectedRoleId"
+      :placeHolder="'Select Role'"
+      @close="showRoleSelector = false"
+      @update:modelValue="handleRoleSelect"
+    />
   </div>
 
 </template>
 
 <script setup>
 
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
   import { useRouter } from 'nuxt/app';
 
-  import CallToAction from '../components/elements/bloc/callToActionBtn.vue';
+  import CallToAction from '../../components/elements/bloc/callToActionBtn.vue';
   import AddMember from '../../components/elements/addMember.vue';
-  import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
-  import Message from '../components/elements/bloc/message.vue';
+  import LoaderBlack from '../../components/elements/animations/loaderBlack.vue';
+  import Message from '../../components/elements/bloc/message.vue';
+  import Selector from '../../components/elements/bloc/select.vue';
 
   import icons from '~/public/icons.json'
 
   const router = useRouter();
   const { hasPermission, auth } = useAuth()
+  const { t } = useLang()
 
   var resizeSvg = (svg, width, height) => {
     return svg
@@ -110,20 +123,35 @@
       .replace(/height="[^"]+"/, `height="${height}"`)
   }
 
-  const { t } = useLang()
-
   const membersLength = ref(0)
   const members = ref()
   const successData = ref()
   const isSaving = ref(false)
+  const loading = ref(false)
   const isMessage = ref(false)
   const message = ref('')
   const isActive = ref(false)
   const roles = ref([])
 
+  // Selector state
+  const showRoleSelector = ref(false)
+  const currentUserToEdit = ref(null)
+  const selectedRoleId = ref(null)
+
+  const roleOptions = computed(() => {
+    const opts = roles.value.map(r => ({
+      label: r.name,
+      value: r.id,
+      img: ''
+    }))
+    // Add "No Role" option
+    opts.unshift({ label: t('No Role'), value: null, img: '' })
+    return opts
+  })
+
   onMounted(() => {
     getUsers()
-    if (hasPermission('manage_users')) {
+    if (hasPermission('manage_users') || hasPermission('assign_roles')) {
       fetchRoles()
     }
   })
@@ -140,7 +168,26 @@
     }
   }
 
+  const openRoleSelector = (user) => {
+    currentUserToEdit.value = user
+    selectedRoleId.value = user.role_id
+    showRoleSelector.value = true
+  }
+
+  const handleRoleSelect = (newRoleId) => {
+    if (currentUserToEdit.value) {
+        // Update local state temporarily/optimistically
+        currentUserToEdit.value.role_id = newRoleId
+        // Find role name
+        const role = roles.value.find(r => r.id === newRoleId)
+        currentUserToEdit.value.role_name = role ? role.name : null
+
+        changeRole(currentUserToEdit.value)
+    }
+  }
+
   const changeRole = async (user) => {
+    isSaving.value = true
     try {
       const res = await fetch('https://management.hoggari.com/backend/api.php?action=assignRole', {
         method: 'POST',
@@ -153,12 +200,14 @@
       })
       const json = await res.json()
       if (json.success) {
-        messager('Rôle mis à jour')
+        messager(t('Role updated'))
       } else {
-        messager(json.message || 'Erreur')
+        messager(json.message || t('Error'))
       }
     } catch (e) {
       console.error(e)
+    } finally {
+        isSaving.value = false
     }
   }
 
@@ -206,30 +255,30 @@
   }
 
   const getUsers = async () => {
-
+    loading.value = true
     const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUsers', {
       method: 'GET',
     })
 
     if(!response.ok) {
       console.error(t('error'))
+      loading.value = false
       return
     }
 
     const result = await response.json()
     membersLength.value = result.data.length
     members.value = result.data
-
-    console.log('members.value: ', members.value)
-    
+    loading.value = false
 
   }
 
 </script>
 
-<style>
+<style scoped>
 
-  .boxContainer1 {
+  /* Styles borrowed from Roles page to ensure consistency */
+  .boxContainerRole {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -243,14 +292,14 @@
     margin-block: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
   }
-  .dark .boxContainer1{
+  .dark .boxContainerRole{
     background-color: var(--color-darkly);
   }
 
-  .boxContainer2 {
+  .boxContainerRole2 {
     display: flex;
-    align-items: right;
-    justify-content: space-between;
+    align-items: left;
+    justify-content: center;
     flex-direction: column;
     width: 100%;
     max-width: 800px;
@@ -258,31 +307,18 @@
     background-color: var(--color-whitly);
     border-radius: 6px;
     transition: all 0.3s ease;
-    padding-block: 10px;
-    margin-block: 10px;
+    margin-bottom: 10px;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
-    padding: 5px;
+    padding: 10px;
     cursor: pointer;
   }
-  .dark .boxContainer2{
+  .dark .boxContainerRole2{
     background-color: var(--color-darkly);
-  }
-  
-
-  .no_image {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    border-radius: 50px;
-    background-color: var(--color-whizy);
-  }
-  .dark .no_image {
-    background-color: var(--color-darkow);
   }
 
   .center_column {
     width: 90%;
+    max-width: 800px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -290,60 +326,117 @@
   }
 
   .center_flex {
-    width: 100%;
     display: flex;
-    min-width: 250px;
-    max-width: 200px;
-    justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-inline: 5px;
   }
+
+  .center_flex_small {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #666;
+  }
+  .dark .center_flex_small {
+    color: #bbb;
+  }
+
+  .action_bar {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    background-color: var(--color-whitly);
+    border-radius: 6px;
+    padding: 5px;
+    margin-block: 5px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+    gap: 10px;
+  }
+  .dark .action_bar {
+    background-color: var(--color-darkly);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 1);
+  }
+
 
   .insider {
-    width: 50%;
     display: flex;
-    min-width: 150px;
-    max-width: 300px;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    margin-left: 10px;
   }
   .titleTeam {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
+    color: var(--color-darkly);
   }
-  .minTitle {
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    min-width: 150px;
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;       /* Empêche le retour à la ligne */
-    text-overflow: ellipsis;   /* Ajoute ... si ça dépasse */
+  .dark .titleTeam {
+    color: var(--color-whitly);
+  }
+  .minTitleRole {
+    width: 100%;
     font-size: 14px;
+    color: #666;
+  }
+  .dark .minTitleRole {
+    color: #aaa;
   }
 
-  .center_flex img {
-    width: 100px;
-    height: 100px;
-    min-width: 100px;
-    min-height: 100px;
-    object-fit: cover; /* Remplit la zone en gardant le ratio */
-    display: flex;
-    border-radius: 50%; /* Cercle parfait */
-    
-
+  .no_image {
+    display: flex; justify-content: center; align-items: center;
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    min-height: 60px;
+    border-radius: 50%;
+    background-color: var(--color-whizy);
+  }
+  .dark .no_image {
+    background-color: var(--color-darkow);
   }
 
+  .profile_img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .infos_row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .dark .infos_row {
+      border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .role_section {
+      margin-top: 10px;
+      width: 100%;
+  }
+
+  .role_trigger {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background-color: var(--color-whizy);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+  }
+  .dark .role_trigger {
+      background-color: var(--color-darkow);
+  }
+  .role_trigger:hover {
+      background-color: #eee;
+  }
+  .dark .role_trigger:hover {
+      background-color: #333;
+  }
 
 </style>
