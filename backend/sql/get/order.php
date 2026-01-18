@@ -1,21 +1,24 @@
 <?php
 header('Content-Type: application/json');
 
-// Inclure le fichier de configuration de la base de données
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
 
 if (!file_exists($configPath)) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Configuration file not found.',
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Configuration file not found.']);
     exit;
 }
 
 require_once $configPath;
 
-// --- MIGRATIONS (Keeping them as in original file just in case) ---
+// --- MIGRATIONS ---
 $alters = [
+  "CREATE TABLE IF NOT EXISTS pinned_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )",
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS ip_adresse VARCHAR(45) NULL AFTER status",
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_code VARCHAR(45) NOT NULL DEFAULT '' AFTER ip_adresse",
   "ALTER TABLE orders ADD COLUMN IF NOT EXISTS reminder_id INT NULL AFTER tracking_code",
@@ -29,85 +32,79 @@ $alters = [
 ];
 
 foreach ($alters as $sql) {
-    if (! $mysqli->query($sql)) {
-        if ($mysqli->errno === 1060) {
-            continue;
-        }
-        // Log error but try to continue
+    if (!$mysqli->query($sql)) {
+        if ($mysqli->errno === 1060) continue;
     }
 }
 
 // --- FILTER LOGIC ---
-
 $where = ["1=1"];
 
-// Search (ID, Phone, Name)
+// Search
 if (isset($_GET['search']) && !empty(trim($_GET['search']))) {
     $s = $mysqli->real_escape_string(trim($_GET['search']));
-    // Check if it looks like an order ID (e.g. order-123 or just 123)
     $searchId = preg_replace('/[^0-9]/', '', $s);
-
-    $searchCondition = "(name LIKE '%$s%' OR phone LIKE '%$s%'";
+    $searchCondition = "(o.name LIKE '%$s%' OR o.phone LIKE '%$s%'";
     if (!empty($searchId)) {
-        $searchCondition .= " OR id = '$searchId'";
+        $searchCondition .= " OR o.id = '$searchId'";
     }
     $searchCondition .= ")";
-
     $where[] = $searchCondition;
 }
 
 // Status
 if (isset($_GET['status']) && !empty($_GET['status']) && $_GET['status'] !== 'all') {
     $s = $mysqli->real_escape_string($_GET['status']);
-    $where[] = "status = '$s'";
+    $where[] = "o.status = '$s'";
 }
 
 // Date Range
 if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
     $d = $mysqli->real_escape_string($_GET['start_date']);
-    $where[] = "created_at >= '$d 00:00:00'";
+    $where[] = "o.created_at >= '$d 00:00:00'";
 }
 if (isset($_GET['end_date']) && !empty($_GET['end_date'])) {
     $d = $mysqli->real_escape_string($_GET['end_date']);
-    $where[] = "created_at <= '$d 23:59:59'";
+    $where[] = "o.created_at <= '$d 23:59:59'";
 }
 
-// Wilaya (Delivery Zone)
+// Wilaya
 if (isset($_GET['wilaya']) && !empty($_GET['wilaya'])) {
     $w = $mysqli->real_escape_string($_GET['wilaya']);
-    $where[] = "delivery_zone LIKE '%$w%'";
+    $where[] = "o.delivery_zone LIKE '%$w%'";
 }
 
-// Commune (S Zone)
+// Commune
 if (isset($_GET['commune']) && !empty($_GET['commune'])) {
     $c = $mysqli->real_escape_string($_GET['commune']);
-    $where[] = "s_zone LIKE '%$c%'";
+    $where[] = "o.s_zone LIKE '%$c%'";
 }
 
-// Society (Method)
+// Method
 if (isset($_GET['method']) && !empty($_GET['method'])) {
     $m = $mysqli->real_escape_string($_GET['method']);
-    $where[] = "method LIKE '%$m%'";
+    $where[] = "o.method LIKE '%$m%'";
 }
 
-// Price Range (Total Price)
+// Price
 if (isset($_GET['min_price']) && is_numeric($_GET['min_price'])) {
     $p = (float)$_GET['min_price'];
-    $where[] = "total_price >= $p";
+    $where[] = "o.total_price >= $p";
 }
 if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
     $p = (float)$_GET['max_price'];
-    $where[] = "total_price <= $p";
+    $where[] = "o.total_price <= $p";
 }
-
 
 $whereClause = implode(' AND ', $where);
 
-// 1. Fetch Orders
-$sqlOrders = "SELECT * FROM orders WHERE $whereClause ORDER BY id DESC"; // Limit?
-// If no search/filters, maybe limit to recent? Original fetched all.
-// "optimize" implies pagination or limit, but for now let's just use filters.
-// If user says "search optimize", likely server-side filtering is key.
+// Fetch Orders with Pinned Info
+// We join pinned_orders to get reason and sort pinned first
+$sqlOrders = "SELECT o.*, p.reason as pin_reason, p.created_at as pin_date, (p.id IS NOT NULL) as is_pinned
+              FROM orders o
+              LEFT JOIN pinned_orders p ON o.id = p.order_id
+              WHERE $whereClause
+              ORDER BY is_pinned DESC, o.id DESC";
 
 $resultOrders = $mysqli->query($sqlOrders);
 if (!$resultOrders) {
@@ -123,15 +120,14 @@ if (empty($orderIds)) {
     exit;
 }
 
-// 2. Fetch Order Items for these orders
+// Fetch Order Items
 $idsString = implode(',', array_map('intval', $orderIds));
 $sqlItems = "SELECT * FROM order_items WHERE order_id IN ($idsString)";
 $resultItems = $mysqli->query($sqlItems);
 $itemsData = $resultItems->fetch_all(MYSQLI_ASSOC);
-
 $orderItemIds = array_column($itemsData, 'id');
 
-// 3. Fetch Product Items for these order items
+// Fetch Product Items
 $productItemsData = [];
 if (!empty($orderItemIds)) {
     $itemIdsString = implode(',', array_map('intval', $orderItemIds));
@@ -140,13 +136,10 @@ if (!empty($orderItemIds)) {
     $productItemsData = $resultProducts->fetch_all(MYSQLI_ASSOC);
 }
 
-// --- DATA ASSEMBLY (Same logic as before but with filtered data) ---
-
-// Organiser product_items par indx (order_items.id)
+// Assemble Data
 $productItemsMap = [];
 foreach ($productItemsData as $item) {
     if (!isset($item['indx']) || !$item['indx']) continue;
-
     $productItemsMap[$item['indx']][] = [
         'color' => $item['color'],
         'color_name' => $item['color_name'],
@@ -159,7 +152,6 @@ foreach ($productItemsData as $item) {
     ];
 }
 
-// Organiser order_items
 $groupedModels = [];
 foreach ($itemsData as $model) {
     $orderItemId = $model['id'];
@@ -174,7 +166,6 @@ foreach ($itemsData as $model) {
     ];
 }
 
-// Construction de la réponse finale
 $finalOrders = [];
 foreach ($ordersData as $orderData) {
     $orderId = $orderData['id'];
@@ -203,10 +194,12 @@ foreach ($ordersData as $orderData) {
         'owner' => $orderData['owner'] ?? '',
         'owner_conf_date' => $orderData['owner_conf_date'] ?? '',
         'owner_conf_state' => $orderData['owner_conf_state'] ?? '',
+        // Pinned Info
+        'is_pinned' => (bool)$orderData['is_pinned'],
+        'pin_reason' => $orderData['pin_reason'] ?? null,
     ];
 }
 
-// Envoi de la réponse JSON
 echo json_encode([
     'success' => true,
     'message' => 'Data received',
