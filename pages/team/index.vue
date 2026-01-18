@@ -38,6 +38,9 @@
                 {{ user['username'] }}
               </div>
               <div class="minTitle">
+                {{ user['role_name'] }}
+              </div>
+              <div class="minTitle">
                 {{ user['name'] }} {{ user['family_name'] }}
               </div>
               <div class="minTitle">
@@ -216,6 +219,8 @@
     const result = await response.json()
     membersLength.value = result.data.length
     members.value = result.data
+
+    console.log('members.value: ', members.value)
     
 
   }

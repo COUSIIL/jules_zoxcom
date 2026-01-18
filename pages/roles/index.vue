@@ -48,7 +48,7 @@
 
           <div class="center_flex" style="justify-content: flex-end; gap: 20px; width: auto;">
               <!-- Edit -->
-              <div v-if="hasPermission('edit_roles')"
+              <div v-if="hasPermission('edit_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')"
                    v-html="resizeSvg(icons['edit'], 24, 24)"
                    @click.stop="openModal(role)"
                    style="cursor: pointer; color: #ffc107;"
@@ -56,7 +56,7 @@
               </div>
 
               <!-- Delete -->
-              <div v-if="hasPermission('delete_roles') && role.name !== 'Admin'"
+              <div v-if="hasPermission('delete_roles') || hasPermission('manage_roles') || hasPermission('all_permissions')"
                    v-html="resizeSvg(icons['deleteImg'], 24, 24)"
                    @click.stop="deleteRole(role.id)"
                    style="cursor: pointer; color: #dc3545;"
@@ -95,7 +95,7 @@
   import icons from '~/public/icons.json'
 
   definePageMeta({
-    permission: 'read_roles'
+    permission: 'manage_roles'
   })
 
   const router = useRouter();

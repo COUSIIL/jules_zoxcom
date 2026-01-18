@@ -28,9 +28,16 @@ export const useAuth = () => {
   // ➡️ Vérifier une permission
   const hasPermission = (permissionSlug) => {
     const user = getauth()
-    if (!user || !user.permissions) return false
+    if (!user || !user.permissions) {
+      
+      return false
+    } else {
+      
+      return user.permissions.includes(permissionSlug || 'all_permission')
+    }
+
     // Admin role override could be here, but we rely on explicit permissions for flexibility
-    return user.permissions.includes(permissionSlug)
+    
   }
 
   // ➡️ Fonction pour se déconnecter

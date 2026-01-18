@@ -113,6 +113,8 @@ $availablePermissions = [
     ['slug' => 'manage_products', 'name' => 'Gérer les produits (Legacy)'],
     ['slug' => 'manage_users', 'name' => 'Gérer les utilisateurs (Legacy)'],
     ['slug' => 'manage_roles', 'name' => 'Gérer les rôles (Legacy)'],
+
+    ['slug' => 'all_permissions', 'name' => 'Accées total'],
 ];
 
 echo json_encode([
