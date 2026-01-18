@@ -107,6 +107,7 @@ $routes = [
     "getAllCustomers"              => "../backend/sql/get/allCustomers.php",
     "deleteCustomer"               => "../backend/sql/delete/customer.php",
     "getUsers"                     => "../backend/sql/get/users.php",
+    "deleteUser"                   => "../backend/sql/delete/user.php",
     "addUser"                      => "../backend/sql/post/addUser.php",
     "updateUserProfile"            => "../backend/sql/update/profileImage.php",
     "updateUserInfo"               => "../backend/sql/update/userInfo.php",
@@ -118,6 +119,7 @@ $routes = [
     "saveRole"                     => "../backend/sql/post/saveRole.php",
     "deleteRole"                   => "../backend/sql/delete/role.php",
     "assignRole"                   => "../backend/sql/post/assignRole.php",
+    "seedAdmin"                    => "../backend/sql/update/seedAdmin.php",
 
     // --- Email ---
     "createEmail"                  => "../backend/sql/post/email.php",

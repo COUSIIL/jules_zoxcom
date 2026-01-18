@@ -65,7 +65,7 @@
             </p>
           </div>
 
-          <div v-if="hasPermission('manage_users') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
+          <div v-if="hasPermission('assign_roles') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
              <label style="font-size: 12px; font-weight: bold;">Rôle:</label>
              <select v-model="user.role_id" @change="changeRole(user)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 100%;">
                 <option :value="null">Aucun</option>
@@ -73,6 +73,9 @@
              </select>
           </div>
 
+          <div v-if="hasPermission('delete_users')" class="center_flex" @click.stop>
+            <div v-html="resizeSvg(icons['deleteImg'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #dc3545;"></div>
+          </div>
         
       </div>
 
@@ -173,6 +176,30 @@
   const messager = (value) => {
     isMessage.value = true
     message.value = value
+  }
+
+  const deleteUser = async (user) => {
+    if (!confirm(t('Are you sure you want to delete this user?'))) return
+
+    try {
+      const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user.id,
+          token: auth.value.token
+        })
+      })
+      const json = await res.json()
+      if (json.success) {
+        messager(t('User deleted'))
+        getUsers()
+      } else {
+        messager(json.message || t('Error'))
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const getUsers = async () => {
