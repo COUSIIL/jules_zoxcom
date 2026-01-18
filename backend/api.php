@@ -81,6 +81,7 @@ $routes = [
     "editOrder"                    => "../backend/sql/update/editOrder.php",
     "deleteOrder"                  => "../backend/sql/delete/order.php",
     "sendEmailOrder"               => "../backend/email/sendOrder.php",
+    "getOrderHistory"              => "../backend/sql/get/orderHistory.php",
 
     // --- Pinned Orders ---
     "pinOrder"                     => "../backend/sql/insert/pinOrder.php",

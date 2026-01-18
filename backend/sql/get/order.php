@@ -28,7 +28,16 @@ $alters = [
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS total DECIMAL(10,2) NOT NULL AFTER qty",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS promo DECIMAL(10,2) NOT NULL AFTER total",
   "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NULL AFTER color",
-  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS indx INT(11) AFTER ids"
+  "ALTER TABLE product_items ADD COLUMN IF NOT EXISTS indx INT(11) AFTER ids",
+  "CREATE TABLE IF NOT EXISTS order_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    user VARCHAR(255) NULL,
+    action VARCHAR(255) NULL,
+    value TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+  )"
 ];
 
 foreach ($alters as $sql) {
@@ -100,9 +109,13 @@ $whereClause = implode(' AND ', $where);
 
 // Fetch Orders with Pinned Info
 // We join pinned_orders to get reason and sort pinned first
-$sqlOrders = "SELECT o.*, p.reason as pin_reason, p.created_at as pin_date, (p.id IS NOT NULL) as is_pinned
+$sqlOrders = "SELECT o.*, p.reason as pin_reason, p.created_at as pin_date, (p.id IS NOT NULL) as is_pinned,
+              oh.action as history_action, oh.user as history_user, oh.created_at as history_date
               FROM orders o
               LEFT JOIN pinned_orders p ON o.id = p.order_id
+              LEFT JOIN order_history oh ON oh.id = (
+                  SELECT id FROM order_history WHERE order_id = o.id ORDER BY created_at DESC LIMIT 1
+              )
               WHERE $whereClause
               ORDER BY is_pinned DESC, o.id DESC";
 
@@ -197,6 +210,10 @@ foreach ($ordersData as $orderData) {
         // Pinned Info
         'is_pinned' => (bool)$orderData['is_pinned'],
         'pin_reason' => $orderData['pin_reason'] ?? null,
+        // History Info
+        'history_action' => $orderData['history_action'] ?? null,
+        'history_user' => $orderData['history_user'] ?? null,
+        'history_date' => $orderData['history_date'] ?? null,
     ];
 }
 

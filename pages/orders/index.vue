@@ -51,6 +51,7 @@
 
   <Action :options="selectedOrder" :showIt="showAction" @close="showAction = false" @editStat="editStats"/>
 
+  <HistoryModal :isVisible="showHistoryModal" :orderId="historyOrderId" @close="showHistoryModal = false" />
 
   <nav v-if="showDeliver" class="overlay">
     <Deliver v-if="!isShipping" :isVisible="showDeliver" :_name="nameDeliver" :_phone1="phoneDeliver"
@@ -176,18 +177,22 @@
           
 
         <div class="box1">
-          <div v-if="dts.owner" class="owner_state">
-            <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
-            <h1>
-              {{ dts.owner }} :
-            </h1>
-            <p v-if="dts.owner_conf_date">
-              {{ t('confirmed at') }} {{ dts.owner_conf_date }}
-            </p>
-            <p v-else>
-              {{ t('confirmed') }}
-            </p>
-            
+          <div class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
+            <div v-if="dts.history_user">
+               <img v-if="newMembers[dts.history_user]?.profile_image" :src="webLink + newMembers[dts.history_user].profile_image" :alt="dts.history_user">
+               <h1 style="font-size: 0.9em">{{ dts.history_user }} :</h1>
+               <p style="font-weight: bold; color: var(--color-zioly4)">{{ dts.history_action }}</p>
+               <p style="font-size: 0.7em; opacity: 0.7">{{ dts.history_date }}</p>
+            </div>
+            <div v-else-if="dts.owner">
+               <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
+               <h1>{{ dts.owner }} :</h1>
+               <p v-if="dts.owner_conf_date">{{ t('confirmed at') }} {{ dts.owner_conf_date }}</p>
+               <p v-else>{{ t('confirmed') }}</p>
+            </div>
+            <div v-else style="display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.5;">
+               <p style="font-size: 0.8em">{{ t('No history') }}</p>
+            </div>
           </div>
           <div class="order-item" role="listitem" aria-label="order" :class="[
 
@@ -477,6 +482,7 @@ import Reminder2 from '../../components/elements/newBloc/reminder.vue'
 import EditOrder from '../../components/elements/newBloc/editOrder.vue'
 import Bubble from '../../components/elements/newBloc/bubble.vue'
 import Action from '../../components/elements/newBloc/action.vue'
+import HistoryModal from '../../components/elements/newBloc/historyModal.vue'
 import { useAuth } from '../../composables/useAuth';
 
 import { useReminder } from '../../composables/reminder';
@@ -538,6 +544,9 @@ const showOrLog = ref(false)
 const showAction = ref(false)
 const isUpdatingTrcking = ref(false)
 const orderTrcking = ref()
+
+const showHistoryModal = ref(false)
+const historyOrderId = ref(0)
 
 
 
@@ -913,7 +922,7 @@ const editStatus = async (vl, index, id) => {
   } else {
     const mainStatus = dt.value[statusIndex.value].status
     dt.value[statusIndex.value].status = vl
-    await updateOrderValue(statusID.value, 'status', vl);
+    await updateOrderValue(statusID.value, 'status', vl, auth.value.username);
     if(updated.value === -1) {
       dt.value[statusIndex.value].status = mainStatus
       showOrLog.value = true
@@ -1014,7 +1023,7 @@ const editNote = async (id, note) => {
     }
     const mainStatus = limitedDt.value[statusIndex.value].note
     limitedDt.value[statusIndex.value].note = note
-    await updateOrderValue(id, 'note', noteJson);
+    await updateOrderValue(id, 'note', noteJson, auth.value.username);
     if(updated.value === -1) {
       limitedDt.value[statusIndex.value].note = mainStatus
       showOrLog.value = true
@@ -1065,7 +1074,7 @@ const saveReminder = async (remind, order_id) => {
 
   const mainStatus = limitedDt.value[statusIndex.value].reminder
   limitedDt.value[statusIndex.value].reminder = remind.id
-  await updateOrderValue(order_id, 'reminder_id', remind.id)
+  await updateOrderValue(order_id, 'reminder_id', remind.id, auth.value.username)
   if(updated.value === -1) {
     limitedDt.value[statusIndex.value].reminder = mainStatus
     showOrLog.value = true
@@ -1210,6 +1219,11 @@ const reverseOrders = async (vl) => {
   
 };
 
+const openHistory = (order) => {
+  historyOrderId.value = parseInt(order.id)
+  showHistoryModal.value = true
+}
+
 const moreOption = (vl) => {
   if (vl == 'delegate') {
     showDelegate.value = true
@@ -1318,7 +1332,7 @@ const delegate = async (vl) => {
 
       const mainStatus = limitedDt.value[statusIndex.value].delegated
       limitedDt.value[statusIndex.value].delegated = 1
-      await updateOrderValue(selectDelegate.value.id, 'delegated', 1);
+      await updateOrderValue(selectDelegate.value.id, 'delegated', 1, auth.value.username);
       if(updated.value === -1) {
         limitedDt.value[statusIndex.value].delegated = mainStatus
         showOrLog.value = true
