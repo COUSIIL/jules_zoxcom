@@ -14,9 +14,37 @@ if (!file_exists($configPath)) {
 
 require_once $configPath;
 
+// --- Update Database Structure ---
+$alters = [
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE AFTER phone",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS password VARCHAR(255) AFTER email",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS token VARCHAR(255) AFTER password",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS wilaya VARCHAR(100) AFTER token",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS commune VARCHAR(100) AFTER wilaya",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT AFTER commune",
+    "ALTER TABLE customers ADD COLUMN IF NOT EXISTS power INT DEFAULT 0 AFTER address"
+];
+
+foreach ($alters as $sql) {
+    // Suppress errors for duplicate column if version doesn't support IF NOT EXISTS correctly or other minor issues
+    try {
+        $mysqli->query($sql);
+    } catch (Exception $e) {
+        // Continue if column exists
+    }
+}
+
+// --- Search Logic ---
+$search = isset($_GET['search']) ? $mysqli->real_escape_string($_GET['search']) : '';
+$whereClause = "";
+
+if (!empty($search)) {
+    $whereClause = "WHERE name LIKE '%$search%' OR phone LIKE '%$search%' OR email LIKE '%$search%' OR id = '$search'";
+}
+
 // Requêtes pour obtenir les données des tables
 $tables = [
-    'customers' => "SELECT * FROM customers",
+    'customers' => "SELECT * FROM customers $whereClause ORDER BY power DESC, id DESC LIMIT 200", // Default sort by power, limit for performance
     'details' => "SELECT * FROM customers_details",
 ];
 
@@ -58,9 +86,12 @@ foreach ($data['customers'] as $customerData) {
         'id' => $customerId,
         'name' => $customerData['name'],
         'phone' => $customerData['phone'],
+        'email' => $customerData['email'] ?? '',
+        'wilaya' => $customerData['wilaya'] ?? '',
+        'commune' => $customerData['commune'] ?? '',
+        'address' => $customerData['address'] ?? '',
         'power' => $customerData['power'],
         'items' => $groupedModels[$customerId] ?? [],
-        
     ];
 }
 
@@ -74,4 +105,3 @@ echo json_encode([
 // Fermeture de la connexion
 $mysqli->close();
 ?>
-

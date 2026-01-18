@@ -105,7 +105,12 @@ $routes = [
     // --- Customers & Users ---
     "getCustomers"                 => "../backend/sql/get/customers.php",
     "getAllCustomers"              => "../backend/sql/get/allCustomers.php",
+    "exportCustomers"              => "../backend/sql/get/exportCustomers.php",
     "deleteCustomer"               => "../backend/sql/delete/customer.php",
+    "customerRegister"             => "../backend/sql/post/customerRegister.php",
+    "customerLogin"                => "../backend/sql/connexion/customerLogin.php",
+    "customerProfile"              => "../backend/sql/update/customerProfile.php",
+    "customerDeleteAccount"        => "../backend/sql/delete/customerAccount.php",
     "getUsers"                     => "../backend/sql/get/users.php",
     "deleteUser"                   => "../backend/sql/delete/user.php",
     "addUser"                      => "../backend/sql/post/addUser.php",

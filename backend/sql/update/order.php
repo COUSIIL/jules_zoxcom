@@ -84,13 +84,14 @@ if (!in_array($status, $allowed_fields, true)) {
    Check order
 ======================= */
 
-$check = $mysqli->prepare("SELECT id FROM orders WHERE id = ?");
+$check = $mysqli->prepare("SELECT id, status, phone FROM orders WHERE id = ?");
 $check->bind_param("i", $id);
 $check->execute();
 $res = $check->get_result();
+$currentOrder = $res->fetch_assoc();
 $check->close();
 
-if ($res->num_rows === 0) {
+if (!$currentOrder) {
     echo json_encode([
         'success' => false,
         'message' => 'Order not found.'
@@ -161,6 +162,20 @@ if ($value === 'confirmed') {
     }
 
     $items->close();
+}
+
+/* =======================
+   Completed logic (Power)
+======================= */
+
+if ($status === 'status' && $value === 'completed' && $currentOrder['status'] !== 'completed') {
+    $phone = $currentOrder['phone'];
+
+    // Increment power for customer with this phone
+    $stmtPow = $mysqli->prepare("UPDATE customers SET power = power + 1 WHERE phone = ?");
+    $stmtPow->bind_param("s", $phone);
+    $stmtPow->execute();
+    $stmtPow->close();
 }
 
 /* =======================
