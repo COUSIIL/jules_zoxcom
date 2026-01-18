@@ -51,7 +51,7 @@ export const useOrders = () => {
             } else {
                 
                 log.value = result.message;
-                data.value = result.data; 
+                data.value = result.data.slice().reverse();
                 await getProduct()
                  
  

@@ -31,7 +31,7 @@
       <!-- Action Bar (Delete/Edit permissions) -->
        <div v-if="hasPermission('delete_users') || hasPermission('manage_roles') || hasPermission('all_permissions')" style="width: 100%; display: flex; justify-content: right; align-items: center;">
           <div class="action_bar">
-            <div v-html="resizeSvg(icons['deleteImg'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #dc3545;"></div>
+            <div v-html="resizeSvg(iconsFilled['trashX'], 24, 24)" @click="deleteUser(user)" style="cursor: pointer; color: #ff5555;"></div>
           </div>
       </div>
 
@@ -93,6 +93,7 @@
       :showIt="showRoleSelector"
       :modelValue="selectedRoleId"
       :placeHolder="'Select Role'"
+      :disabled="true"
       @close="showRoleSelector = false"
       @update:modelValue="handleRoleSelect"
     />
@@ -112,6 +113,7 @@
   import Selector from '../../components/elements/bloc/select.vue';
 
   import icons from '~/public/icons.json'
+  import iconsFilled from '~/public/iconsFilled.json'
 
   const router = useRouter();
   const { hasPermission, auth } = useAuth()
