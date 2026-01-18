@@ -849,10 +849,12 @@ const onRightClick = (item, event) => {
 
 // appel — passer le tableau pur
 const filterSelected = (vl) => {
-  if (vl === 'all') {
+  if (typeof vl === 'object') {
+      filterBy(vl)
+  } else if (vl === 'all') {
     filterBy('all')
   } else {
-    filterBy('status', vl) // ← data.value, pas data
+    filterBy('status', vl)
   }
 }
 
