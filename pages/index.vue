@@ -3,6 +3,24 @@
   
   <div style="display: flex; flex-direction: column; align-items: center;">
 
+    <div v-if="pinnedOrders.length > 0" class="pinned-section">
+      <h3>📌 {{ t('Pinned Orders') }}</h3>
+      <div class="pinned-grid">
+        <div v-for="order in pinnedOrders" :key="order.id" class="pinned-card">
+          <div class="pinned-header">
+            <span class="pinned-id">Order #{{ order.id }}</span>
+            <button @click="unpin(order.id)" class="unpin-btn" title="Unpin">✕</button>
+          </div>
+          <div class="pinned-reason">"{{ order.pin_reason }}"</div>
+          <div class="pinned-info">
+             <span class="p-name">{{ order.name }}</span>
+             <span class="p-price">{{ order.total }} DA</span>
+          </div>
+          <div class="pinned-status" :class="'status-' + order.status">{{ order.status }}</div>
+        </div>
+      </div>
+    </div>
+
     <div>
       <Donut :data="fullData"/>
     </div>
@@ -142,6 +160,8 @@ const total1 = ref()
 const total2 = ref()
 const total3 = ref()
 
+const pinnedOrders = ref([])
+
 // --- clés actuelles
 const now = new Date()
 const currentDay = now.toISOString().split("T")[0]
@@ -150,7 +170,38 @@ const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart
 
 onMounted(() => {
   getOrder()
+  getPinnedOrders()
 })
+
+async function getPinnedOrders() {
+    try {
+        const response = await fetch('https://management.hoggari.com/backend/api.php?action=getPinnedOrders')
+        if (response.ok) {
+            const result = await response.json()
+            if (result.success) {
+                pinnedOrders.value = result.data
+            }
+        }
+    } catch (e) {
+        console.error(e)
+    }
+}
+
+async function unpin(id) {
+    if(!confirm('Unpin this order?')) return;
+    try {
+        const response = await fetch('https://management.hoggari.com/backend/api.php?action=unpinOrder', {
+            method: 'POST',
+            body: JSON.stringify({ order_id: id })
+        })
+        const res = await response.json()
+        if (res.success) {
+            pinnedOrders.value = pinnedOrders.value.filter(o => o.id !== id)
+        }
+    } catch (e) {
+        console.error(e)
+    }
+}
 
 async function getOrder() {
   try {
@@ -826,4 +877,83 @@ async function chatGemini() {
 .awaiting { border-left: 5px solid #f39c12; }
 .delivered { border-left: 5px solid #3498db; }
 .completed { border-left: 5px solid #16a085; }
+
+/* Pinned Section */
+.pinned-section {
+  width: 90%;
+  background: var(--color-whity);
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.dark .pinned-section {
+  background: var(--color-darkly);
+}
+.pinned-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: var(--color-zioly4);
+}
+.pinned-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+.pinned-card {
+  background: var(--color-whizy);
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #eee;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dark .pinned-card {
+  background: var(--color-darkow);
+  border: 1px solid #333;
+}
+.pinned-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+.unpin-btn {
+  background: transparent;
+  border: none;
+  color: #ff5555;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+.pinned-reason {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+.dark .pinned-reason { color: #aaa; }
+
+.pinned-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+.p-name { font-weight: 600; }
+.pinned-status {
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-top: 5px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.status-confirmed { background: #2ecc71; }
+.status-canceled { background: #e74c3c; }
+.status-waiting { background: #f39c12; }
+.status-shipping { background: #f1c40f; }
+.status-completed { background: #16a085; }
+.status-unreaching { background: #9b59b6; }
 </style>

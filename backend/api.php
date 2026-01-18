@@ -82,6 +82,11 @@ $routes = [
     "deleteOrder"                  => "../backend/sql/delete/order.php",
     "sendEmailOrder"               => "../backend/email/sendOrder.php",
 
+    // --- Pinned Orders ---
+    "pinOrder"                     => "../backend/sql/insert/pinOrder.php",
+    "unpinOrder"                   => "../backend/sql/delete/unpinOrder.php",
+    "getPinnedOrders"              => "../backend/sql/get/pinnedOrders.php",
+
     // --- OrderDZ conf
     "postOrderDz"                  => "../backend/orderdz/postOrder.php",
     "getOrderDz"                   => "../backend/orderdz/getOrder.php",

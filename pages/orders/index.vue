@@ -13,7 +13,7 @@
 
 
 
-  <Filter v-if="isFilter" @close="isFilter = false" @selected="filterSelected" />
+  <Filter v-if="isFilter" :wilayas="wilayas" @close="isFilter = false" @selected="filterSelected" />
 
   <Selector :options="statusOptions" :showIt="showStatus" :disabled="true" @close="showStatus = false"
     @update:modelValue="editStatus" />
@@ -26,6 +26,21 @@
 
   <Selector :options="exportOptions" :showIt="showExport" :disabled="true" @close="showExport = false"
     @update:modelValue="exportation" />
+
+  <!-- PIN MODAL -->
+  <div v-if="showPinModal" class="overlay-modal">
+    <div class="modal-box">
+      <h3>{{ t('Pin Order') }} #{{ selectDelegate?.id }}</h3>
+      <p>{{ t('Enter a reason for pinning this order:') }}</p>
+      <textarea v-model="pinReason" class="pin-input" :placeholder="t('Reason...')"></textarea>
+
+      <div class="modal-actions">
+        <RectBtn :text="t('Cancel')" iconColor="#ff5555" svg="x" @click:ok="showPinModal = false" :isSimple="true"/>
+        <RectBtn v-if="selectDelegate?.is_pinned" :text="t('Unpin')" iconColor="#ff5555" svg="trashX" @click:ok="confirmUnpin" :isSimple="true"/>
+        <RectBtn :text="t('Save Pin')" iconColor="#2ecc71" svg="check" @click:ok="confirmPin" :isSimple="true"/>
+      </div>
+    </div>
+  </div>
 
 
   <Selector :options="multyOption" :showIt="showMultyMoreOption" :disabled="true" @close="showMultyMoreOption = false"
@@ -119,6 +134,10 @@
           <div style="display: flex; justify-content: space-between; align-items: center">
             <Bubble v-if="dts?.reminder_id" text="" img="alarm"/>
             <div class="actionBar">
+              <!-- PIN INDICATOR -->
+              <div v-if="dts.is_pinned" class="pinned-indicator" :title="dts.pin_reason">
+                 📌
+              </div>
             <!--div class="cutDiver">
 
             </!--div-->
@@ -547,6 +566,8 @@ const showStatus = ref(false)
 const showMoreOption = ref(false)
 const showMultyMoreOption = ref(false)
 const showExport = ref(false)
+const showPinModal = ref(false)
+const pinReason = ref('')
 
 const statusInfo = ref([
   { name: 'canceled', color: 'var(--color-rady)', svg: 'x' },
@@ -568,7 +589,8 @@ const multyOption = ref([
 const delegateOption = ref([{ value: 'delegate', label: 'Delegate to OrderDz', img: 'orderDz.png' }])
 const moreOptions = ref([
   { value: 'delegate', label: 'automatic order tracking', img: resizeSvg(icons['external_off'], 25, 25) },
-  { value: 'export', label: 'export', img: resizeSvg(icons['export'], 25, 25) }
+  { value: 'export', label: 'export', img: resizeSvg(icons['export'], 25, 25) },
+  { value: 'pin', label: 'Pin Order', img: resizeSvg(iconsFilled['tag'], 25, 25) }
 ])
 
 const exportOptions = ref([
@@ -1195,6 +1217,63 @@ const moreOption = (vl) => {
   if (vl == 'export') {
     showExport.value = true
   }
+  if (vl == 'pin') {
+    pinReason.value = selectDelegate.value.pin_reason || ''
+    showPinModal.value = true
+  }
+}
+
+const confirmPin = async () => {
+  if (!selectDelegate.value) return
+
+  const payload = {
+    order_id: selectDelegate.value.id,
+    reason: pinReason.value
+  }
+
+  try {
+    const response = await fetch('https://management.hoggari.com/backend/api.php?action=pinOrder', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+    const res = await response.json()
+    if (res.success) {
+      // Update local state
+      const idx = dt.value.findIndex(o => o.id === selectDelegate.value.id)
+      if (idx !== -1) {
+        dt.value[idx].is_pinned = true
+        dt.value[idx].pin_reason = pinReason.value
+      }
+      showPinModal.value = false
+    } else {
+      alert(res.message)
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const confirmUnpin = async () => {
+    if (!selectDelegate.value) return
+    if (!confirm('Unpin this order?')) return
+
+    try {
+        const response = await fetch('https://management.hoggari.com/backend/api.php?action=unpinOrder', {
+            method: 'POST',
+            body: JSON.stringify({ order_id: selectDelegate.value.id })
+        })
+        const res = await response.json()
+        if (res.success) {
+            const idx = dt.value.findIndex(o => o.id === selectDelegate.value.id)
+            if (idx !== -1) {
+                dt.value[idx].is_pinned = false
+                dt.value[idx].pin_reason = null
+            }
+            showPinModal.value = false
+        }
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 const exportation = (vl) => {
@@ -1541,3 +1620,48 @@ const updateFees = (type, index) => {
 
 
 </script>
+
+<style scoped>
+.overlay-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 2000;
+}
+.modal-box {
+  background: var(--color-whity);
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.dark .modal-box {
+  background: var(--color-darkly);
+}
+.pin-input {
+  width: 100%;
+  height: 80px;
+  margin: 15px 0;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: var(--color-whizy);
+  color: var(--color-darky);
+}
+.dark .pin-input {
+    background: var(--color-darkow);
+    border: 1px solid #444;
+    color: var(--color-whity);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.pinned-indicator {
+    font-size: 1.2rem;
+    margin-right: 10px;
+}
+</style>
