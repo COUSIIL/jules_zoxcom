@@ -73,6 +73,55 @@ if (!$mysqli->query($createTable)) {
     exit;
 }
 
+// 📌 SETUP ROLES & PERMISSIONS
+$mysqli->query("CREATE TABLE IF NOT EXISTS roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)");
+$mysqli->query("CREATE TABLE IF NOT EXISTS role_permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role_id INT NOT NULL,
+    permission_slug VARCHAR(100) NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+)");
+
+$check = $mysqli->query("SHOW COLUMNS FROM `users` LIKE 'role_id'");
+if ($check && $check->num_rows === 0) {
+    $mysqli->query("ALTER TABLE users ADD COLUMN role_id INT NULL AFTER role");
+    $mysqli->query("ALTER TABLE users ADD CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL");
+}
+
+// Auto-create Admin role if empty
+$checkRoles = $mysqli->query("SELECT COUNT(*) as total FROM roles");
+$totalRoles = $checkRoles->fetch_assoc()['total'];
+$adminRoleId = null;
+
+if ($totalRoles == 0) {
+    $stmt = $mysqli->prepare("INSERT INTO roles (name, description) VALUES (?, ?)");
+    $name = 'Admin';
+    $desc = 'Administrateur avec tous les droits';
+    $stmt->bind_param("ss", $name, $desc);
+    $stmt->execute();
+    $adminRoleId = $mysqli->insert_id;
+
+    $allPerms = [
+        'view_dashboard', 'manage_orders', 'view_orders', 'manage_products',
+        'manage_users', 'manage_roles', 'view_finance', 'manage_settings'
+    ];
+    $stmtPerm = $mysqli->prepare("INSERT INTO role_permissions (role_id, permission_slug) VALUES (?, ?)");
+    foreach ($allPerms as $slug) {
+        $stmtPerm->bind_param("is", $adminRoleId, $slug);
+        $stmtPerm->execute();
+    }
+} else {
+    $res = $mysqli->query("SELECT id FROM roles WHERE name = 'Admin'");
+    if ($res && $row = $res->fetch_assoc()) {
+        $adminRoleId = $row['id'];
+    }
+}
+
 // 📌 Lire les données envoyées
 
 if (!isset($input['username']) || !isset($input['password'])) {
@@ -107,10 +156,29 @@ if ($totalUsers == 0) {
         $stmt->bind_param("ssss", $usernameOrEmail, $emptyEmail, $hashedPassword, $token);
     }
     if ($stmt->execute()) {
+        // Assign Admin Role to this first user
+        $newUserId = $mysqli->insert_id;
+        if ($adminRoleId) {
+            $mysqli->query("UPDATE users SET role_id = $adminRoleId WHERE id = $newUserId");
+        }
+
+        // Fetch perms (all admin perms)
+        $permissions = [];
+        if ($adminRoleId) {
+            $pRes = $mysqli->query("SELECT permission_slug FROM role_permissions WHERE role_id = $adminRoleId");
+            while ($pRow = $pRes->fetch_assoc()) {
+                $permissions[] = $pRow['permission_slug'];
+            }
+        }
+
         echo json_encode([
             'success' => true,
             'message' => 'First user created successfully and logged in.',
-            'data' => ['token' => $token, 'user' => $usernameOrEmail]
+            'data' => [
+                'token' => $token,
+                'user' => $usernameOrEmail,
+                'permissions' => $permissions
+            ]
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error creating first user: ' . $mysqli->error]);
@@ -125,7 +193,33 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 if ($user) {
+    $validPassword = false;
     if (password_verify($password, $user['password'])) {
+        $validPassword = true;
+    } elseif ($user['password'] === $hashedPassword) {
+        $validPassword = true;
+    } elseif ($user['password'] === $hashedPassword2) {
+        $validPassword = true;
+    }
+
+    if ($validPassword) {
+        // Auto-assign Admin if this is the first user with a role (or system has no role assigned users yet)
+        if (empty($user['role_id']) && $adminRoleId) {
+             $checkUsersWithRole = $mysqli->query("SELECT COUNT(*) as total FROM users WHERE role_id IS NOT NULL");
+             if ($checkUsersWithRole->fetch_assoc()['total'] == 0) {
+                 $mysqli->query("UPDATE users SET role_id = $adminRoleId WHERE id = " . $user['id']);
+                 $user['role_id'] = $adminRoleId;
+             }
+        }
+
+        // Fetch permissions
+        $permissions = [];
+        if (!empty($user['role_id'])) {
+            $pRes = $mysqli->query("SELECT permission_slug FROM role_permissions WHERE role_id = " . $user['role_id']);
+            while ($pRow = $pRes->fetch_assoc()) {
+                $permissions[] = $pRow['permission_slug'];
+            }
+        }
 
         echo json_encode([
             'success' => true,
@@ -133,24 +227,10 @@ if ($user) {
             'data' => [
                 'token' => $user['token'],
                 'user' => $user['username'], 
-                'profile_image' => $user['profile_image']
+                'profile_image' => $user['profile_image'] ?? null,
+                'permissions' => $permissions
             ]
         ]);
-        exit;
-    }
-    if ($user['password'] === $hashedPassword) {
-        echo json_encode([
-            'success' => true,
-            'message' => 'Connexion successful',
-            'data' => ['token' => $user['token'], 'user' => $user['username']]
-        ]);
-    } else if ($user['password'] === $hashedPassword2) {
-        echo json_encode([
-            'success' => true,
-            'message' => 'Connexion successful',
-            'data' => ['token' => $user['token'], 'user' => $user['username'], 'profile_image' => $user['profile_image']]
-        ]);
-        
     } else {
         echo json_encode(['success' => false, 'message' => 'Wrong password']);
     }

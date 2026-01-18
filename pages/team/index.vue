@@ -65,7 +65,13 @@
             </p>
           </div>
 
-        
+          <div v-if="hasPermission('manage_users') && roles.length > 0" class="center_flex" @click.stop style="flex-direction: column; align-items: flex-start;">
+             <label style="font-size: 12px; font-weight: bold;">Rôle:</label>
+             <select v-model="user.role_id" @change="changeRole(user)" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; width: 100%;">
+                <option :value="null">Aucun</option>
+                <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.name }}</option>
+             </select>
+          </div>
 
         
       </div>
@@ -90,6 +96,7 @@
   import icons from '~/public/icons.json'
 
   const router = useRouter();
+  const { hasPermission, auth } = useAuth()
 
   var resizeSvg = (svg, width, height) => {
     return svg
@@ -106,10 +113,48 @@
   const isMessage = ref(false)
   const message = ref('')
   const isActive = ref(false)
+  const roles = ref([])
 
   onMounted(() => {
     getUsers()
+    if (hasPermission('manage_users')) {
+      fetchRoles()
+    }
   })
+
+  const fetchRoles = async () => {
+    try {
+      const res = await fetch('https://management.hoggari.com/backend/api.php?action=getRoles')
+      const json = await res.json()
+      if (json.success) {
+        roles.value = json.data.roles
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const changeRole = async (user) => {
+    try {
+      const res = await fetch('https://management.hoggari.com/backend/api.php?action=assignRole', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          role_id: user.role_id,
+          token: auth.value.token
+        })
+      })
+      const json = await res.json()
+      if (json.success) {
+        messager('Rôle mis à jour')
+      } else {
+        messager(json.message || 'Erreur')
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const activate = () => {
     isActive.value = true

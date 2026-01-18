@@ -50,6 +50,15 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if ($user) {
+    // Fetch permissions
+    $permissions = [];
+    if (!empty($user['role_id'])) {
+        $pRes = $mysqli->query("SELECT permission_slug FROM role_permissions WHERE role_id = " . $user['role_id']);
+        while ($pRow = $pRes->fetch_assoc()) {
+            $permissions[] = $pRow['permission_slug'];
+        }
+    }
+
     echo json_encode([
         'success' => true,
         'message' => 'User is connected',
@@ -57,9 +66,12 @@ if ($user) {
             'id' => $user['id'],
             'username' => $user['username'],
             'email' => $user['email'],
-            'role' => $user['role'],
+            'role' => $user['role'], // Legacy
+            'role_id' => $user['role_id'],
             'profile_image' => $user['profile_image'],
-            'created_at' => $user['created_at']
+            'created_at' => $user['created_at'],
+            'permissions' => $permissions,
+            'token' => $token // Return token to ensure client state consistency if needed
         ]
     ]);
 } else {
