@@ -1,7 +1,7 @@
 <template>
   <div v-if="isVisible" class="modal-overlay" @click.self="close">
     <div class="modal-content">
-      <h2>{{ role.id ? 'Modifier le Rôle' : 'Nouveau Rôle' }}</h2>
+      <h2>{{ role?.id ? 'Modifier le Rôle' : 'Nouveau Rôle' }}</h2>
 
       <div class="form-group">
         <label>Nom du rôle</label>

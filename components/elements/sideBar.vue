@@ -26,19 +26,7 @@
         </NuxtLink>
       </div>
 
-      <div class="newSideBar__item" @click="close">
-        <NuxtLink class="newSideBar__link" to="/team" exact-active-class="is-active">
-          <div class="newSideBar__icon" v-html="icons['team']"></div>
-          <h3 class="newSideBar__text">{{ t('team') }}</h3>
-        </NuxtLink>
-      </div>
-
-      <div v-if="hasPermission('manage_roles')" class="newSideBar__item" @click="close">
-        <NuxtLink class="newSideBar__link" to="/roles" exact-active-class="is-active">
-          <div class="newSideBar__icon" v-html="icons['key']"></div>
-          <h3 class="newSideBar__text">Rôles</h3>
-        </NuxtLink>
-      </div>
+      
 
       <div class="newSideBar__item" @click="close">
         <NuxtLink class="newSideBar__link" to="/orders" exact-active-class="is-active">
@@ -79,6 +67,20 @@
         <NuxtLink class="newSideBar__link" to="/delivery" exact-active-class="is-active">
           <div class="newSideBar__icon" v-html="icons['delivery']"></div>
           <h3 class="newSideBar__text">{{ t('delivery') }}</h3>
+        </NuxtLink>
+      </div>
+
+      <div class="newSideBar__item" @click="close">
+        <NuxtLink class="newSideBar__link" to="/team" exact-active-class="is-active">
+          <div class="newSideBar__icon" v-html="icons['team']"></div>
+          <h3 class="newSideBar__text">{{ t('team') }}</h3>
+        </NuxtLink>
+      </div>
+
+      <div v-if="hasPermission('manage_roles')" class="newSideBar__item" @click="close">
+        <NuxtLink class="newSideBar__link" to="/roles" exact-active-class="is-active">
+          <div class="newSideBar__icon" v-html="icons['key']"></div>
+          <h3 class="newSideBar__text">Rôles</h3>
         </NuxtLink>
       </div>
 

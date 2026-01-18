@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import RoleModal from '~/components/roles/RoleModal.vue'
+import RoleModal from '../../components/roles/RoleModal.vue'
 
 definePageMeta({
   permission: 'manage_roles'
@@ -58,10 +58,13 @@ const fetchRoles = async () => {
   try {
     const res = await fetch('https://management.hoggari.com/backend/api.php?action=getRoles')
     const json = await res.json()
+    
     if (json.success) {
       roles.value = json.data.roles
       availablePermissions.value = json.data.availablePermissions
     }
+
+    console.log('roles.value: ', roles.value)
   } catch (e) {
     console.error(e)
   } finally {

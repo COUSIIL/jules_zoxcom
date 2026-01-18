@@ -1363,6 +1363,7 @@ const updateSelectedFees = async (index, vl) => {
   //console.log('vl: ', vl)
   limitedDt.value[index].selectedFees = []
   limitedDt.value[index].deleveryValue = null
+  limitedDt.value[index].has_desk = null
   if(vl?.has_stop_desk == 1) {
     limitedDt.value[index].has_desk = true
     isDesk.value = true
@@ -1483,6 +1484,8 @@ const updateCommune = async (index, wilaya) => {
     }
 
   }
+
+  limitedDt.value[index].has_desk = null
 
   if (selectedCommuneObj) {
     await setCommune(selectedCommuneObj)
