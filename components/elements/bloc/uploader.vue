@@ -7,8 +7,13 @@
     <div>
 
       <!-- Boutons en haut à droite -->
-      <div style="position: absolute; top: 5px; right: 5px; display: flex; gap: 10px; z-index: 10; font-size: 14px;">
+      <div style="position: absolute; top: 5px; right: 5px; display: flex; gap: 10px; z-index: 10; font-size: 14px; align-items: center;">
         
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <span>WebP</span>
+          <Toggle :toggle="convertToWebP" @toggle="convertToWebP = !convertToWebP" />
+        </div>
+
         <!-- Import Images -->
         <div class="relative inline-block text-center">
           <input
@@ -110,12 +115,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import Toggle from '~/components/toggle.vue'
 
 const { t } = useLang()
 
 const fileInputRef = ref(null)
 const previews = ref([])
 const uploadMessage = ref('')
+const convertToWebP = ref(true)
 const emit = defineEmits(['uploaded'])
 
 const props = defineProps({
@@ -186,43 +193,92 @@ const clearAll = () => {
   uploadMessage.value = ''
 }
 
+const processFile = async (file) => {
+  if (!convertToWebP.value || !file.type.startsWith('image/') || file.type === 'image/webp') {
+    return file
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0)
+      canvas.toBlob((blob) => {
+        if (blob) {
+          // Create a new File object with .webp extension
+          const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp"
+          const newFile = new File([blob], newName, { type: 'image/webp' })
+          resolve(newFile)
+        } else {
+          reject(new Error('WebP conversion failed'))
+        }
+      }, 'image/webp', 0.8)
+      URL.revokeObjectURL(img.src)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(img.src)
+      reject(new Error('Image load failed'))
+    }
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 // Envoie chaque image avec barre de progression
 const uploadImages = async () => {
   const uploadPromises = previews.value.map(async (preview, index) => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      const formData = new FormData()
+    return new Promise(async (resolve, reject) => {
+      try {
+        const fileToUpload = await processFile(preview.file)
 
-      formData.append('image', preview.file)
-      formData.append('imageName', preview.file.name.split('.')[0])
-      formData.append('table', 'images')
-      formData.append('folderId', props.folderId)
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
 
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100)
-          previews.value[index].progress = percent
+        formData.append('image', fileToUpload)
+        const nameWithoutExt = fileToUpload.name.replace(/\.[^/.]+$/, "")
+        formData.append('imageName', nameWithoutExt)
+        formData.append('table', 'images')
+        formData.append('folderId', props.folderId)
+
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percent = Math.round((e.loaded / e.total) * 100)
+            previews.value[index].progress = percent
+          }
+        })
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            try {
+              const response = JSON.parse(xhr.responseText)
+              if (response.success) {
+                resolve()
+              } else {
+                reject(response.message || `Erreur serveur pour ${preview.file.name}`)
+              }
+            } catch (e) {
+              reject(`Réponse invalide pour ${preview.file.name}`)
+            }
+          } else {
+            reject(`Erreur HTTP ${xhr.status} pour ${preview.file.name}`)
+          }
         }
-      })
 
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          resolve()
-        } else {
-          reject(`Erreur pour ${preview.file.name}`)
-        }
+        xhr.onerror = () => reject(`Échec du téléchargement pour ${preview.file.name}`)
+
+        xhr.open('POST', 'https://management.hoggari.com/backend/api.php?action=saveImages')
+        xhr.send(formData)
+      } catch (error) {
+        reject(error.message || `Erreur de traitement pour ${preview.file.name}`)
       }
-
-      xhr.onerror = () => reject(`Échec du téléchargement pour ${preview.file.name}`)
-
-      xhr.open('POST', 'https://management.hoggari.com/backend/api.php?action=saveImages')
-      xhr.send(formData)
     })
   })
 
   try {
     await Promise.all(uploadPromises)
-    uploadMessage.value = 'Toutes les images ont été uploadées avec succès.'
+    uploadMessage.value = t('all images uploaded successfully')
     
     setTimeout(clearAll, 1000)
     emit('uploaded')
