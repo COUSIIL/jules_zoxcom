@@ -63,7 +63,7 @@
 
   <div class="containerOrder">
     <div class="boxRow">
-      <Search style="width: 90%;" v-model:searcher="searchValue" @search-submitted="(val) => search(val, data)" />
+      <Search style="width: 90%;" v-model:searcher="searchValue" @search-submitted="onSearch" />
       <RectBtn style="width: 10%;" svg="filter" @click:ok="isFilter = true" />
     </div>
 
@@ -449,7 +449,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import './main.css'
 
 import { useOrders } from '../../composables/getOrders';
@@ -509,6 +509,8 @@ const currentColor = ref('#ffef6c')
 const idToRemind = ref(0)
 const currentIndex = ref(0)
 const searchValue = ref("")
+const lastQueryParams = ref({})
+let evtSource = null;
 
 
 const showDeliver = ref(false);
@@ -720,7 +722,23 @@ onMounted(() => {
   getDelivery()
   getUsers()
   
+  // SSE Setup
+  evtSource = new EventSource('/backend/api.php?action=sseOrders');
+  evtSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.update) {
+       // Refresh orders silently with current filters
+       getOrders(lastQueryParams.value, true);
+    }
+  };
+
   //getUserData();
+});
+
+onUnmounted(() => {
+  if (evtSource) {
+    evtSource.close();
+  }
 });
 
 
@@ -874,12 +892,20 @@ const onRightClick = (item, event) => {
 // appel — passer le tableau pur
 const filterSelected = (vl) => {
   if (typeof vl === 'object') {
+      lastQueryParams.value = vl
       filterBy(vl)
   } else if (vl === 'all') {
+    lastQueryParams.value = {}
     filterBy('all')
   } else {
+    lastQueryParams.value = { status: vl }
     filterBy('status', vl)
   }
+}
+
+const onSearch = (val) => {
+  lastQueryParams.value = { search: val }
+  search(val)
 }
 
 const editStatus = async (vl, index, id) => {
