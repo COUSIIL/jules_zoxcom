@@ -20,7 +20,7 @@ $createTables = [
         profile_image VARCHAR(255) DEFAULT NULL,
         token VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL,
-        description VARCHAR(255) NOT NULL,
+        description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )"
 ];
@@ -43,7 +43,7 @@ $alters = [
     ['table' => 'users', 'column' => 'profile_image', 'query' => "ALTER TABLE users ADD COLUMN profile_image VARCHAR(255) DEFAULT NULL AFTER role"],
     ['table' => 'users', 'column' => 'token', 'query' => "ALTER TABLE users ADD COLUMN token VARCHAR(255) NOT NULL AFTER profile_image"],
     ['table' => 'users', 'column' => 'password', 'query' => "ALTER TABLE users ADD COLUMN password VARCHAR(255) NOT NULL AFTER token"],
-    ['table' => 'users', 'column' => 'description', 'query' => "ALTER TABLE users ADD COLUMN description VARCHAR(255) NOT NULL AFTER password"],
+    ['table' => 'users', 'column' => 'description', 'query' => "ALTER TABLE users ADD COLUMN description TEXT AFTER password"],
     ['table' => 'users', 'column' => 'created_at', 'query' => "ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER password"]
 ];
 
@@ -59,8 +59,17 @@ foreach ($alters as $alter) {
     }
 }
 
+// Ensure description is TEXT (upgrade from VARCHAR if needed)
+$descCheck = $mysqli->query("SHOW COLUMNS FROM users LIKE 'description'");
+if ($descCheck && $descCheck->num_rows > 0) {
+    $row = $descCheck->fetch_assoc();
+    if (stripos($row['Type'], 'varchar') !== false) {
+        $mysqli->query("ALTER TABLE users MODIFY description TEXT");
+    }
+}
+
 // Requête pour récupérer les utilisateurs sans le token
-$query = "SELECT u.id, u.username, u.name, u.family_name, u.email, u.profile_image, u.created_at, u.role, u.role_id, r.name as role_name, u.ip_adresse
+$query = "SELECT u.id, u.username, u.name, u.family_name, u.email, u.profile_image, u.created_at, u.role, u.role_id, r.name as role_name, u.ip_adresse, u.description
           FROM users u
           LEFT JOIN roles r ON u.role_id = r.id
           ORDER BY u.id DESC";

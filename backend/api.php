@@ -126,6 +126,11 @@ $routes = [
     "connexion"                    => "../backend/sql/connexion/connexion.php",
     "checkConnexion"               => "../backend/sql/connexion/checkConnexion.php",
 
+    // --- User Files ---
+    "getUserFiles"                 => "../backend/sql/get/userFiles.php",
+    "uploadUserFile"               => "../backend/sql/post/uploadUserFile.php",
+    "deleteUserFile"               => "../backend/sql/delete/deleteUserFile.php",
+
     // --- Roles & Permissions ---
     "getRoles"                     => "../backend/sql/get/roles.php",
     "saveRole"                     => "../backend/sql/post/saveRole.php",
