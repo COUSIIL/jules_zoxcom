@@ -68,38 +68,76 @@
     <div class="moreDirect">
        <div class="order3">
         <h4>{{ t('Documents') }}</h4>
-        <label v-if="isEditable" class="gBtn" style="width: auto;">
-             <div class="holder">
-               {{ t('Upload') }}
-             </div>
-             <div class="svg bg-green">
-               <Icon name="tabler:upload" size="18" style="color: white;" />
-             </div>
-             <input type="file" @change="uploadFile" hidden />
-        </label>
+        <div style="display: flex; gap: 10px;">
+          <button v-if="hasSelection && isEditable" class="gBtn" @click="deleteSelected" style="background-color: var(--color-rady);">
+               <div class="holder">
+                 {{ t('Delete Selected') }}
+               </div>
+               <div class="svg">
+                 <Icon name="tabler:trash" size="18" style="color: white;" />
+               </div>
+          </button>
+
+          <label v-if="isEditable" class="gBtn" style="width: auto;">
+               <div class="holder">
+                 {{ t('Upload') }}
+               </div>
+               <div class="svg bg-green">
+                 <Icon name="tabler:upload" size="18" style="color: white;" />
+               </div>
+               <input type="file" @change="uploadFile" hidden />
+          </label>
+        </div>
       </div>
 
-      <div class="listTable">
-        <div v-if="files.length === 0" style="width: 100%; text-align: center; color: var(--color-garry);">
+      <div class="file-grid">
+        <div v-if="files.length === 0" style="width: 100%; text-align: center; color: var(--color-garry); grid-column: 1 / -1;">
           {{ t('No documents found.') }}
         </div>
-        <div v-for="file in files" :key="file.id" class="childElement2" style="flex-direction: row; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; overflow: hidden;">
-            <Icon :name="getFileIcon(file.file_type)" size="24" style="margin-right: 10px; color: var(--color-darkly);" />
-            <div style="display: flex; flex-direction: column; overflow: hidden;">
-              <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ file.original_name }}</h4>
-              <h5>{{ formatDate(file.created_at) }} • {{ (file.file_size / 1024).toFixed(1) }} KB</h5>
-            </div>
-          </div>
 
-          <div style="display: flex; gap: 5px;">
-            <a :href="`https://management.hoggari.com/backend/uploads/user_files/${file.stored_name}`" target="_blank" class="numberBtn" :title="t('Download')">
-               <Icon name="tabler:download" size="18" />
-            </a>
-            <button v-if="isEditable" @click="deleteFile(file.id)" class="numberBtn" style="color: var(--color-rady);" :title="t('Delete')">
-               <Icon name="tabler:trash" size="18" style="color: var(--color-rady);" />
-            </button>
+        <div v-for="file in files" :key="file.id" class="file-item">
+          <ImageBox
+             v-if="['jpg', 'jpeg', 'png', 'webp'].includes(file.file_type)"
+             :image="file"
+             :src="getFileUrl(file)"
+             @clicked="handleFileClick(file)"
+             @toggle-delete="handleToggleDelete"
+          />
+          <FileBox
+             v-else
+             :file="file"
+             @clicked="handleFileClick(file)"
+             @toggle-delete="handleToggleDelete"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div v-if="showPreview" class="modal-overlay" @click.self="closePreview">
+      <div class="modal-content">
+        <button class="close-btn" @click="closePreview">
+          <Icon name="tabler:x" size="24" />
+        </button>
+
+        <div class="preview-body">
+          <img v-if="isPreviewImage" :src="getFileUrl(previewFile)" class="preview-img" />
+          <iframe v-else-if="previewFile.file_type === 'pdf'" :src="getFileUrl(previewFile)" class="preview-iframe"></iframe>
+          <div v-else class="no-preview">
+            <Icon name="tabler:file-unknown" size="64" />
+            <p>{{ t('No preview available for this file type.') }}</p>
           </div>
+        </div>
+
+        <div class="preview-footer">
+          <a :href="getFileUrl(previewFile)" download class="gBtn" style="width: auto; text-decoration: none;">
+             <div class="holder">
+               {{ t('Download') }}
+             </div>
+             <div class="svg bg-blue">
+               <Icon name="tabler:download" size="18" style="color: white;" />
+             </div>
+          </a>
         </div>
       </div>
     </div>
@@ -109,6 +147,8 @@
 
 <script setup>
 import { useRoute } from 'vue-router'
+import ImageBox from '../../components/elements/bloc/imageBox.vue'
+import FileBox from '../../components/elements/bloc/fileBox.vue'
 
 const { t } = useLang()
 const route = useRoute()
@@ -118,8 +158,18 @@ const auth = ref(null)
 const profileImageFile = ref(null)
 const isEditable = ref(false)
 const files = ref([])
+const showPreview = ref(false)
+const previewFile = ref(null)
 
 const defaultImage = 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+
+const isPreviewImage = computed(() => {
+  return previewFile.value && ['jpg', 'jpeg', 'png', 'webp'].includes(previewFile.value.file_type)
+})
+
+const hasSelection = computed(() => {
+  return files.value.some(f => f.markedForDelete)
+})
 
 onMounted(() => {
   const storedId = route.params.id
@@ -156,12 +206,61 @@ const getUserFiles = async () => {
     const response = await fetch(`https://management.hoggari.com/backend/api.php?action=getUserFiles&user_id=${auth.value.id}`)
     const result = await response.json()
     if (result.success) {
-      files.value = result.data
+      files.value = result.data.map(f => ({
+        ...f,
+        name: f.original_name,
+        markedForDelete: false
+      }))
     }
   } catch (e) {
     console.error(e)
   }
 }
+
+const getFileUrl = (file) => {
+  if (!file) return ''
+  return `https://management.hoggari.com/backend/uploads/user_files/${file.stored_name}`
+}
+
+const handleFileClick = (file) => {
+  previewFile.value = file
+  showPreview.value = true
+}
+
+const closePreview = () => {
+  showPreview.value = false
+  previewFile.value = null
+}
+
+const handleToggleDelete = ({ id, marked }) => {
+  if (!isEditable.value) return
+  const f = files.value.find(x => x.id === id)
+  if (f) f.markedForDelete = marked
+}
+
+const deleteSelected = async () => {
+  const selected = files.value.filter(f => f.markedForDelete)
+  if (selected.length === 0) return
+
+  if (!confirm(t('Are you sure you want to delete selected files?'))) return
+
+  const authentic = JSON.parse(localStorage.getItem('auth'))
+
+  for (const file of selected) {
+    try {
+      await fetch('https://management.hoggari.com/backend/api.php?action=deleteUserFile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_id: file.id, user_id: auth.value.id, token: authentic?.token || '' })
+      })
+    } catch (e) {
+      console.error('Delete failed for', file.id)
+    }
+  }
+  // Refresh list
+  getUserFiles()
+}
+
 
 const updateProfileImage = async (event) => {
   const file = event.target.files[0]
@@ -253,39 +352,6 @@ const uploadFile = async (event) => {
   }
 }
 
-const deleteFile = async (fileId) => {
-  if (!confirm(t('Are you sure you want to delete this file?'))) return
-  const authentic = JSON.parse(localStorage.getItem('auth'))
-
-  try {
-    const response = await fetch('https://management.hoggari.com/backend/api.php?action=deleteUserFile', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file_id: fileId, user_id: auth.value.id, token: authentic?.token || '' })
-    })
-    const result = await response.json()
-    if (result.success) {
-      files.value = files.value.filter(f => f.id !== fileId)
-    } else {
-      alert(result.message)
-    }
-  } catch (e) {
-    alert(t('Delete failed'))
-  }
-}
-
-const getFileIcon = (type) => {
-  if (['jpg', 'jpeg', 'png'].includes(type)) return 'tabler:photo'
-  if (type === 'pdf') return 'tabler:file-type-pdf'
-  if (['doc', 'docx'].includes(type)) return 'tabler:file-type-doc'
-  return 'tabler:file'
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString()
-}
-
 </script>
 
 <style scoped>
@@ -320,6 +386,103 @@ const formatDate = (dateString) => {
   flex: 2 1 400px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+}
+
+/* File Grid */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+  width: 100%;
+}
+
+.file-item {
+  display: flex;
+  justify-content: center;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 3000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: var(--color-whitly);
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.dark .modal-content {
+  background: var(--color-darkly);
+  color: var(--color-whity);
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-darkly);
+}
+.dark .close-btn {
+  color: var(--color-whity);
+}
+
+.preview-body {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 20px;
+  min-height: 200px;
+}
+
+.preview-img {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 60vh;
+  border: none;
+  border-radius: 8px;
+}
+
+.no-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-garry);
+}
+
+.preview-footer {
+  display: flex;
   justify-content: center;
 }
 
