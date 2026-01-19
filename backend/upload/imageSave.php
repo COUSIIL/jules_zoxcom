@@ -43,11 +43,26 @@ if ($table_check_result->num_rows == 0) {
     }
 }
 
+function sanitizeFilename($filename) {
+    // Remove extension
+    $info = pathinfo($filename);
+    $name = $info['filename'];
+    $ext = isset($info['extension']) ? '.' . $info['extension'] : '';
+
+    // Replace special chars with underscores
+    $name = preg_replace('/[^a-zA-Z0-9_-]/', '_', $name);
+
+    // Remove multiple underscores
+    $name = preg_replace('/_+/', '_', $name);
+
+    return $name . $ext;
+}
+
 // Traitement de l'upload
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
 
     $folderId = $_POST['folderId'] ?? null;
-    if (!$folderId) {
+    if ($folderId === null || $folderId === '') { // folderId can be 0 (root)
         echo json_encode(['success' => false, 'message' => 'Missing folderId.']);
         exit;
     }
@@ -59,16 +74,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
     }
 
     $image = $_FILES['image'];
-    $fileExtension = strtolower(pathinfo($image['name'], PATHINFO_EXTENSION));
 
-    // Génère un nom unique
-    $filePath = $uploadDir . $image['name'];
-    $relativePath = '/uploads/images/' . $image['name'];
+    // Sanitize the original name
+    $sanitizedName = sanitizeFilename($image['name']);
+    $fileExtension = strtolower(pathinfo($sanitizedName, PATHINFO_EXTENSION));
+    $fileNameWithoutExt = pathinfo($sanitizedName, PATHINFO_FILENAME);
+
+    $finalName = $sanitizedName;
+    $filePath = $uploadDir . $finalName;
+
+    // Handle duplicates
+    $counter = 1;
+    while (file_exists($filePath)) {
+        $finalName = $fileNameWithoutExt . '_' . $counter . '.' . $fileExtension;
+        $filePath = $uploadDir . $finalName;
+        $counter++;
+    }
+
+    $relativePath = '/uploads/images/' . $finalName;
 
     if (move_uploaded_file($image['tmp_name'], $filePath)) {
         // Insertion BDD
         $stmt = $mysqli->prepare("INSERT INTO images (folder_id, name, path) VALUES (?, ?, ?)");
-        $stmt->bind_param("iss", $folderId, $image['name'], $relativePath);
+        $stmt->bind_param("iss", $folderId, $finalName, $relativePath);
 
         if ($stmt->execute()) {
             echo json_encode([
@@ -76,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
                 'message' => 'Image uploaded and saved to database.',
                 'data' => [
                     'path' => $relativePath,
-                    'name' => $image['name'],
+                    'name' => $finalName,
                     'folder_id' => $folderId
                 ],
             ]);
