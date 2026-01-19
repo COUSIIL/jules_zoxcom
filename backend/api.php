@@ -82,6 +82,7 @@ $routes = [
     "deleteOrder"                  => "../backend/sql/delete/order.php",
     "sendEmailOrder"               => "../backend/email/sendOrder.php",
     "getOrderHistory"              => "../backend/sql/get/orderHistory.php",
+    "sseOrders"                    => "../backend/sse_orders.php",
 
     // --- Pinned Orders ---
     "pinOrder"                     => "../backend/sql/insert/pinOrder.php",
@@ -189,7 +190,7 @@ $routes = [
 
 // Vérifiez si l'action demandée existe
 if (isset($_GET['action']) && isset($routes[$_GET['action']])) {
-    if ($_GET['action'] === 'exportCustomers') {
+    if (in_array($_GET['action'], ['exportCustomers', 'sseOrders', 'chatStream'])) {
         include $routes[$_GET['action']];
         exit();
     }

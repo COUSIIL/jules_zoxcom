@@ -24,8 +24,8 @@ export const useOrders = () => {
     }
 
 
-    const getOrders = async (queryParams = {}) => {
-        loading.value = true;
+    const getOrders = async (queryParams = {}, silent = false) => {
+        if (!silent) loading.value = true;
 
         const params = new URLSearchParams();
         for (const [key, value] of Object.entries(queryParams)) {

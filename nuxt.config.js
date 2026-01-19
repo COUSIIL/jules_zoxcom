@@ -42,7 +42,7 @@ export default defineNuxtConfig({
     server: {
       proxy: {
         '/backend': {
-          target: 'http://localhost:3000',
+          target: 'https://management.hoggari.com',
           changeOrigin: true
         }
       }

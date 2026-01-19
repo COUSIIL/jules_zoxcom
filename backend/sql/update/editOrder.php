@@ -153,6 +153,11 @@ try {
     }
 
     $mysqli->commit();
+
+    // Trigger global update for SSE
+    include_once __DIR__ . '/../../trigger_update.php';
+    triggerOrderUpdate();
+
     echo json_encode(['success' => true, 'message' => 'Order updated successfully', 'data' => $orderId]);
 
 } catch (Exception $e) {
