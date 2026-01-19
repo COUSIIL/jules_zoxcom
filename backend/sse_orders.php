@@ -38,7 +38,7 @@ if (!file_exists($file)) {
 clearstatcache();
 $lastModification = filemtime($file);
 $startTime = time();
-$timeout = 25; // Restart connection every 25s to prevent PHP timeouts
+$timeout = 1; // Restart connection every 25s to prevent PHP timeouts
 
 echo "retry: 1000\n\n";
 flush();
