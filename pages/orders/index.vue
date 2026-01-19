@@ -1150,6 +1150,27 @@ const copyIp = async (ip, index) => {
 
 const reverseOrders = async (vl) => {
   if (Array.isArray(vl)) {
+    // 1. Snapshot current state map
+    const currentStateMap = new Map();
+    if (dt.value && dt.value.length > 0) {
+      dt.value.forEach(order => {
+        currentStateMap.set(order.id, {
+          isMore: order.isMore,
+          isEditing: order.isEditing,
+          isSelected: order.isSelected,
+          copiedId: order.copiedId,
+          activity: order.activity,
+          wilayas: order.wilayas,
+          commune: order.commune,
+          selectedCommune: order.selectedCommune,
+          deliveryType: order.deliveryType,
+          has_desk: order.has_desk,
+          selectedFees: order.selectedFees,
+          deliverySty: order.deliverySty
+        });
+      });
+    }
+
     dt.value = vl
       .map(item => {
         let note = [];
@@ -1214,6 +1235,27 @@ const reverseOrders = async (vl) => {
             profile_image: '',
             color: '#d6e7ff'
           }];
+        }
+
+        const existingState = currentStateMap.get(item.id);
+
+        if (existingState) {
+          return {
+            ...item,
+            note,
+            isMore: existingState.isMore,
+            isEditing: existingState.isEditing,
+            isSelected: existingState.isSelected,
+            copiedId: existingState.copiedId,
+            activity: existingState.activity || '',
+            wilayas: existingState.wilayas || [],
+            commune: existingState.commune || [],
+            selectedCommune: existingState.selectedCommune,
+            deliveryType: existingState.deliveryType || item.type,
+            has_desk: existingState.has_desk,
+            selectedFees: existingState.selectedFees,
+            deliverySty: existingState.deliverySty
+          };
         }
 
         return {
