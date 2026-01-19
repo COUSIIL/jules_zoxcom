@@ -36,8 +36,8 @@
 
       <div class="modal-actions">
         <RectBtn :text="t('Cancel')" iconColor="#ff5555" svg="x" @click:ok="showPinModal = false" :isSimple="true"/>
-        <RectBtn v-if="selectDelegate?.is_pinned" :text="t('Unpin')" iconColor="#ff5555" svg="trashX" @click:ok="confirmUnpin" :isSimple="true"/>
-        <RectBtn :text="t('Save Pin')" iconColor="#2ecc71" svg="check" @click:ok="confirmPin" :isSimple="true"/>
+        <RectBtn v-if="selectDelegate?.is_pinned" :text="t('Unpin')" iconColor="#ff5555" svg="unpin" @click:ok="confirmUnpin" :isSimple="true"/>
+        <RectBtn :text="t('Save Pin')" iconColor="#2ecc71" svg="pin" @click:ok="confirmPin" :isSimple="true"/>
       </div>
     </div>
   </div>
@@ -137,7 +137,9 @@
             <div class="actionBar">
               <!-- PIN INDICATOR -->
               <div v-if="dts.is_pinned" class="pinned-indicator" :title="dts.pin_reason">
-                 📌
+                 <div v-html="resizeSvg(icons['pin'], 24, 24)"></div>
+
+                 
               </div>
             <!--div class="cutDiver">
 
@@ -177,23 +179,14 @@
           
 
         <div class="box1">
-          <div class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
-            <div v-if="dts.history_user">
-               <img v-if="newMembers[dts.history_user]?.profile_image" :src="webLink + newMembers[dts.history_user].profile_image" :alt="dts.history_user">
-               <h1 style="font-size: 0.9em">{{ dts.history_user }} :</h1>
-               <p style="font-weight: bold; color: var(--color-zioly4)">{{ dts.history_action }}</p>
-               <p style="font-size: 0.7em; opacity: 0.7">{{ dts.history_date }}</p>
-            </div>
-            <div v-else-if="dts.owner">
+
+            <div v-if="dts.owner" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
                <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
                <h1>{{ dts.owner }} :</h1>
                <p v-if="dts.owner_conf_date">{{ t('confirmed at') }} {{ dts.owner_conf_date }}</p>
                <p v-else>{{ t('confirmed') }}</p>
             </div>
-            <div v-else style="display: flex; justify-content: center; align-items: center; height: 100%; opacity: 0.5;">
-               <p style="font-size: 0.8em">{{ t('No history') }}</p>
-            </div>
-          </div>
+
           <div class="order-item" role="listitem" aria-label="order" :class="[
 
             { active: dts.isMore }
@@ -599,7 +592,7 @@ const delegateOption = ref([{ value: 'delegate', label: 'Delegate to OrderDz', i
 const moreOptions = ref([
   { value: 'delegate', label: 'automatic order tracking', img: resizeSvg(icons['external_off'], 25, 25) },
   { value: 'export', label: 'export', img: resizeSvg(icons['export'], 25, 25) },
-  { value: 'pin', label: 'Pin Order', img: resizeSvg(iconsFilled['tag'], 25, 25) }
+  { value: 'pin', label: 'Pin Order', img: resizeSvg(icons['pin'], 25, 25) }
 ])
 
 const exportOptions = ref([
@@ -727,9 +720,9 @@ onMounted(() => {
   getDelivery()
   getUsers()
   
-  
   //getUserData();
 });
+
 
 const getUsers = async () => {
 
