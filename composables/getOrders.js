@@ -116,7 +116,7 @@ export const useOrders = () => {
 
     }
 
-    const deliverOrder = async (order, product, deliveryType, method, total, delivery, wilaya, auth) => {
+    const deliverOrder = async (order, product, deliveryType, method, total, delivery, wilaya) => {
 
         let data, type;
         let product_name = '';
@@ -202,7 +202,7 @@ export const useOrders = () => {
                     }*/
 
                     const setToUps = {
-                        reference: `${(order.id)}-${(auth)}`,
+                        reference: `${(order.id)}-${(order.owner)}`,
                         nom_client: order.name,
                         telephone: order.phone,
                         telephone_2: '',
@@ -282,7 +282,7 @@ export const useOrders = () => {
                     }
 
                     const setToAnderson = {
-                        reference: `${(order.id)}-${(auth)}`,
+                        reference: `${(order.id)}-${(order.owner)}`,
                         nom_client: order.name,
                         telephone: order.phone,
                         telephone_2: '',
@@ -439,7 +439,7 @@ export const useOrders = () => {
                         //console.log('newOrderSzone.value: ', newOrderSzone.value)
                         const { firstname, familyname } = splitName(order.name);
                         const parcels = [{
-                            order_id: `${(order.id)}-${(auth)}`,
+                            order_id: `${(order.id)}-${(order.owner)}`,
                             from_wilaya_name: "Tipaza",
                             firstname,
                             familyname,
@@ -607,7 +607,7 @@ export const useOrders = () => {
                         };
                         const { firstname, familyname } = splitName(order.name);
                         const parcels = [{
-                            order_id: `${(order.id)}-${(auth)}`,
+                            order_id: `${(order.id)}-${(order.owner)}`,
                             from_wilaya_name: "Tipaza",
                             firstname,
                             familyname,

@@ -1024,8 +1024,7 @@ const shipping = async (index) => {
       newMethod,
       totalDeliver.value,
       0,
-      order.deliveryZone,
-      auth.value.username
+      order.deliveryZone
     );
   } else {
     await deliverOrder(
@@ -1035,8 +1034,7 @@ const shipping = async (index) => {
       order.method,
       ttc,
       order.deliveryValue,
-      order.deliveryZone,
-      auth.value.username
+      order.deliveryZone
     );
   }
 
