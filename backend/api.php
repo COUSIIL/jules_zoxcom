@@ -159,6 +159,7 @@ $routes = [
     "getReminder"                     => "../backend/sql/get/reminder.php",
 
     // --- Modules UPS, Anderson, Yalidine, Guepex ---
+    "updateActivator"              => "../backend/sql/update/moduleActivator.php",
     "upsModule"                    => "../backend/sql/post/upsModule.php",
     "getUpsWilaya"                 => "../backend/ups/getWilaya.php",
     "getUpsFees"                   => "../backend/ups/getFees.php",

@@ -106,6 +106,7 @@ $availablePermissions = [
 
     // Paramètres
     ['slug' => 'manage_settings', 'name' => 'Gérer les paramètres'],
+    ['slug' => 'manage_modules', 'name' => 'Gérer les modules'],
 
     // Legacy (Backward Compatibility)
     ['slug' => 'manage_orders', 'name' => 'Gérer les commandes (Legacy)'],

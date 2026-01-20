@@ -1,39 +1,48 @@
 <?php
+// backend/sql/post/gpxModule.php
 
 header("Content-Type: application/json; charset=UTF-8");
 
-// Inclure le fichier de configuration de la base de données
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
+$authPath = __DIR__ . '/../../../backend/security/auth.php';
 
-if (!file_exists($configPath)) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Configuration file not found.',
-    ]);
+if (!file_exists($configPath) || !file_exists($authPath)) {
+    echo json_encode(['success' => false, 'message' => 'Configuration or Auth file not found.']);
     exit;
 }
 
 require_once $configPath;
+require_once $authPath;
 
 if (!$mysqli) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Database connection failed: ' . mysqli_connect_error()
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Database connection failed: ' . mysqli_connect_error()]);
     exit;
 }
 
-// Vérifier si la table gpx_module existe, sinon la créer
+// 1. Get Input
+$data = json_decode(file_get_contents('php://input'), true);
+
+// 2. Validate Token
+$token = $data['token'] ?? null;
+if (!$token) {
+     echo json_encode(['success' => false, 'message' => 'Token required']);
+     exit;
+}
+$userId = verifyToken($mysqli, $token);
+if (!$userId) {
+    echo json_encode(['success' => false, 'message' => 'Invalid or expired token']);
+    exit;
+}
+
+// 3. Check Permission
+if (!hasPermission($mysqli, $userId, 'manage_modules') && !hasPermission($mysqli, $userId, 'manage_settings')) {
+    echo json_encode(['success' => false, 'message' => 'Permission denied']);
+    exit;
+}
+
+// 4. Ensure Table Exists
 $table_check_query = "SHOW TABLES LIKE 'gpx_module'";
 $table_check_result = $mysqli->query($table_check_query);
-
-if ($table_check_result === false) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error checking table: ' . $mysqli->error
-    ]);
-    exit;
-}
 
 if ($table_check_result->num_rows == 0) {
     $create_table_query = "CREATE TABLE `gpx_module` (
@@ -44,27 +53,20 @@ if ($table_check_result->num_rows == 0) {
         `api_id` TEXT,
         `api_token` TEXT
     )";
-
-    if ($mysqli->query($create_table_query) === false) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error creating table: ' . $mysqli->error
-        ]);
+    if (!$mysqli->query($create_table_query)) {
+        echo json_encode(['success' => false, 'message' => 'Error creating table: ' . $mysqli->error]);
         exit;
     }
 }
 
-// Lire la requête JSON envoyée par le client
-$data = json_decode(file_get_contents('php://input'), true);
-
+// 5. Process Update/Insert
 if (isset($data['name'], $data['api_id'], $data['api_token'])) {
     $name = $mysqli->real_escape_string($data['name']);
     $api_id = $mysqli->real_escape_string($data['api_id']);
     $api_token = $mysqli->real_escape_string($data['api_token']);
-    $work = (int) $data['work'];
+    $work = isset($data['work']) ? (int) $data['work'] : 0;
     $data_time = date('Y-m-d H:i:s');
 
-    // Vérifier si l'entrée existe déjà
     $check_query = $mysqli->prepare("SELECT id FROM `gpx_module` WHERE name = ?");
     if ($check_query) {
         $check_query->bind_param("s", $name);
@@ -72,55 +74,33 @@ if (isset($data['name'], $data['api_id'], $data['api_token'])) {
         $check_result = $check_query->get_result();
 
         if ($check_result->num_rows > 0) {
-            // Mise à jour si l'entrée existe
             $update_query = $mysqli->prepare("UPDATE `gpx_module` SET data_time = ?, work = ?, `api_id` = ?, `api_token` = ? WHERE name = ?");
             if ($update_query) {
                 $update_query->bind_param("sisss", $data_time, $work, $api_id, $api_token, $name);
                 if ($update_query->execute()) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'guepex settings updated successfully.'
-                    ]);
+                    echo json_encode(['success' => true, 'message' => 'Guepex updated successfully.']);
                 } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Error updating guepex settings: ' . $update_query->error
-                    ]);
+                    echo json_encode(['success' => false, 'message' => 'Error updating Guepex: ' . $update_query->error]);
                 }
                 $update_query->close();
             }
         } else {
-            // Insertion si l'entrée n'existe pas
             $insert_query = $mysqli->prepare("INSERT INTO `gpx_module` (data_time, work, name, `api_id`, `api_token`) VALUES (?, ?, ?, ?, ?)");
             if ($insert_query) {
                 $insert_query->bind_param("sisss", $data_time, $work, $name, $api_id, $api_token);
                 if ($insert_query->execute()) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'guepex settings saved successfully.'
-                    ]);
+                    echo json_encode(['success' => true, 'message' => 'Guepex added successfully.']);
                 } else {
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Error inserting guepex settings: ' . $insert_query->error
-                    ]);
+                    echo json_encode(['success' => false, 'message' => 'Error inserting Guepex: ' . $insert_query->error]);
                 }
                 $insert_query->close();
             }
         }
         $check_query->close();
-    } else {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Error preparing check query: ' . $mysqli->error
-        ]);
     }
 } else {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Invalid input. All fields (name, api_id, api_token, work) are required.'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Invalid input.']);
 }
 
-// Fermer la connexion
 $mysqli->close();
+?>
