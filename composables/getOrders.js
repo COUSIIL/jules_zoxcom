@@ -24,6 +24,27 @@ export const useOrders = () => {
     }
 
 
+    const getOrder = async (id) => {
+        loading.value = true;
+        const response = await fetch(`https://management.hoggari.com/backend/api.php?action=getOrder`, {
+            method: 'POST',
+            body: JSON.stringify({ order_id: id })
+        });
+        if (!response.ok) {
+            log.value = 'error getting order';
+            loading.value = false;
+            return null;
+        }
+        const result = await response.json();
+        loading.value = false;
+        if (result.success && result.data && result.data.length > 0) {
+            return result.data[0];
+        } else {
+            log.value = result.message;
+            return null;
+        }
+    }
+
     const getOrders = async (queryParams = {}, silent = false) => {
         if (!silent) loading.value = true;
 
@@ -776,5 +797,6 @@ export const useOrders = () => {
         resultProduct,
         updated,
         orLog,
+        getOrder,
     };
 };
