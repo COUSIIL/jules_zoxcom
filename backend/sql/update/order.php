@@ -202,7 +202,7 @@ if ($status === 'status' && $value === 'completed' && $currentOrder['status'] !=
 
 // Trigger global update for SSE
 include_once __DIR__ . '/../../trigger_update.php';
-triggerOrderUpdate();
+triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status]);
 
 echo json_encode([
     'success' => true,
