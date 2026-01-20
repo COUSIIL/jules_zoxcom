@@ -15,6 +15,16 @@ session_write_close();
 
 require_once __DIR__ . '/config/dbConfig.php';
 
+// Ensure table exists
+if ($mysqli) {
+    $mysqli->query("CREATE TABLE IF NOT EXISTS system_events (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_type VARCHAR(50) NOT NULL,
+        payload TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )");
+}
+
 // Disable buffering
 if (function_exists('apache_setenv')) {
     @apache_setenv('no-gzip', 1);

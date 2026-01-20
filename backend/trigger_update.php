@@ -1,6 +1,10 @@
 <?php
-function triggerOrderUpdate($data = null) {
+function triggerOrderUpdate($data = null, $conn = null) {
     global $mysqli;
+
+    if ($conn) {
+        $mysqli = $conn;
+    }
 
     // Default payload
     if ($data === null) {
@@ -17,6 +21,14 @@ function triggerOrderUpdate($data = null) {
     $eventId = 0;
 
     if ($mysqli) {
+        // Ensure table exists
+        $mysqli->query("CREATE TABLE IF NOT EXISTS system_events (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            event_type VARCHAR(50) NOT NULL,
+            payload TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
+
         $stmt = $mysqli->prepare("INSERT INTO system_events (event_type, payload) VALUES (?, ?)");
         if ($stmt) {
             $stmt->bind_param("ss", $eventType, $payload);

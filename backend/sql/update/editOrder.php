@@ -156,7 +156,7 @@ try {
 
     // Trigger global update for SSE
     include_once __DIR__ . '/../../trigger_update.php';
-    triggerOrderUpdate(['id' => $orderId, 'action' => 'update']);
+    triggerOrderUpdate(['id' => $orderId, 'action' => 'update'], $mysqli);
 
     echo json_encode(['success' => true, 'message' => 'Order updated successfully', 'data' => $orderId]);
 

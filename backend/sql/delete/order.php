@@ -38,7 +38,7 @@ try {
 
     // Trigger global update for SSE
     include_once __DIR__ . '/../../trigger_update.php';
-    triggerOrderUpdate();
+    triggerOrderUpdate(null, $mysqli);
 
     echo json_encode(["success" => true, "message" => "Order deleted successfully."]);
 } catch (Exception $e) {
