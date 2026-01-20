@@ -37,27 +37,36 @@ if (!file_exists($file)) {
 // Initial state
 clearstatcache();
 $lastModification = filemtime($file);
-$startTime = time();
-$timeout = 25; // Restart connection every 25s to prevent PHP timeouts
+$start = microtime(true);
+$timeout = 1.0;              // ex 25s
+$pollIntervalUs = 500000;   // 0.5s (ajuste)
 
 echo "retry: 1000\n\n";
+echo ": connected\n\n";
 flush();
 
 while (true) {
-    if ((time() - $startTime) > $timeout) {
+    if ((microtime(true) - $start) >= $timeout) {
+        // Optionnel: envoyer un ping avant de sortir
+        echo ": closing\n\n";
+        flush();
         break;
     }
 
-    clearstatcache();
-    $currentModification = filemtime($file);
+    clearstatcache(true, $file);
+    $mtime = filemtime($file);
 
-    if ($currentModification > $lastModification) {
-        $lastModification = $currentModification;
+    if ($mtime !== false && $mtime > $lastModification) {
+        $lastModification = $mtime;
         echo "data: " . json_encode(['update' => true, 'ts' => $lastModification]) . "\n\n";
+        flush();
+    } else {
+        // ping comment pour éviter certains buffers/proxy
+        echo ": ping\n\n";
         flush();
     }
 
-    // Tiny sleep to prevent CPU hogging
-    usleep(500000); // 0.5s
+    usleep($pollIntervalUs);
 }
+
 ?>
