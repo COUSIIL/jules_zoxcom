@@ -53,6 +53,9 @@
 
   <HistoryModal :isVisible="showHistoryModal" :orderId="historyOrderId" @close="showHistoryModal = false" />
 
+  <Confirm :isVisible="showConfirmArchive" :message="t('Archive selected orders?')" @confirm="archiveOrders" @cancel="showConfirmArchive = false" />
+  <Confirm :isVisible="showConfirmReset" :message="t('All orders archived. Reset Order IDs to 1?')" @confirm="resetIds" @cancel="showConfirmReset = false" />
+
   <nav v-if="showDeliver" class="overlay">
     <Deliver v-if="!isShipping" :isVisible="showDeliver" :_name="nameDeliver" :_phone1="phoneDeliver"
       :_total="totalDeliver" :_indexing="indexDeliver" @confirm="shipping" @cancel="cancelShipping" />
@@ -116,7 +119,8 @@
         <RectBtn :text="t('action')"
           @click:ok="showAction = true" svg="play" :isSimple="true" />
 
-        
+        <RectBtn v-if="selectedOrder.length > 0" :text="t('archive')"
+          @click:ok="confirmArchive" svg="package" :isSimple="true" iconColor="#f39c12" />
 
         <RectBtn :text="selectedOrder.length + ' ' + t('select')"
           @click:ok="showOrderMapList = true" svg="finger" :isSimple="true" />
@@ -544,7 +548,62 @@ const showHistoryModal = ref(false)
 const historyOrderId = ref(0)
 
 
+const isArchiving = ref(false)
+const showConfirmArchive = ref(false)
+const showConfirmReset = ref(false)
 
+const confirmArchive = () => {
+  if (selectedOrder.value.length === 0) return
+  showConfirmArchive.value = true
+}
+
+const archiveOrders = async () => {
+  showConfirmArchive.value = false
+  isArchiving.value = true
+  const ids = selectedOrder.value.map(o => o.id)
+
+  try {
+    const res = await fetch('https://management.hoggari.com/backend/api.php?action=archiveOrders', {
+      method: 'POST',
+      body: JSON.stringify({ order_ids: ids })
+    })
+    const result = await res.json()
+
+    if (result.success) {
+      // Clear selection
+      selectedOrder.value = []
+      selectedOrderMapList.value = []
+      for(let i in dt.value) {
+        dt.value[i].isSelected = false
+      }
+
+      // Refresh
+      getOrders()
+
+      if (result.is_empty) {
+        showConfirmReset.value = true
+      }
+    } else {
+      alert(result.message || 'Error archiving')
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isArchiving.value = false
+  }
+}
+
+const resetIds = async () => {
+  showConfirmReset.value = false
+  try {
+    const res = await fetch('https://management.hoggari.com/backend/api.php?action=resetOrderIds')
+    const result = await res.json()
+    alert(result.message)
+    getOrders()
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 
 
