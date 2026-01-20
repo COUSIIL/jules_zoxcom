@@ -116,7 +116,7 @@ export const useOrders = () => {
 
     }
 
-    const deliverOrder = async (order, product, deliveryType, method, total, delivery, wilaya) => {
+    const deliverOrder = async (order, product, deliveryType, method, total, delivery, wilaya, auth) => {
 
         let data, type;
         let product_name = '';
@@ -202,7 +202,7 @@ export const useOrders = () => {
                     }*/
 
                     const setToUps = {
-                        reference: `${(order.id)}`,
+                        reference: `${(order.id)}-${(auth)}`,
                         nom_client: order.name,
                         telephone: order.phone,
                         telephone_2: '',
@@ -282,7 +282,7 @@ export const useOrders = () => {
                     }
 
                     const setToAnderson = {
-                        reference: `${(order.id)}`,
+                        reference: `${(order.id)}-${(auth)}`,
                         nom_client: order.name,
                         telephone: order.phone,
                         telephone_2: '',
@@ -323,18 +323,337 @@ export const useOrders = () => {
             }
         } 
         else if (method === 'yalidine') {
-             // ... kept logic but removing undefined Levenshtein if it wasn't defined in scope
-             // The previous file had smartDistance locally defined but levenshteinDistance was used in some delivery methods?
-             // smartDistance was defined in the composable. levenshteinDistance was NOT.
-             // It seems levenshteinDistance was missing or global.
-             // I will leave delivery logic as is, assuming it works or uses global/imported helper.
-             // But I removed smartDistance from this file.
-             // If delivery depended on it, I should restore a basic version or import it.
-             // I'll assume delivery logic is secondary to the task but I shouldn't break it.
-             // I'll re-add a basic levenshtein implementation inside deliverOrder just in case.
+            try {
+                const response = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=getYalidineCenter');
+                const dataYal = await response.json();
+
+                let wilayaId = 0, center = null;
+
+                let minDist1 = 0, minDist2 = 0;
+
+                if (dataYal.success) {
+                    // Recherche dans la première page
+                    for (let i = 0; i < dataYal.data.data.length; i++) {
+                        
+                        //console.log('commune_name: ', dataYal.data.data[i].commune_name)
+                        const dist1 = smartDistance(
+                            dataYal.data.data[i].wilaya_name.toLowerCase(),
+                            wilaya.toLowerCase()
+                        );
+                        const dist2 = smartDistance(
+                            dataYal.data.data[i].commune_name.toLowerCase(),
+                            order.sZone.toLowerCase()
+                        );
+                        if(minDist1 == 0 && minDist2 == 0) {
+                            minDist1 = dist1;
+                            minDist2 = dist2;
+                            if(dist1 < 0.3) {
+                                wilayaId = dataYal.data.data[i].wilaya_id
+                            }
+                            if(dist2 < 0.3) {
+                                center = dataYal.data.data[i].center_id;
+                                newOrderSzone.value = dataYal.data.data[i].commune_name
+                                if(deliveryType === 'home') {
+                                    center = 1;
+                                    newOrderSzone.value = order.sZone
+                                }
+                            }
+                            
+                            
+
+                        } else {
+                            if(dist1 < minDist1 && dist1 < 0.3) {
+                                minDist1 = dist1;
+                                wilayaId = dataYal.data.data[i].wilaya_id
+                            }
+                            if(dist2 < minDist2  && dist2 < 0.3) {
+                                minDist2 = dist2;
+                                center = dataYal.data.data[i].center_id;
+                                newOrderSzone.value = dataYal.data.data[i].commune_name
+                                if(deliveryType === 'home') {
+                                    center = 1;
+                                    newOrderSzone.value = order.sZone
+                                }
+                            }
+                        }
+                        
+
+                    }
+                    // Si pas trouvé, parcourir les pages suivantes
+                    let urlNext = dataYal.data.links?.next;
+                    while (!wilayaId && urlNext) {
+                        const responseNext = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=yalidineCenterNext', {
+                            method: 'POST',
+                            body: JSON.stringify({ url: urlNext })
+                        });
+                        const next = await responseNext.json();
+
+                        for (let i = 0; i < next.data.data.length; i++) {
+                            //console.log('commune_name: ', next.data.data[i].commune_name)
+                            const dist1 = smartDistance(
+                                next.data.data[i].wilaya_name.toLowerCase(),
+                                wilaya.toLowerCase()
+                            );
+                            const dist2 = smartDistance(
+                                next.data.data[i].commune_name.toLowerCase(),
+                                order.sZone.toLowerCase()
+                            );
+                            if(minDist1 == 0 && minDist2 == 0 ) {
+                                minDist1 = dist1;
+                                minDist2 = dist2;
+                                wilayaId = next.data.data[i].wilaya_id
+                                center = next.data.data[i].center_id;
+                                newOrderSzone.value = next.data.data[i].commune_name
+
+                            } else {
+                                if(dist1 < minDist1 && dist1 < 0.3) {
+                                    minDist1 = dist1;
+                                    wilayaId = next.data.data[i].wilaya_id
+                                }
+                                
+                                if(dist2 < minDist2  && dist2 < 0.3) {
+                                    minDist2 = dist2;
+                                    center = next.data.data[i].center_id;
+                                    newOrderSzone.value = next.data.data[i].commune_name
+                                    if(deliveryType === 'home') {
+                                        center = 1;
+                                        newOrderSzone.value = order.sZone
+                                    }
+                                }
+                            }
+                                
+
+                        }
+                        urlNext = next.data.links?.next;
+                    }
+                    if (!center && deliveryType != 'home') {
+                        console.error('Yalidine: Aucun centre trouvé');
+                        return
+                    }
+                    if (center != null) {
+                        // Préparation des informations du colis
+                        const splitName = (fullName) => {
+                            const parts = fullName.split(' ');
+                            return { firstname: parts.shift(), familyname: parts.join(' ') };
+                        };
+                        //console.log('newOrderSzone.value: ', newOrderSzone.value)
+                        const { firstname, familyname } = splitName(order.name);
+                        const parcels = [{
+                            order_id: `${(order.id)}-${(auth)}`,
+                            from_wilaya_name: "Tipaza",
+                            firstname,
+                            familyname,
+                            contact_phone: order.phone,
+                            address: order.mZone,
+                            to_commune_name: newOrderSzone.value,
+                            to_wilaya_name: wilaya,
+                            product_list: product_name,
+                            price: parseInt(total),
+                            do_insurance: false,
+                            declared_value: parseInt(total),
+                            height: 5,
+                            width: 5,
+                            length: 5,
+                            weight: 1,
+                            freeshipping: false,
+                            is_stopdesk: type,
+                            stopdesk_id: center,
+                            has_exchange: false,
+                            product_to_collect: null
+                        }];
+                        const response2 = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=addYalidineOrder', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ parcels }),
+                        });
+                        const data2 = await response2.json();
+                        console.log('yalidine: ', data2)
+
+                        if (data2.success) {
+                            
+                            const trackingCode = data2.data[orderId].tracking;
+
+                            if(trackingCode) {
+                                await updateOrderValue((order.id), 'tracking_code', trackingCode);
+                                await updateOrderValue((order.id), 'status', 'shipping');
+                            }
+                            
+                        } else {
+                            console.error(`Yalidine error: ${data2.message}`);
+                        }
+                    }
+                } else {
+                    console.error(`Yalidine fetch error: ${dataYal.message}`);
+                }
+            } catch (error) {
+                console.error('Yalidine request error:', error);
+            }
         } 
         else if (method === 'guepex') {
-            // ...
+            try {
+                
+                
+                const response = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=getGuepexCenter');
+                const dataYal = await response.json();
+
+                let wilayaId = 0, center = null;
+
+                let minDist1 = 0, minDist2 = 0;
+
+                if (dataYal.success) {
+                    // Recherche dans la première page
+                    for (let i = 0; i < dataYal.data.data.length; i++) {
+                        
+                        //console.log('commune_name: ', dataYal.data.data[i].commune_name)
+                        const dist1 = smartDistance(
+                            dataYal.data.data[i].wilaya_name.toLowerCase(),
+                            wilaya.toLowerCase()
+                        );
+                        const dist2 = smartDistance(
+                            dataYal.data.data[i].commune_name.toLowerCase(),
+                            order.sZone.toLowerCase()
+                        );
+                        if(minDist1 == 0 && minDist2 == 0) {
+                            minDist1 = dist1;
+                            minDist2 = dist2;
+                            if(dist1 < 0.3) {
+                                wilayaId = dataYal.data.data[i].wilaya_id
+                            }
+                            if(dist2 < 0.3) {
+                                center = dataYal.data.data[i].center_id;
+                                newOrderSzone.value = dataYal.data.data[i].commune_name
+                                if(deliveryType === 'home') {
+                                    center = 1;
+                                    newOrderSzone.value = order.sZone
+                                }
+                            }
+                            
+                            
+
+                        } else {
+                            if(dist1 < minDist1 && dist1 < 0.3) {
+                                minDist1 = dist1;
+                                wilayaId = dataYal.data.data[i].wilaya_id
+                            }
+                            if(dist2 < minDist2  && dist2 < 0.3) {
+                                minDist2 = dist2;
+                                center = dataYal.data.data[i].center_id;
+                                newOrderSzone.value = dataYal.data.data[i].commune_name
+                                if(deliveryType === 'home') {
+                                    center = 1;
+                                    newOrderSzone.value = order.sZone
+                                }
+                            }
+                        }
+                        
+
+                    }
+                    // Si pas trouvé, parcourir les pages suivantes
+                    let urlNext = dataYal.data.links?.next;
+                    while (!wilayaId && urlNext) {
+                        const responseNext = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=guepexCenterNext', {
+                            method: 'POST',
+                            body: JSON.stringify({ url: urlNext })
+                        });
+                        const next = await responseNext.json();
+
+                        for (let i = 0; i < next.data.data.length; i++) {
+                            //console.log('commune_name: ', next.data.data[i].commune_name)
+                            const dist1 = smartDistance(
+                                next.data.data[i].wilaya_name.toLowerCase(),
+                                wilaya.toLowerCase()
+                            );
+                            const dist2 = smartDistance(
+                                next.data.data[i].commune_name.toLowerCase(),
+                                order.sZone.toLowerCase()
+                            );
+                            if(minDist1 == 0 && minDist2 == 0 ) {
+                                minDist1 = dist1;
+                                minDist2 = dist2;
+                                wilayaId = next.data.data[i].wilaya_id
+                                center = next.data.data[i].center_id;
+                                newOrderSzone.value = next.data.data[i].commune_name
+
+                            } else {
+                                if(dist1 < minDist1 && dist1 < 0.3) {
+                                    minDist1 = dist1;
+                                    wilayaId = next.data.data[i].wilaya_id
+                                }
+                                if(dist2 < minDist2  && dist2 < 0.3) {
+                                    minDist2 = dist2;
+                                    center = next.data.data[i].center_id;
+                                    newOrderSzone.value = next.data.data[i].commune_name
+                                    if(deliveryType === 'home') {
+                                        center = 1;
+                                        newOrderSzone.value = order.sZone
+                                    }
+                                }
+                            }
+                                
+
+                        }
+                        urlNext = next.data.links?.next;
+                    }
+                    
+                    if (!center && deliveryType != 'home') {
+                        console.error('Guepex: Aucun centre trouvé');
+                        return
+                    }
+                    if (center != null) {
+                        // Préparation des informations du colis
+                        const splitName = (fullName) => {
+                            const parts = fullName.split(' ');
+                            return { firstname: parts.shift(), familyname: parts.join(' ') };
+                        };
+                        const { firstname, familyname } = splitName(order.name);
+                        const parcels = [{
+                            order_id: `${(order.id)}-${(auth)}`,
+                            from_wilaya_name: "Tipaza",
+                            firstname,
+                            familyname,
+                            contact_phone: order.phone,
+                            address: order.mZone,
+                            to_commune_name: newOrderSzone.value,
+                            to_wilaya_name: wilaya,
+                            product_list: product_name,
+                            price: parseInt(total),
+                            do_insurance: false,
+                            declared_value: parseInt(total),
+                            height: 5,
+                            width: 5,
+                            length: 5,
+                            weight: 1,
+                            freeshipping: false,
+                            is_stopdesk: type,
+                            stopdesk_id: center,
+                            has_exchange: false,
+                            product_to_collect: null
+                        }];
+                    const response2 = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=addGuepexOrder', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ parcels }),
+                    });
+                    const data2 = await response2.json();
+
+                    if (data2.success) {
+
+                        const trackingCode = data2.data[orderId].tracking;
+
+                        if(trackingCode) {
+                            await updateOrderValue((order.id), 'tracking_code', trackingCode);
+                            await updateOrderValue((order.id), 'status', 'shipping');
+                        }
+                    } else {
+                        console.error(`Guepex error: ${data2.message}`);
+                    }
+                    }
+                } else {
+                    console.error(`Guepex fetch error: ${dataYal.message}`);
+                }
+            } catch (err) {
+                console.error("Guepex request error:", err);
+            }
         }
     };
 
