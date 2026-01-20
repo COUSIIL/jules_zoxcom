@@ -35,10 +35,6 @@ if (!$id) {
     echo json_encode(['success' => false, 'message' => 'Missing reminder ID.']);
     exit;
 }
-if (!$orderId) {
-    echo json_encode(['success' => false, 'message' => 'Missing order ID.']);
-    exit;
-}
 
 $stmt = $mysqli->prepare("DELETE FROM `reminder` WHERE id = ?");
 if (!$stmt) {
@@ -50,20 +46,20 @@ $stmt->bind_param("i", $id);
 
 if ($stmt->execute()) {
     if ($stmt->affected_rows > 0) {
-        // Mettre à jour la colonne reminder_id dans la table 'orders' à NULL
-        $stmt2 = $mysqli->prepare("UPDATE `orders` SET `reminder_id` = NULL WHERE `id` = ?");
-        if (!$stmt2) {
-            echo json_encode(['success' => false, 'message' => 'Prepare failed: ' . $mysqli->error]);
-            exit;
+        // Mettre à jour la colonne reminder_id dans la table 'orders' à NULL SI orderId est fourni
+        if ($orderId) {
+            $stmt2 = $mysqli->prepare("UPDATE `orders` SET `reminder_id` = NULL WHERE `id` = ?");
+            if ($stmt2) {
+                $stmt2->bind_param("i", $orderId);
+                if (!$stmt2->execute()) {
+                    // On log juste l'erreur, mais le reminder est supprimé
+                    // echo json_encode(['success' => false, 'message' => 'Error updating order reminder_id: ' . $stmt2->error]);
+                }
+                $stmt2->close();
+            }
         }
 
-        $stmt2->bind_param("i", $orderId);
-        if ($stmt2->execute()) {
-            echo json_encode(['success' => true, 'message' => 'Reminder deleted successfully and associated order updated.']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error updating order reminder_id: ' . $stmt2->error]);
-        }
-        $stmt2->close();
+        echo json_encode(['success' => true, 'message' => 'Reminder deleted successfully.']);
 
     } else {
         echo json_encode(['success' => false, 'message' => 'No reminder found with this ID.']);

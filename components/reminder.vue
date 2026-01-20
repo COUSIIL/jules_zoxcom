@@ -5,7 +5,7 @@
     <div class="reminderBox">
 
         <div class="rawBox">
-            <h1>{{ t('create reminder') }}</h1>
+            <h1>{{ id ? t('edit reminder') : t('create reminder') }}</h1>
             <Btn :svg="'x'" iconColor="#ff5555" @click:ok="emit('close')"/>
         </div>
       
@@ -35,13 +35,13 @@
         
         <CallToAction 
             v-if="!loading" 
-            :text="t('create new remind')" 
+            :text="id ? t('update remind') : t('create new remind')"
             :svg="resizeSvg(iconsFilled['calendar'], 25, 25)" 
             @clicked="reminder"
         />
         <CallToAction 
             v-else 
-            :text="t('creating...')" 
+            :text="id ? t('updating...') : t('creating...')"
             :svg="resizeSvg(iconsFilled['calendar'], 25, 25)"
         />
       
@@ -57,7 +57,7 @@
     import Btn from './elements/newBloc/rectBtn.vue'
     import CallToAction from './elements/bloc/callToActionBtn.vue';
     import Message from './elements/bloc/message.vue';
-    import { ref } from 'vue'
+    import { ref, onMounted } from 'vue'
     //import icons from '~/public/icons.json'
     import iconsFilled from '~/public/iconsFilled.json'
 
@@ -67,13 +67,15 @@
     import { useLang } from '~/composables/useLang';
     import { useReminder } from '../composables/reminder';
 
-    const { createRemind, dataRemindCreated, loading } = useReminder();
+    const { createRemind, updateRemind, dataRemindCreated, dataRemindUpdate, loading } = useReminder();
 
     const { t } = useLang()
 
     const props = defineProps({
-        auth: { type: Array, default: {} }
-
+        auth: { type: Object, default: {} },
+        id: { type: Number, default: null },
+        initialDate: { type: String, default: null },
+        initialNote: { type: Array, default: () => [] }
     })
 
     const emit = defineEmits(['update:modelValue', 'close']);
@@ -102,6 +104,15 @@
         note.value = vl
     }
 
+    onMounted(() => {
+        if (props.initialDate) {
+            reminder_date.value = new Date(props.initialDate)
+        }
+        if (props.initialNote && props.initialNote.length > 0) {
+            note.value = props.initialNote
+        }
+    })
+
     const reminder = async () => {
         if (!reminder_date.value) {
             loger.value = 'Please select a reminder date'
@@ -117,10 +128,17 @@
         // 🕓 Convertir la date avant l'envoi
         const formattedDate = formatDateToSQL(reminder_date.value)
 
-        await createRemind(note.value, formattedDate, props.auth.id)
+        if (props.id) {
+            await updateRemind(props.id, note.value, formattedDate, 1) // assuming work=1
+            if (dataRemindUpdate.value) {
+                 emit('update:modelValue', dataRemindUpdate.value)
+            }
+        } else {
+            await createRemind(note.value, formattedDate, props.auth.id)
 
-        if (dataRemindCreated.value) {
-            emit('update:modelValue', dataRemindCreated.value)
+            if (dataRemindCreated.value) {
+                emit('update:modelValue', dataRemindCreated.value)
+            }
         }
     }
 

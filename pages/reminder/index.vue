@@ -1,12 +1,38 @@
 <template>
   <div class="container">
-    <!-- ✅ Fenêtre flottante pour créer un reminder -->
+    <!-- ✅ Fenêtre flottante pour créer/éditer un reminder -->
     <Reminder
       v-if="isReminder"
       :auth="auth"
+      :id="selectedReminder?.id"
+      :initialDate="selectedReminder?.reminder_date"
+      :initialNote="parseNote(selectedReminder?.note)"
       @update:modelValue="refreshReminds"
-      @close="isReminder = false"
+      @close="closeReminder"
     />
+
+    <!-- ✅ Modal View Order -->
+    <div v-if="showOrderView" class="overlay-modal" @click.self="showOrderView = false">
+        <div class="modal-box">
+             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                 <h2>{{ t('Order Details') }} #{{ selectedOrder?.id }}</h2>
+                 <Btn svg="x" iconColor="#ff5555" @click:ok="showOrderView = false" :isSimple="true"/>
+             </div>
+             <ViewOrder
+               v-if="selectedOrder"
+               :name="selectedOrder.name"
+               :phone="selectedOrder.phone"
+               :adresse="selectedOrder.mZone"
+               :wilaya="selectedOrder.deliveryZone"
+               :commune="selectedOrder.sZone"
+               :deliveryType="parseInt(selectedOrder.type)"
+               :deliveryMethod="selectedOrder.method"
+               :deliveryFees="parseInt(selectedOrder.deliveryValue)"
+               :products="selectedOrder.items"
+               :total="parseInt(selectedOrder.total)"
+             />
+        </div>
+    </div>
 
     <div class="reminder-page">
       <!-- 🧭 En-tête -->
@@ -19,7 +45,7 @@
         <CallToAction
           :text="t('add remind')"
           :svg="iconsFilled['calendar']"
-          @clicked="isReminder = true"
+          @clicked="openCreateReminder"
         />
       </div>
 
@@ -42,7 +68,11 @@
                 <span class="dark:text-white">{{ remind.username }}</span>
               </div>
 
-              <div v-if="remind.order_id" style="font-size: 0.8rem; background: var(--color-yelly); color: #000; padding: 2px 8px; border-radius: 4px;">
+              <div
+                v-if="remind.order_id"
+                class="order-badge"
+                @click="viewOrderDetails(remind.order_id)"
+              >
                 Order #{{ remind.order_id }}
               </div>
             </div>
@@ -52,7 +82,8 @@
             <button @click="updateRemindeWorker(remind)">
                 <Radio :selected="remind.work"/>
             </button>
-            <Btn svg="trashX" iconColor="#ff5555" @click:ok="remouveReminder(remind.id)" />
+            <Btn svg="edit" iconColor="var(--color-primary)" @click:ok="editReminder(remind)" />
+            <Btn svg="trashX" iconColor="#ff5555" @click:ok="remouveReminder(remind.id, remind.order_id)" />
           </div>
         </div>
 
@@ -84,8 +115,10 @@
 
 <script setup>
 import Reminder from '../components/reminder.vue'
+import ViewOrder from '../components/elements/newBloc/viewOrder.vue'
 import { useAuth } from '../../composables/useAuth'
 import { useReminder } from '../../composables/reminder'
+import { useOrders } from '../../composables/getOrders'
 import icons from '~/public/icons.json'
 import iconsFilled from '~/public/iconsFilled.json'
 import { useLang } from '~/composables/useLang'
@@ -96,7 +129,12 @@ import CallToAction from '../../components/elements/bloc/callToActionBtn.vue'
 const { t } = useLang()
 const { auth, getauth } = useAuth()
 const { getReminds, updateRemind, remouveRemind, dataReminds } = useReminder()
+const { getOrder } = useOrders()
+
 const isReminder = ref(false)
+const selectedReminder = ref(null)
+const showOrderView = ref(false)
+const selectedOrder = ref(null)
 
 const resizeSvg = (svg, width, height) => {
   return svg
@@ -107,6 +145,8 @@ const resizeSvg = (svg, width, height) => {
 // ✅ Parse proprement la note reçue du backend
 const parseNote = (noteStr) => {
   try {
+      if(Array.isArray(noteStr)) return noteStr;
+      if (typeof noteStr !== 'string') return [];
     const parsed = JSON.parse(noteStr)
     return Array.isArray(parsed) ? parsed : []
   } catch {
@@ -116,19 +156,44 @@ const parseNote = (noteStr) => {
 
 const updateRemindeWorker = async (remind) => {
     remind.work = !remind.work
+    // Note: passing array directly, make sure backend handles it (it should as we fixed it)
     await updateRemind(remind.id, remind.note, remind.reminder_date, remind.work)
     refreshReminds()
 }
 
-const remouveReminder = async (id) => {
-
-    await remouveRemind(id)
+const remouveReminder = async (id, orderId) => {
+    if(!confirm(t('Are you sure you want to delete this reminder?'))) return;
+    await remouveRemind(id, orderId)
     refreshReminds()
 }
 
 const refreshReminds = async () => {
   isReminder.value = false
+  selectedReminder.value = null
   await getReminds()
+}
+
+const openCreateReminder = () => {
+    selectedReminder.value = null
+    isReminder.value = true
+}
+
+const editReminder = (remind) => {
+    selectedReminder.value = remind
+    isReminder.value = true
+}
+
+const closeReminder = () => {
+    isReminder.value = false
+    selectedReminder.value = null
+}
+
+const viewOrderDetails = async (id) => {
+  const order = await getOrder(id)
+  if (order) {
+    selectedOrder.value = order
+    showOrderView.value = true
+  }
 }
 
 onMounted(() => {
@@ -183,10 +248,11 @@ onMounted(() => {
 }
 
 .reminder-actions {
-    width: 130px;
+    width: 140px; /* Increased width to accommodate extra button */
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 5px;
 }
 
 /* Bloc reminder */
@@ -232,6 +298,20 @@ onMounted(() => {
   opacity: 0.8;
 }
 
+.order-badge {
+    font-size: 0.8rem;
+    background: var(--color-yelly);
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.order-badge:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
 /* Notes */
 .reminder-notes {
   margin-top: 10px;
@@ -273,6 +353,27 @@ onMounted(() => {
   color: #555;
 }
 
-    
+/* Modal styles */
+.overlay-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+.modal-box {
+  background: var(--color-whity);
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.dark .modal-box {
+  background: var(--color-darkly);
+}
 
 </style>
