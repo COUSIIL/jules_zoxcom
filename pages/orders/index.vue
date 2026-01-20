@@ -724,13 +724,46 @@ onMounted(() => {
   
   // SSE Setup
   evtSource = new EventSource('/backend/api.php?action=sseOrders');
-  evtSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.update) {
-       // Refresh orders silently with current filters
-       getOrders(lastQueryParams.value, true);
+
+  const eventQueue = [];
+  let isProcessingQueue = false;
+
+  const processQueue = async () => {
+    if (isProcessingQueue) return;
+    isProcessingQueue = true;
+
+    // Debounce to batch rapid events
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (eventQueue.length > 0) {
+      // Process batch - currently we refresh all, but we have the data to be specific
+      const batch = [...eventQueue];
+      eventQueue.length = 0;
+
+      console.log('Processing SSE batch:', batch);
+      await getOrders(lastQueryParams.value, true);
+    }
+
+    isProcessingQueue = false;
+    // Check if more events arrived
+    if (eventQueue.length > 0) {
+      processQueue();
     }
   };
+
+  const handleEvent = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      eventQueue.push(data);
+      processQueue();
+    } catch (e) {
+      console.error("SSE Parse Error", e);
+    }
+  };
+
+  evtSource.onmessage = handleEvent;
+  evtSource.addEventListener('order_update', handleEvent);
+  evtSource.addEventListener('ping', () => {}); // Ignore pings
 
   //getUserData();
 });
