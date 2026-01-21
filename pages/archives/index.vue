@@ -3,10 +3,27 @@
 
   <Filter v-if="isFilter" :wilayas="[]" @close="isFilter = false" @selected="filterSelected" />
 
+  <Confirm
+    :isVisible="isConfirm"
+    :message="t('Are you sure you want to delete this archived order?')"
+    @confirm="deleteOrderConfirmed"
+    @cancel="isConfirm = false"
+  />
+
+  <EditArchiveModal
+    :isOpen="isEditOpen"
+    :order="currentOrder"
+    @close="isEditOpen = false"
+    @save="saveOrder"
+  />
+
   <div class="containerOrder">
     <div class="boxRow">
-      <Search style="width: 90%;" v-model:searcher="searchValue" @search-submitted="onSearch" />
-      <RectBtn style="width: 10%;" svg="filter" @click:ok="isFilter = true" />
+      <Search style="width: 70%;" v-model:searcher="searchValue" @search-submitted="onSearch" />
+      <div style="display: flex; gap: 5px; width: 30%; justify-content: flex-end;">
+          <RectBtn style="width: 40px;" svg="filter" @click:ok="isFilter = true" />
+          <RectBtn :text="t('Export CSV')" svg="csv" :isSimple="true" @click="exportAllCSV" />
+      </div>
     </div>
 
     <div v-if="orderData" class="boxColumn">
@@ -26,8 +43,15 @@
 
           <div style="display: flex; justify-content: space-between; align-items: center">
             <div class="actionBar">
-              <!-- Read Only Status Badge -->
+              <!-- Status Badge -->
               <RectBtn :text="dts.status" :iconColor="returnColor(dts.status)" :svg="returnSVG(dts.status)" :isSimple="true" />
+
+              <!-- Actions -->
+              <div class="action-buttons">
+                  <RectBtn svg="edit" :isSimple="true" @click="openEdit(dts)" />
+                  <RectBtn svg="trashX" :isSimple="true" iconColor="var(--color-rady)" @click="confirmDelete(dts.id)" />
+                  <RectBtn svg="reciept" :isSimple="true" @click="exportPDF(dts)" />
+              </div>
             </div>
           </div>
 
@@ -64,7 +88,7 @@
             </div>
 
             <div v-if="dts.isMore" class="order-details">
-                <!-- Details View (Read Only) -->
+                <!-- Details View -->
                 <div class="grid2">
                   <div class="copyCard">
                     <div class="rowFlex"><h4>{{ t('localisation') }}</h4></div>
@@ -134,7 +158,16 @@
                 </div>
 
                 <div class="copyCard total">
-                  <h3>Total: {{ dts.total }} DA</h3>
+                   <div class="rowFlex">
+                      <h3>Total: {{ dts.total }} DA</h3>
+                   </div>
+                   <!-- Notes -->
+                   <div v-if="dts.note && dts.note.length" style="margin-top: 10px;">
+                      <h4>Notes:</h4>
+                      <p v-for="(n, ni) in dts.note" :key="ni" style="color: #666; font-size: 0.9em;">
+                          - {{ n.text }}
+                      </p>
+                   </div>
                 </div>
             </div>
 
@@ -148,18 +181,25 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import '../orders/main.css' // Reuse styles
+import '../orders/main.css'
 
 import { useArchivedOrders } from '../../composables/getArchivedOrders';
+import { useExporter } from '../../composables/useExporter';
+import { useLang } from '../../composables/useLang';
+
 import Loader from '../../components/elements/animations/loaderBlack.vue';
 import RectBtn from '../../components/elements/newBloc/rectBtn.vue';
 import Search from '../../components/search.vue';
 import Filter from '../../components/filter.vue';
+import Confirm from '../../components/elements/bloc/confirm.vue';
+import EditArchiveModal from '../../components/archives/EditArchiveModal.vue';
+
 import iconsFilled from '../../public/iconsFilled.json'
 import icons from '../../public/icons.json'
 
 const { t } = useLang()
-const { data, loading, getArchivedOrders, search, filterBy } = useArchivedOrders();
+const { data, loading, getArchivedOrders, search, filterBy, deleteArchivedOrder, updateArchivedOrder } = useArchivedOrders();
+const { exportToThermalPDF } = useExporter();
 
 const searchValue = ref("")
 const isFilter = ref(false)
@@ -168,6 +208,14 @@ const orderData = ref([])
 const limit = ref(20);
 const limitedDt = ref([]);
 const dt = ref([]);
+
+// Confirm Modal
+const isConfirm = ref(false);
+const orderToDelete = ref(null);
+
+// Edit Modal
+const isEditOpen = ref(false);
+const currentOrder = ref(null);
 
 const statusInfo = ref([
   { name: 'canceled', color: 'var(--color-rady)', svg: 'x' },
@@ -181,6 +229,7 @@ const statusInfo = ref([
 ])
 
 const resizeSvg = (svg, width, height) => {
+  if(!svg) return '';
   return svg
     .replace(/width="[^"]+"/, `width="${width}"`)
     .replace(/height="[^"]+"/, `height="${height}"`)
@@ -217,12 +266,10 @@ watch(data, (newData) => {
   ordersCount.value = data.value.length
   orderData.value = data.value
 
-  // Reuse logic for display
   dt.value = newData.map(item => ({
     ...item,
     isMore: false,
   }))
-  //.reverse(); // Archive order usually DESC in SQL
 
   limitedDt.value = dt.value.slice(0, limit.value);
 });
@@ -248,6 +295,68 @@ const doMore = (index) => {
 const limitNewDt = () => {
   limit.value += 20;
   limitedDt.value = dt.value.slice(0, limit.value);
+};
+
+// --- Actions ---
+
+const confirmDelete = (id) => {
+    orderToDelete.value = id;
+    isConfirm.value = true;
+};
+
+const deleteOrderConfirmed = async () => {
+    if (orderToDelete.value) {
+        await deleteArchivedOrder(orderToDelete.value);
+    }
+    isConfirm.value = false;
+    orderToDelete.value = null;
+};
+
+const openEdit = (order) => {
+    currentOrder.value = order;
+    isEditOpen.value = true;
+};
+
+const saveOrder = async (updatedOrder) => {
+    const success = await updateArchivedOrder(updatedOrder);
+    if (success) {
+        isEditOpen.value = false;
+        currentOrder.value = null;
+    }
+};
+
+const exportPDF = (order) => {
+    exportToThermalPDF(order);
+};
+
+const exportAllCSV = () => {
+    // Basic CSV Export for all displayed data
+    if (!dt.value || dt.value.length === 0) return;
+
+    const headers = ['ID', 'Date', 'Name', 'Phone', 'Wilaya', 'Commune', 'Address', 'Status', 'Total'];
+    const rows = dt.value.map(o => [
+        o.id,
+        o.create,
+        `"${o.name}"`,
+        o.phone,
+        `"${o.deliveryZone}"`,
+        `"${o.sZone}"`,
+        `"${o.mZone}"`,
+        o.status,
+        o.total
+    ]);
+
+    let csvContent = "data:text/csv;charset=utf-8,"
+        + headers.join(",") + "\n"
+        + rows.map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "archived_orders.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 </script>
@@ -281,6 +390,16 @@ const limitNewDt = () => {
 .uler {
     display: flex;
     flex-direction: column;
+    gap: 10px;
+}
+.actionBar {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+}
+.action-buttons {
+    display: flex;
     gap: 10px;
 }
 </style>
