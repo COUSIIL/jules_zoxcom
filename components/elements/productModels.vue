@@ -26,7 +26,7 @@
        </div>
 
        <!-- Price Configuration -->
-       <div class="formRow" @click="model.isVariablePrice = !model.isVariablePrice">
+       <div class="formRow" @click="{ model.isVariablePrice = !model.isVariablePrice; if(model.isVariablePrice) model.activeColor = true; }">
           <h3>{{ t('variable price per variant') }}</h3>
           <Radio :selected="model.isVariablePrice"/>
        </div>
@@ -48,14 +48,9 @@
        </div>
 
        <!-- Variants Configuration -->
-       <div class="formRow" @click="model.activeColor = !model.activeColor">
+       <div class="formRow" @click="{ model.activeColor = !model.activeColor; if(!model.activeColor) model.isVariablePrice = false; }">
           <h3>{{ t('activate variants (color/size)') }}</h3>
           <Radio :selected="model.activeColor"/>
-          <!-- reusing activeColor legacy name for "is variant active" logic generally, or should I split?
-               The prompt says "is varient active". Legacy used activeColor/activeSize.
-               I will sync activeSize with activeColor for simplicity or use a new prop if allowed.
-               Let's use activeColor as the main toggle for now as per legacy schema presence.
-          -->
        </div>
 
        <div v-if="model.activeColor" class="sub-section">

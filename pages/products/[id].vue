@@ -9,7 +9,7 @@
 
     <div style="width: 100%; max-width: 1000px; padding-bottom: 80px;">
         <ProductPart v-if="currentPage === 1"
-            v-model="productData"
+            :modelValue="productData"
             @openExplorProdImg="isExplorer = true"
             @openExplorCataImg="(idx) => { isExplorer2 = true; imageRefIndex = idx }"
             :prodImage="img"
@@ -19,15 +19,15 @@
         />
 
         <ProductModels v-if="currentPage === 2"
-            v-model="productData"
+            :modelValue="productData"
             @openExplorer="(idx) => { isExplorer = true; modelImageIndex = idx }"
             :imageRef="img"
         />
 
-        <ProductParameter v-if="currentPage === 3" v-model="productData" />
-        <ProductTransaction v-if="currentPage === 4" v-model="productData" />
-        <ProductViewer v-if="currentPage === 5" v-model="productData" />
-        <ProductBusiness v-if="currentPage === 6" v-model="productData" />
+        <ProductParameter v-if="currentPage === 3" :modelValue="productData" />
+        <ProductTransaction v-if="currentPage === 4" :modelValue="productData" />
+        <ProductViewer v-if="currentPage === 5" :modelValue="productData" />
+        <ProductBusiness v-if="currentPage === 6" :modelValue="productData" />
     </div>
 
     <!-- Save Button Floating or Fixed at bottom -->
@@ -139,14 +139,15 @@ watch(resultProduct, (newResult) => {
         if (newData) {
             Object.assign(productData, {
                 ...newData,
-                prodActive: newData.isActive == 1 || newData.isActive == true,
+                prodActive: newData.prodActive == 1 || newData.prodActive == true,
                 catalog: newData.catalog ? newData.catalog.map(c => ({ previewImage: c.image })) : [],
                 models: newData.models ? newData.models.map(m => ({
                     ...m,
                     isActive: m.isActive == 1 || m.isActive == true,
                     infinit_stock: m.infinit_stock == 1 || m.infinit_stock == true,
-                    imageUrls: m.image, // Map backend 'image' to frontend 'imageUrls'
-                    details: m.details || []
+                    imageUrls: m.imageUrls || '',
+                    details: m.details || [],
+                    isVariablePrice: m.details && m.details.some(d => Number(d.buy) > 0 || Number(d.sell) > 0)
                 })) : []
             });
             
@@ -177,6 +178,10 @@ const getExplorerImg = (value) => {
   // If we were selecting for main product
   if(currentPage.value === 1) {
       productData.image = value;
+  } else if (currentPage.value === 2 && modelImageIndex.value !== -1) {
+      if (productData.models[modelImageIndex.value]) {
+          productData.models[modelImageIndex.value].imageUrls = value;
+      }
   }
 }
 
