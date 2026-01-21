@@ -48,7 +48,7 @@
 
               <!-- Actions -->
               <div class="action-buttons">
-                  <RectBtn svg="edit" :isSimple="true" @click="openEdit(dts)" />
+                  <!--RectBtn svg="edit" :isSimple="true" @click="openEdit(dts)" /-->
                   <RectBtn svg="trashX" :isSimple="true" iconColor="var(--color-rady)" @click="confirmDelete(dts.id)" />
                   <RectBtn svg="reciept" :isSimple="true" @click="exportPDF(dts)" />
               </div>
@@ -362,25 +362,7 @@ const exportAllCSV = () => {
 </script>
 
 <style scoped>
-/* Reuse existing styles */
-.containerOrder {
-    width: 100%;
-    padding: 10px;
-    padding-bottom: 100px;
-}
-.boxRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.boxColumn {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
+
 .line {
     width: 100%;
     height: 1px;

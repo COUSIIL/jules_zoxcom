@@ -36,6 +36,13 @@
       </div>
 
       <div class="newSideBar__item" @click="close">
+        <NuxtLink class="newSideBar__link" to="/archives" exact-active-class="is-active">
+          <div class="newSideBar__icon" v-html="icons['archives']"></div>
+          <h3 class="newSideBar__text">{{ t('archives') }}</h3>
+        </NuxtLink>
+      </div>
+
+      <div class="newSideBar__item" @click="close">
         <NuxtLink class="newSideBar__link" to="/products" exact-active-class="is-active">
           <div class="newSideBar__icon" v-html="icons['package']"></div>
           <h3 class="newSideBar__text">{{ t('products') }}</h3>
