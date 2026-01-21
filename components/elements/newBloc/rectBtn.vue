@@ -4,6 +4,7 @@
         class="btnBoxer"
         :class="{ active: lom}"
         @click="clicker()"
+        :style="{ backgroundColor: color}"
       >
         <div v-html="resizeSvg(svg, width, height)" class="mySvg" :style="{ color: iconColor + ' !important'}"></div>
 
@@ -40,7 +41,8 @@ const props = defineProps({
     iconColor: {String, default: 'currentColor'},
     width: { type: [String, Number], default: 20 },
     height: { type: [String, Number], default: 20 },
-    isSimple: {type: Boolean, default: false}
+    isSimple: {type: Boolean, default: false},
+    color: {String, default: null}
 })
 
 var resizeSvg = (svg, width, height) => {
@@ -78,7 +80,7 @@ const clicker = () => {
 
 .btnBoxer {
 
-  min-height: 25px;
+  min-height: 40px;
   min-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -129,7 +131,6 @@ const clicker = () => {
 
 /* Inactif (ressorti, comme un bouton qui dépasse) */
 .btnBoxer:not(.active) {
-  color: var(--color-zioly1);
   background-color: var(--color-whitly);
   backdrop-filter: 20px;
   box-shadow: 

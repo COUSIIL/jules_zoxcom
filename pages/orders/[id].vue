@@ -3,8 +3,8 @@
     <div class="header-actions">
         <RectBtn text="Retour" svg="back" @click:ok="goBack" :isSimple="true" />
         <div class="right-actions">
-             <RectBtn text="Imprimer Bordereau" svg="print" @click:ok="() => generateBordereau('print')" :isSimple="true" />
-             <RectBtn text="Télécharger PDF" svg="pdf" @click:ok="() => generateBordereau('save')" :isSimple="true" />
+             <RectBtn text="Imprimer" svg="print" @click:ok="() => generateBordereau('print')" :isSimple="true" />
+             <RectBtn text="PDF" svg="pdf" @click:ok="() => generateBordereau('save')" :isSimple="true" />
         </div>
     </div>
 
@@ -304,6 +304,12 @@ const generateBordereau = (action = 'save') => {
     padding: 20px;
 }
 
+.order-content {
+    width: 100%;
+
+}
+
+
 .header-actions {
     display: flex;
     justify-content: space-between;
@@ -356,7 +362,7 @@ const generateBordereau = (action = 'save') => {
 }
 
 .card {
-    background: var(--color-whity);
+    background: var(--color-whitly);
     border-radius: 14px;
     box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
     overflow: hidden;
@@ -385,6 +391,7 @@ const generateBordereau = (action = 'save') => {
 
 .products-table {
     width: 100%;
+    min-width: 700px; /* ajuste selon le nombre de colonnes */
     border-collapse: collapse;
 }
 
@@ -392,7 +399,9 @@ const generateBordereau = (action = 'save') => {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--color-zioly4);
+    white-space: nowrap;
 }
+
 
 .product-thumb {
     width: 50px;
@@ -447,6 +456,14 @@ const generateBordereau = (action = 'save') => {
     font-size: 0.85em;
     color: var(--color-zioly2);
 }
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+
 
 @media print {
     .header-actions { display: none; }

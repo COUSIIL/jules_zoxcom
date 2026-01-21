@@ -32,7 +32,7 @@
         <div class="divider"></div>
 
         <!-- Inputs -->
-        <div class="inputs-grid">
+        <div class="boxColumn">
 
             <div class="input-group full-width">
                 <label>{{ t('Date Period') }}</label>
@@ -83,12 +83,14 @@
 
         </div>
 
+        <div class="actions">
+          <Btn :text="t('apply filters')" svg="check" color="var(--color-greeny)" @click:ok="applyFilters" style="width: 100%;" />
+          <Btn :text="t('clear filters')" svg="clear" icon-color="var(--color-rady)" @click:ok="resetFilters" style="width: 100%;" />
+        </div>
+
       </div>
 
-      <div class="actions">
-          <Btn :text="t('Apply Filters')" svg="check" @click:ok="applyFilters" style="width: 100%;" />
-          <button class="reset-btn" @click="resetFilters">{{ t('Reset') }}</button>
-      </div>
+      
 
     </div>
   </div>
@@ -206,7 +208,7 @@ const resetFilters = () => {
 .filterBox {
   width: 100%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: 80vh;
   background-color: var(--color-whitly);
   padding: 25px;
   border-radius: 16px;
@@ -241,7 +243,7 @@ const resetFilters = () => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
   gap: 15px;
-  width: 100%;
+  width: calc(100% - 30px);
 }
 
 /* ✅ Boutons circulaires */

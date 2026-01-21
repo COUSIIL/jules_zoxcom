@@ -169,18 +169,10 @@ export const useOrders = () => {
 
 
         // Récupération des infos de livraison
-        const info = await getDelivryM();
-        let ttc = parseFloat(total);
-        let dropAreaID;
-        for (let M of info.data) {
-            if (M.delivery_name === method) {
-                dropAreaID = M.drop_area_id;
-                if (M.include_fees == "1") {
-                    ttc = +(parseInt(total) + parseInt(delivery || 0));
-                }
+        let ttc = 0;
 
-            }
-        }
+        const orderId = order.id
+
         var note = ''
         if(order.note && order.note.length > 0) {
             note = order.note[order.note.length - 1].text
@@ -190,6 +182,7 @@ export const useOrders = () => {
 
         // Pour chaque méthode de livraison, on envoie les données et on récupère la réponse
         if (method === 'ups') {
+            ttc = parseFloat(total);
             try {
                 //getAndersonCommune
                 const response = await fetch('https://management.hoggari.com/backend/api.php?action=getUpsWilaya');
@@ -263,8 +256,8 @@ export const useOrders = () => {
             } catch (error) {
                 console.error('UPS request error:', error);
             }
-        } 
-        else if (method === 'anderson') {
+        } else if (method === 'anderson') {
+            ttc = parseFloat(total);
             try {
                 const response = await fetch('https://management.hoggari.com/backend/api.php?action=getAndersonWilaya');
                 const andersonWilayas = await response.json();
@@ -342,338 +335,194 @@ export const useOrders = () => {
             } catch (error) {
                 console.error('Anderson request error:', error);
             }
-        } 
-        else if (method === 'yalidine') {
+        } else if (method === 'yalidine') {
+            ttc = parseFloat(total) - parseInt(delivery || 0);
             try {
-                const response = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=getYalidineCenter');
+                const response = await fetch(
+                    'https://management.hoggari.com/backend/api.php?action=getYalidineCenter'
+                );
                 const dataYal = await response.json();
 
-                let wilayaId = 0, center = null;
-
-                let minDist1 = 0, minDist2 = 0;
-
-                if (dataYal.success) {
-                    // Recherche dans la première page
-                    for (let i = 0; i < dataYal.data.data.length; i++) {
-                        
-                        //console.log('commune_name: ', dataYal.data.data[i].commune_name)
-                        const dist1 = smartDistance(
-                            dataYal.data.data[i].wilaya_name.toLowerCase(),
-                            wilaya.toLowerCase()
-                        );
-                        const dist2 = smartDistance(
-                            dataYal.data.data[i].commune_name.toLowerCase(),
-                            order.sZone.toLowerCase()
-                        );
-                        if(minDist1 == 0 && minDist2 == 0) {
-                            minDist1 = dist1;
-                            minDist2 = dist2;
-                            if(dist1 < 0.3) {
-                                wilayaId = dataYal.data.data[i].wilaya_id
-                            }
-                            if(dist2 < 0.3) {
-                                center = dataYal.data.data[i].center_id;
-                                newOrderSzone.value = dataYal.data.data[i].commune_name
-                                if(deliveryType === 'home') {
-                                    center = 1;
-                                    newOrderSzone.value = order.sZone
-                                }
-                            }
-                            
-                            
-
-                        } else {
-                            if(dist1 < minDist1 && dist1 < 0.3) {
-                                minDist1 = dist1;
-                                wilayaId = dataYal.data.data[i].wilaya_id
-                            }
-                            if(dist2 < minDist2  && dist2 < 0.3) {
-                                minDist2 = dist2;
-                                center = dataYal.data.data[i].center_id;
-                                newOrderSzone.value = dataYal.data.data[i].commune_name
-                                if(deliveryType === 'home') {
-                                    center = 1;
-                                    newOrderSzone.value = order.sZone
-                                }
-                            }
-                        }
-                        
-
-                    }
-                    // Si pas trouvé, parcourir les pages suivantes
-                    let urlNext = dataYal.data.links?.next;
-                    while (!wilayaId && urlNext) {
-                        const responseNext = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=yalidineCenterNext', {
-                            method: 'POST',
-                            body: JSON.stringify({ url: urlNext })
-                        });
-                        const next = await responseNext.json();
-
-                        for (let i = 0; i < next.data.data.length; i++) {
-                            //console.log('commune_name: ', next.data.data[i].commune_name)
-                            const dist1 = smartDistance(
-                                next.data.data[i].wilaya_name.toLowerCase(),
-                                wilaya.toLowerCase()
-                            );
-                            const dist2 = smartDistance(
-                                next.data.data[i].commune_name.toLowerCase(),
-                                order.sZone.toLowerCase()
-                            );
-                            if(minDist1 == 0 && minDist2 == 0 ) {
-                                minDist1 = dist1;
-                                minDist2 = dist2;
-                                wilayaId = next.data.data[i].wilaya_id
-                                center = next.data.data[i].center_id;
-                                newOrderSzone.value = next.data.data[i].commune_name
-
-                            } else {
-                                if(dist1 < minDist1 && dist1 < 0.3) {
-                                    minDist1 = dist1;
-                                    wilayaId = next.data.data[i].wilaya_id
-                                }
-                                
-                                if(dist2 < minDist2  && dist2 < 0.3) {
-                                    minDist2 = dist2;
-                                    center = next.data.data[i].center_id;
-                                    newOrderSzone.value = next.data.data[i].commune_name
-                                    if(deliveryType === 'home') {
-                                        center = 1;
-                                        newOrderSzone.value = order.sZone
-                                    }
-                                }
-                            }
-                                
-
-                        }
-                        urlNext = next.data.links?.next;
-                    }
-                    if (!center && deliveryType != 'home') {
-                        console.error('Yalidine: Aucun centre trouvé');
-                        return
-                    }
-                    if (center != null) {
-                        // Préparation des informations du colis
-                        const splitName = (fullName) => {
-                            const parts = fullName.split(' ');
-                            return { firstname: parts.shift(), familyname: parts.join(' ') };
-                        };
-                        //console.log('newOrderSzone.value: ', newOrderSzone.value)
-                        const { firstname, familyname } = splitName(order.name);
-                        const parcels = [{
-                            order_id: `${(order.id)}-${(order.owner)}`,
-                            from_wilaya_name: "Tipaza",
-                            firstname,
-                            familyname,
-                            contact_phone: order.phone,
-                            address: order.mZone,
-                            to_commune_name: newOrderSzone.value,
-                            to_wilaya_name: wilaya,
-                            product_list: product_name,
-                            price: parseInt(total),
-                            do_insurance: false,
-                            declared_value: parseInt(total),
-                            height: 5,
-                            width: 5,
-                            length: 5,
-                            weight: 1,
-                            freeshipping: false,
-                            is_stopdesk: type,
-                            stopdesk_id: center,
-                            has_exchange: false,
-                            product_to_collect: null
-                        }];
-                        const response2 = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=addYalidineOrder', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ parcels }),
-                        });
-                        const data2 = await response2.json();
-                        console.log('yalidine: ', data2)
-
-                        if (data2.success) {
-                            
-                            const trackingCode = data2.data[orderId].tracking;
-
-                            if(trackingCode) {
-                                await updateOrderValue((order.id), 'tracking_code', trackingCode);
-                                await updateOrderValue((order.id), 'status', 'shipping');
-                            }
-                            
-                        } else {
-                            console.error(`Yalidine error: ${data2.message}`);
-                        }
-                    }
-                } else {
-                    console.error(`Yalidine fetch error: ${dataYal.message}`);
+                if (!dataYal.success) {
+                    throw new Error(dataYal.message);
                 }
-            } catch (error) {
-                console.error('Yalidine request error:', error);
-            }
-        } 
-        else if (method === 'guepex') {
-            try {
-                
-                
-                const response = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=getGuepexCenter');
-                const dataYal = await response.json();
 
-                let wilayaId = 0, center = null;
+                const allCenters = await getAllCenters(dataYal, 'yalidineCenterNext');
 
-                let minDist1 = 0, minDist2 = 0;
+                let selectedCenter = null;
 
-                if (dataYal.success) {
-                    // Recherche dans la première page
-                    for (let i = 0; i < dataYal.data.data.length; i++) {
-                        
-                        //console.log('commune_name: ', dataYal.data.data[i].commune_name)
-                        const dist1 = smartDistance(
-                            dataYal.data.data[i].wilaya_name.toLowerCase(),
-                            wilaya.toLowerCase()
+                if (deliveryType.toLowerCase() !== 'home') {
+                    selectedCenter = findBestCenter(allCenters, wilaya, order.sZone);
+
+                    if (!selectedCenter) {
+                        throw new Error(
+                            `Commune non livrable: "${order.sZone}" (${wilaya})`
                         );
-                        const dist2 = smartDistance(
-                            dataYal.data.data[i].commune_name.toLowerCase(),
-                            order.sZone.toLowerCase()
-                        );
-                        if(minDist1 == 0 && minDist2 == 0) {
-                            minDist1 = dist1;
-                            minDist2 = dist2;
-                            if(dist1 < 0.3) {
-                                wilayaId = dataYal.data.data[i].wilaya_id
-                            }
-                            if(dist2 < 0.3) {
-                                center = dataYal.data.data[i].center_id;
-                                newOrderSzone.value = dataYal.data.data[i].commune_name
-                                if(deliveryType === 'home') {
-                                    center = 1;
-                                    newOrderSzone.value = order.sZone
-                                }
-                            }
-                            
-                            
-
-                        } else {
-                            if(dist1 < minDist1 && dist1 < 0.3) {
-                                minDist1 = dist1;
-                                wilayaId = dataYal.data.data[i].wilaya_id
-                            }
-                            if(dist2 < minDist2  && dist2 < 0.3) {
-                                minDist2 = dist2;
-                                center = dataYal.data.data[i].center_id;
-                                newOrderSzone.value = dataYal.data.data[i].commune_name
-                                if(deliveryType === 'home') {
-                                    center = 1;
-                                    newOrderSzone.value = order.sZone
-                                }
-                            }
-                        }
-                        
-
                     }
-                    // Si pas trouvé, parcourir les pages suivantes
-                    let urlNext = dataYal.data.links?.next;
-                    while (!wilayaId && urlNext) {
-                        const responseNext = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=guepexCenterNext', {
-                            method: 'POST',
-                            body: JSON.stringify({ url: urlNext })
-                        });
-                        const next = await responseNext.json();
+                }
 
-                        for (let i = 0; i < next.data.data.length; i++) {
-                            //console.log('commune_name: ', next.data.data[i].commune_name)
-                            const dist1 = smartDistance(
-                                next.data.data[i].wilaya_name.toLowerCase(),
-                                wilaya.toLowerCase()
-                            );
-                            const dist2 = smartDistance(
-                                next.data.data[i].commune_name.toLowerCase(),
-                                order.sZone.toLowerCase()
-                            );
-                            if(minDist1 == 0 && minDist2 == 0 ) {
-                                minDist1 = dist1;
-                                minDist2 = dist2;
-                                wilayaId = next.data.data[i].wilaya_id
-                                center = next.data.data[i].center_id;
-                                newOrderSzone.value = next.data.data[i].commune_name
 
-                            } else {
-                                if(dist1 < minDist1 && dist1 < 0.3) {
-                                    minDist1 = dist1;
-                                    wilayaId = next.data.data[i].wilaya_id
-                                }
-                                if(dist2 < minDist2  && dist2 < 0.3) {
-                                    minDist2 = dist2;
-                                    center = next.data.data[i].center_id;
-                                    newOrderSzone.value = next.data.data[i].commune_name
-                                    if(deliveryType === 'home') {
-                                        center = 1;
-                                        newOrderSzone.value = order.sZone
-                                    }
-                                }
-                            }
-                                
+                const splitName = (fullName) => {
+                    const parts = fullName.split(' ');
+                    return { firstname: parts.shift(), familyname: parts.join(' ') };
+                };
 
-                        }
-                        urlNext = next.data.links?.next;
-                    }
-                    
-                    if (!center && deliveryType != 'home') {
-                        console.error('Guepex: Aucun centre trouvé');
-                        return
-                    }
-                    if (center != null) {
-                        // Préparation des informations du colis
-                        const splitName = (fullName) => {
-                            const parts = fullName.split(' ');
-                            return { firstname: parts.shift(), familyname: parts.join(' ') };
-                        };
-                        const { firstname, familyname } = splitName(order.name);
-                        const parcels = [{
-                            order_id: `${(order.id)}-${(order.owner)}`,
-                            from_wilaya_name: "Tipaza",
-                            firstname,
-                            familyname,
-                            contact_phone: order.phone,
-                            address: order.mZone,
-                            to_commune_name: newOrderSzone.value,
-                            to_wilaya_name: wilaya,
-                            product_list: product_name,
-                            price: parseInt(total),
-                            do_insurance: false,
-                            declared_value: parseInt(total),
-                            height: 5,
-                            width: 5,
-                            length: 5,
-                            weight: 1,
-                            freeshipping: false,
-                            is_stopdesk: type,
-                            stopdesk_id: center,
-                            has_exchange: false,
-                            product_to_collect: null
-                        }];
-                    const response2 = await fetch('https://zoxcom.pietycloth.com/backend/api.php?action=addGuepexOrder', {
+                const { firstname, familyname } = splitName(order.name);
+
+                const parcels = [{
+                    order_id: orderId,
+                    from_wilaya_name: "Tipaza",
+                    firstname,
+                    familyname,
+                    contact_phone: order.phone,
+                    address: order.mZone,
+                    to_commune_name: selectedCenter
+                        ? selectedCenter.commune_name
+                        : order.sZone,
+                    to_wilaya_name: wilaya,
+                    product_list: product_name,
+                    price: ttc,
+                    do_insurance: false,
+                    declared_value: ttc,
+                    height: 5,
+                    width: 5,
+                    length: 5,
+                    weight: 1,
+                    freeshipping: false,
+                    is_stopdesk: type,
+                    stopdesk_id: deliveryType.toLowerCase() === 'home'
+                        ? 1
+                        : selectedCenter.center_id,
+                    has_exchange: false,
+                    product_to_collect: null
+                }];
+
+                const response2 = await fetch(
+                    'https://management.hoggari.com/backend/api.php?action=addYalidineOrder',
+                    {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ parcels }),
-                    });
-                    const data2 = await response2.json();
-
-                    if (data2.success) {
-
-                        const trackingCode = data2.data[orderId].tracking;
-
-                        if(trackingCode) {
-                            await updateOrderValue((order.id), 'tracking_code', trackingCode);
-                            await updateOrderValue((order.id), 'status', 'shipping');
-                        }
-                    } else {
-                        console.error(`Guepex error: ${data2.message}`);
+                        body: JSON.stringify({ parcels })
                     }
-                    }
-                } else {
-                    console.error(`Guepex fetch error: ${dataYal.message}`);
+                );
+
+                const data2 = await response2.json();
+                console.log('yalidine: ', data2)
+
+                if (!data2.success) {
+                    throw new Error(data2.message);
                 }
-            } catch (err) {
-                console.error("Guepex request error:", err);
+
+                if(!data2.data[orderId]?.success) {
+                    log.value = data2.data[orderId].message;
+                    showLog.value = true;
+                    throw new Error(data2.data[orderId].message);
+                }
+
+                const trackingCode = data2.data[orderId]?.tracking;
+
+                if (trackingCode) {
+                    await updateOrderValue(order.id, 'tracking_code', trackingCode);
+                    await updateOrderValue(order.id, 'status', 'shipping');
+                }
+
+            } catch (error) {
+                console.error('Yalidine error:', error.message);
+            }
+        } else if (method === 'guepex') {
+            ttc = parseFloat(total) - parseInt(delivery || 0);
+            try {
+                const response = await fetch(
+                    'https://management.hoggari.com/backend/api.php?action=getGuepexCenter'
+                );
+                const dataGuepex = await response.json();
+
+                if (!dataGuepex.success) {
+                    throw new Error(dataGuepex.message);
+                }
+
+                const allCenters = await getAllCenters(dataGuepex, 'guepexCenterNext');
+
+                let selectedCenter = null;
+
+                if (deliveryType.toLowerCase() !== 'home') {
+                    selectedCenter = findBestCenter(allCenters, wilaya, order.sZone);
+
+                    if (!selectedCenter) {
+                        throw new Error(
+                            `Commune non livrable: "${order.sZone}" (${wilaya})`
+                        );
+                    }
+                }
+
+
+                const splitName = (fullName) => {
+                    const parts = fullName.split(' ');
+                    return { firstname: parts.shift(), familyname: parts.join(' ') };
+                };
+
+                const { firstname, familyname } = splitName(order.name);
+
+                const parcels = [{
+                    order_id: orderId,
+                    from_wilaya_name: "Tipaza",
+                    firstname,
+                    familyname,
+                    contact_phone: order.phone,
+                    address: order.mZone,
+                    to_commune_name: selectedCenter
+                        ? selectedCenter.commune_name
+                        : order.sZone,
+                    to_wilaya_name: wilaya,
+                    product_list: product_name,
+                    price: ttc,
+                    do_insurance: false,
+                    declared_value: ttc,
+                    height: 5,
+                    width: 5,
+                    length: 5,
+                    weight: 1,
+                    freeshipping: false,
+                    is_stopdesk: type,
+                    stopdesk_id: deliveryType.toLowerCase() === 'home'
+                        ? 1
+                        : selectedCenter.center_id,
+                    has_exchange: false,
+                    product_to_collect: null
+                }];
+
+                const response2 = await fetch(
+                    'https://management.hoggari.com/backend/api.php?action=addGuepexOrder',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ parcels })
+                    }
+                );
+
+                
+
+                const data2 = await response2.json();
+
+                if (!data2.success) {
+                    throw new Error(data2.message);
+                }
+
+                if(!data2.data[orderId]?.success) {
+                    log.value = data2.data[orderId].message;
+                    showLog.value = true;
+                    throw new Error(data2.data[orderId].message);
+                }
+
+                const trackingCode = data2.data[orderId]?.tracking;
+
+                if (trackingCode) {
+                    await updateOrderValue(order.id, 'tracking_code', trackingCode);
+                    await updateOrderValue(order.id, 'status', 'shipping');
+                }
+
+            } catch (error) {
+                console.error('Guepex error:', error.message);
             }
         }
     };
