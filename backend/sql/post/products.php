@@ -93,7 +93,21 @@ $alters = [
   "ALTER TABLE product_models     ADD COLUMN IF NOT EXISTS promo    DECIMAL(10,2) NULL AFTER sell_price",
   "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS color_name VARCHAR(255) NOT NULL AFTER color",
   "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS catalog_index TINYINT(1) NULL AFTER quantity",
-  "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS catalog_image VARCHAR(255) NOT NULL AFTER catalog_index"
+  "ALTER TABLE model_details     ADD COLUMN IF NOT EXISTS catalog_image VARCHAR(255) NOT NULL AFTER catalog_index",
+
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS rating_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS live_chat_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS countdown_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS gambling_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS ai_helper_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS aspa_active TINYINT(1) DEFAULT 0",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS sales_canal_active TINYINT(1) DEFAULT 0",
+
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS factory_name VARCHAR(255) NULL",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS production_time VARCHAR(255) NULL",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS target_audience VARCHAR(255) NULL",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS genre VARCHAR(255) NULL",
+  "ALTER TABLE products ADD COLUMN IF NOT EXISTS internal_info TEXT NULL"
 ];
 
 foreach ($alters as $sql) {
@@ -130,6 +144,21 @@ $colors       = isset($data['colors']) ? json_encode($data['colors'], JSON_UNESC
 $sizes        = isset($data['sizes'])  ? json_encode($data['sizes'],  JSON_UNESCAPED_UNICODE) : null;
 $ytbActive    = !empty($data['ytbActive'])   ? 1 : 0;
 $cataActive   = !empty($data['cataActive'])  ? 1 : 0;
+
+$ratingActive     = !empty($data['ratingActive'])     ? 1 : 0;
+$liveChatActive   = !empty($data['liveChatActive'])   ? 1 : 0;
+$countdownActive  = !empty($data['countdownActive'])  ? 1 : 0;
+$gamblingActive   = !empty($data['gamblingActive'])   ? 1 : 0;
+$aiHelperActive   = !empty($data['aiHelperActive'])   ? 1 : 0;
+$aspaActive       = !empty($data['aspaActive'])       ? 1 : 0;
+$salesCanalActive = !empty($data['salesCanalActive']) ? 1 : 0;
+
+$factoryName     = $data['factoryName']     ?? '';
+$productionTime  = $data['productionTime']  ?? '';
+$targetAudience  = $data['targetAudience']  ?? '';
+$genre           = $data['genre']           ?? '';
+$internalInfo    = $data['internalInfo']    ?? '';
+
 $id = isset($data['id']) ? intval($data['id']) : -1;
 
 
@@ -152,9 +181,19 @@ if ($product_result->num_rows > 0) {
     // Mise à jour du produit existant
     $product_id = $product_result->fetch_assoc()['id'];
     $update_query = $mysqli->prepare(
-        "UPDATE products SET name = ?, image = ?, youtube_link = ?, label = ?, category = ?, is_description = ?, description = ?, isActive = ?, slug = ?, colors = ?, sizes = ?, ytb_active = ?, cata_active = ? WHERE id = ?"
+        "UPDATE products SET
+            name = ?, image = ?, youtube_link = ?, label = ?, category = ?, is_description = ?, description = ?, isActive = ?, slug = ?, colors = ?, sizes = ?, ytb_active = ?, cata_active = ?,
+            rating_active = ?, live_chat_active = ?, countdown_active = ?, gambling_active = ?, ai_helper_active = ?, aspa_active = ?, sales_canal_active = ?,
+            factory_name = ?, production_time = ?, target_audience = ?, genre = ?, internal_info = ?
+        WHERE id = ?"
     );
-    $update_query->bind_param("sssssssssssiii", $name, $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive, $product_id);
+    $update_query->bind_param(
+        "sssssssssssiiiiiiiiisssssi",
+        $name, $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive,
+        $ratingActive, $liveChatActive, $countdownActive, $gamblingActive, $aiHelperActive, $aspaActive, $salesCanalActive,
+        $factoryName, $productionTime, $targetAudience, $genre, $internalInfo,
+        $product_id
+    );
     executeQuery($update_query, "Error updating product.", "1", $product_id);
     updateModels($models, $product_id, $mysqli);
     
@@ -165,9 +204,18 @@ if ($product_result->num_rows > 0) {
 } else {
     // Insertion d'un nouveau produit
     $insert_query = $mysqli->prepare(
-        "INSERT INTO products (name, image, youtube_link, label, category, is_description, description, isActive, slug, colors, sizes, ytb_active, cata_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO products (
+            name, image, youtube_link, label, category, is_description, description, isActive, slug, colors, sizes, ytb_active, cata_active,
+            rating_active, live_chat_active, countdown_active, gambling_active, ai_helper_active, aspa_active, sales_canal_active,
+            factory_name, production_time, target_audience, genre, internal_info
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $insert_query->bind_param("sssssssssssii", $name, $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive);
+    $insert_query->bind_param(
+        "sssssssssssiiiiiiiiisssss",
+        $name, $image, $youtubeUrl, $label, $category, $isDescription, $description, $prodActive, $slug, $colors, $sizes, $ytbActive, $cataActive,
+        $ratingActive, $liveChatActive, $countdownActive, $gamblingActive, $aiHelperActive, $aspaActive, $salesCanalActive,
+        $factoryName, $productionTime, $targetAudience, $genre, $internalInfo
+    );
     
     if ($insert_query->execute()) {
         // Récupérer l'ID du produit ajouté
