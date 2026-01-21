@@ -85,6 +85,8 @@ $routes = [
     "sseOrders"                    => "../backend/sse_orders.php",
     "archiveOrders"                => "../backend/sql/update/archiveOrders.php",
     "getArchivedOrders"            => "../backend/sql/get/archivedOrders.php",
+    "deleteArchivedOrder"          => "../backend/sql/delete/archivedOrder.php",
+    "editArchivedOrder"            => "../backend/sql/update/archivedOrder.php",
     "resetOrderIds"                => "../backend/sql/update/resetOrderIds.php",
 
     // --- Pinned Orders ---
