@@ -139,7 +139,7 @@ const activeProducts = computed(() =>
 
 const activeModels = computed(() => {
   if (!selectorProduct.value) return []
-  return (selectorProduct.value.models || []).filter(m => m.modelActive == "1")
+  return (selectorProduct.value.models || []).filter(m => m.isActive == "1")
 })
 
 const activeVariants = computed(() => {
