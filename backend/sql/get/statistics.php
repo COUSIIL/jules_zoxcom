@@ -37,10 +37,17 @@ function getDateRange($period) {
 // --- Inputs ---
 $data = json_decode(file_get_contents('php://input'), true);
 
+// Global Analysis Range
 $startDateInput = $_GET['startDate'] ?? $data['startDate'] ?? null;
 $endDateInput = $_GET['endDate'] ?? $data['endDate'] ?? null;
 $granularity = $_GET['granularity'] ?? $data['granularity'] ?? 'day';
 
+// Card Filters (Expects YYYY-MM-DD representing the period)
+$filterDayInput = $_GET['filterDay'] ?? $data['filterDay'] ?? date('Y-m-d');
+$filterWeekInput = $_GET['filterWeek'] ?? $data['filterWeek'] ?? date('Y-m-d');
+$filterMonthInput = $_GET['filterMonth'] ?? $data['filterMonth'] ?? date('Y-m-d');
+
+// Analysis Range Fallback
 if (!$startDateInput || !$endDateInput) {
     $range = getDateRange('month');
     $startDate = $range['start'];
@@ -50,35 +57,45 @@ if (!$startDateInput || !$endDateInput) {
     $endDate = date('Y-m-d 23:59:59', strtotime($endDateInput));
 }
 
-// --- 1. Dashboard Counts (Fixed: Today, Week, Month) ---
+// Escape inputs for Stats
+$fDay = $mysqli->real_escape_string($filterDayInput);
+$fWeek = $mysqli->real_escape_string($filterWeekInput);
+$fMonth = $mysqli->real_escape_string($filterMonthInput);
+
+// --- 1. Dashboard Counts (Dynamic filters) ---
+// We use the passed dates to filter.
+// Day: DATE(created_at) = DATE('$fDay')
+// Week: YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1)
+// Month: DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m')
+
 $sqlCounts = "
 SELECT
-    -- TODAY
-    SUM(CASE WHEN DATE(created_at) = CURDATE() THEN 1 ELSE 0 END) as total_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_today,
-    SUM(CASE WHEN DATE(created_at) = CURDATE() AND status = 'completed' THEN 1 ELSE 0 END) as completed_today,
+    -- DAY STATS
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') THEN 1 ELSE 0 END) as total_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_today,
+    SUM(CASE WHEN DATE(created_at) = DATE('$fDay') AND status = 'completed' THEN 1 ELSE 0 END) as completed_today,
 
-    -- WEEK
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) THEN 1 ELSE 0 END) as total_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_week,
-    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1) AND status = 'completed' THEN 1 ELSE 0 END) as completed_week,
+    -- WEEK STATS
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) THEN 1 ELSE 0 END) as total_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_week,
+    SUM(CASE WHEN YEARWEEK(created_at, 1) = YEARWEEK('$fWeek', 1) AND status = 'completed' THEN 1 ELSE 0 END) as completed_week,
 
-    -- MONTH
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') THEN 1 ELSE 0 END) as total_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_month,
-    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m') AND status = 'completed' THEN 1 ELSE 0 END) as completed_month
+    -- MONTH STATS
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') THEN 1 ELSE 0 END) as total_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status = 'canceled' THEN 1 ELSE 0 END) as canceled_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status = 'unreaching' THEN 1 ELSE 0 END) as unreaching_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status IN ('waiting', 'pending') THEN 1 ELSE 0 END) as awaiting_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status = 'shipping' THEN 1 ELSE 0 END) as delivered_month,
+    SUM(CASE WHEN DATE_FORMAT(created_at, '%Y-%m') = DATE_FORMAT('$fMonth', '%Y-%m') AND status = 'completed' THEN 1 ELSE 0 END) as completed_month
 
 FROM orders
 ";
@@ -87,7 +104,7 @@ $resultCounts = $mysqli->query($sqlCounts);
 $counts = $resultCounts ? $resultCounts->fetch_assoc() : [];
 foreach ($counts as $key => $val) $counts[$key] = (int)$val;
 
-// --- 2. Top Wilayas ---
+// --- 2. Top Wilayas (Completed Only) ---
 $sDate = $mysqli->real_escape_string($startDate);
 $eDate = $mysqli->real_escape_string($endDate);
 
@@ -96,6 +113,7 @@ $sqlWilayas = "
     FROM orders
     WHERE created_at BETWEEN '$sDate' AND '$eDate'
     AND delivery_zone IS NOT NULL AND delivery_zone != ''
+    AND status = 'completed'
     GROUP BY delivery_zone
     ORDER BY count DESC
     LIMIT 6
@@ -103,7 +121,7 @@ $sqlWilayas = "
 $resultWilayas = $mysqli->query($sqlWilayas);
 $topWilayas = $resultWilayas ? $resultWilayas->fetch_all(MYSQLI_ASSOC) : [];
 
-// --- 3. Top Products ---
+// --- 3. Top Products (Standard range) ---
 $sqlProducts = "
     SELECT oi.product_name, SUM(oi.qty) as count
     FROM order_items oi

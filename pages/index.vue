@@ -22,56 +22,26 @@
       </div>
     </div>
 
-    <!-- Dashboard KPIs -->
-    <div v-if="dashboardStats" class="orders-dashboard">
-      <div class="order-box">
-        <h3>{{ t('all orders') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.total }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.total }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.total }}</span></p>
-      </div>
-
-      <div class="order-box confirmed">
-        <h3>{{ t('confirmed') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.confirmed }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.confirmed }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.confirmed }}</span></p>
-      </div>
-
-      <div class="order-box canceled">
-        <h3>{{ t('canceled') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.canceled }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.canceled }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.canceled }}</span></p>
-      </div>
-
-      <div class="order-box unreachable">
-        <h3>{{ t('unreachable') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.unreachable }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.unreachable }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.unreachable }}</span></p>
-      </div>
-
-      <div class="order-box awaiting">
-        <h3>{{ t('awaiting') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.awaiting }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.awaiting }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.awaiting }}</span></p>
-      </div>
-
-      <div class="order-box delivered">
-        <h3>{{ t('delivered') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.delivered }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.delivered }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.delivered }}</span></p>
-      </div>
-
-      <div class="order-box completed">
-        <h3>{{ t('completed') }}</h3>
-        <p>{{ t('today') }}: <span>{{ dashboardStats.today.completed }}</span></p>
-        <p>{{ t('this week') }}: <span>{{ dashboardStats.week.completed }}</span></p>
-        <p>{{ t('this month') }}: <span>{{ dashboardStats.month.completed }}</span></p>
-      </div>
+    <!-- Dashboard KPIs (New) -->
+    <div class="kpi-grid" v-if="dashboardStats">
+        <StatsPeriodCard
+            :title="t('Daily Stats')"
+            type="day"
+            :stats="dashboardStats.today"
+            v-model="filters.day"
+        />
+        <StatsPeriodCard
+            :title="t('Weekly Stats')"
+            type="week"
+            :stats="dashboardStats.week"
+            v-model="filters.week"
+        />
+        <StatsPeriodCard
+            :title="t('Monthly Stats')"
+            type="month"
+            :stats="dashboardStats.month"
+            v-model="filters.month"
+        />
     </div>
 
     <!-- Analysis Section -->
@@ -101,7 +71,7 @@
 
          <!-- Wilayas Chart -->
          <div class="chart-card">
-            <h4>{{ t('Top Wilayas') }}</h4>
+            <h4>{{ t('Top Wilayas') }} ({{ t('Completed') }})</h4>
             <div class="chart-inner">
                 <GraphBar :data="wilayaChartData" height="300px" />
             </div>
@@ -124,25 +94,33 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useLang } from '~/composables/useLang'
 import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
 import GraphBar from '../components/elements/graphBar.vue';
+import StatsPeriodCard from '../components/elements/newBloc/statsPeriodCard.vue';
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const { t } = useLang()
 const isMounted = ref(false)
 const isLoading = ref(true)
-const isDark = ref(false) // Simple toggle tracking if needed, relying on CSS mainly
+const isDark = ref(false)
 
 // State
 const pinnedOrders = ref([])
 const dashboardStats = ref(null)
 const analysisData = ref(null)
 
-// Filters
+// Filters for Analysis
 const now = new Date()
 const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 const dateRange = ref([startOfMonth, endOfMonth])
 const granularity = ref('day')
+
+// Filters for KPI Cards
+const filters = ref({
+    day: getFormattedDate(now),
+    week: getFormattedWeek(now),
+    month: getFormattedMonth(now)
+})
 
 onMounted(async () => {
     // Detect dark mode
@@ -161,14 +139,22 @@ onMounted(async () => {
     isLoading.value = false
 })
 
+// Watchers
 watch([dateRange, granularity], () => {
     getStatistics()
 })
+
+watch(() => filters.value, () => {
+    // Debounce could be added here if needed, but for now direct call
+    getStatistics()
+}, { deep: true })
+
 
 async function getStatistics() {
     try {
         let url = 'https://management.hoggari.com/backend/api.php?action=getStatistics'
 
+        // Analysis Range
         if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
             const start = formatDate(dateRange.value[0])
             const end = formatDate(dateRange.value[1])
@@ -176,6 +162,17 @@ async function getStatistics() {
         }
 
         url += `&granularity=${granularity.value}`
+
+        // KPI Filters
+        // Day
+        url += `&filterDay=${filters.value.day}`
+
+        // Month (Add -01 to make it a date)
+        url += `&filterMonth=${filters.value.month}-01`
+
+        // Week (Convert YYYY-Www to a date in that week)
+        const weekDate = getDateFromWeekStr(filters.value.week)
+        url += `&filterWeek=${weekDate}`
 
         const response = await fetch(url)
         const result = await response.json()
@@ -224,6 +221,49 @@ function formatDate(d) {
     return d.toISOString().split('T')[0]
 }
 
+function getFormattedDate(d) {
+    return d.toISOString().split('T')[0]
+}
+
+function getFormattedMonth(d) {
+    return d.toISOString().slice(0, 7) // YYYY-MM
+}
+
+function getFormattedWeek(d) {
+    // Return YYYY-Www
+    const date = new Date(d.getTime());
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+    const week1 = new Date(date.getFullYear(), 0, 4);
+    const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+    return `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+}
+
+function getDateFromWeekStr(str) {
+    // Input: "2023-W42"
+    if (!str || !str.includes('-W')) return getFormattedDate(new Date())
+
+    const [y, w] = str.split('-W')
+    const year = parseInt(y)
+    const week = parseInt(w)
+
+    // Simple calc to get the Monday of that week
+    // 4th Jan is always in week 1
+    const d = new Date(year, 0, 4);
+    const dayNum = d.getDay() || 7;
+    d.setDate(d.getDate() + 4 - dayNum); // Adjust to Thursday of week 1
+
+    // Add (week - 1) weeks
+    d.setDate(d.getDate() + (week - 1) * 7);
+
+    // Set to Monday
+    const finalDay = d.getDay() || 7;
+    d.setDate(d.getDate() - finalDay + 1);
+
+    return getFormattedDate(d);
+}
+
+
 // Charts Data
 const trendChartData = computed(() => {
     if (!analysisData.value?.trend) return { labels: [], datasets: [] }
@@ -246,10 +286,10 @@ const wilayaChartData = computed(() => {
     return {
         labels: items.map(i => i.delivery_zone),
         datasets: [{
-            label: t('Orders'),
+            label: t('Completed Orders'),
             data: items.map(i => i.count),
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(22, 160, 133, 0.6)',
+            borderColor: 'rgba(22, 160, 133, 1)',
             borderWidth: 1
         }]
     }
@@ -272,52 +312,13 @@ const productChartData = computed(() => {
 </script>
 
 <style scoped>
-.orders-dashboard {
-  width: 90%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 20px;
+.kpi-grid {
+    width: 90%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
 }
-
-.order-box {
-  background: var(--color-whitly);
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform .2s;
-}
-.dark .order-box {
-  background: var(--color-darkow);
-}
-.order-box:hover {
-  transform: translateY(-3px);
-}
-
-.order-box h3 {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.order-box p {
-  font-size: 0.9rem;
-  margin: 6px 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.order-box span {
-  font-weight: bold;
-}
-
-/* Couleurs par type */
-.confirmed { border-left: 5px solid #2ecc71; }
-.canceled { border-left: 5px solid #e74c3c; }
-.unreachable { border-left: 5px solid #9b59b6; }
-.awaiting { border-left: 5px solid #f39c12; }
-.delivered { border-left: 5px solid #3498db; }
-.completed { border-left: 5px solid #16a085; }
 
 /* Analysis Section */
 .analysis-section {
@@ -375,6 +376,10 @@ const productChartData = computed(() => {
     margin-bottom: 15px;
     font-size: 1.1rem;
     opacity: 0.8;
+}
+.chart-inner {
+    position: relative;
+    width: 100%;
 }
 .full-width {
     grid-column: span 2;
