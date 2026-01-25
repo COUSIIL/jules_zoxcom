@@ -33,7 +33,7 @@
           >
             <img :src="m.image || selectorProduct.image" class="card-img" />
             <div class="meta">
-              <div class="name">{{ m.modelName }}</div>
+              <div class="name">{{ m.name }}</div>
               <div class="price">{{ m.sell || m.promo || '-' }} DA</div>
             </div>
           </div>
@@ -87,7 +87,7 @@
           <div>
             <div class="summary-name">{{ selectorProduct.name }}</div>
             <div class="summary-sub">
-              <span v-if="selectorModel">{{ selectorModel.modelName }}</span>
+              <span v-if="selectorModel">{{ selectorModel.name }}</span>
               <span v-if="selectorVariant"> · {{ selectorVariant.colorName || selectorVariant.color }} {{ selectorVariant.size ? '· ' + selectorVariant.size : '' }}</span>
             </div>
           </div>
@@ -139,7 +139,7 @@ const activeProducts = computed(() =>
 
 const activeModels = computed(() => {
   if (!selectorProduct.value) return []
-  return (selectorProduct.value.models || []).filter(m => m.modelActive == "1")
+  return (selectorProduct.value.models || []).filter(m => m.isActive == "1")
 })
 
 const activeVariants = computed(() => {

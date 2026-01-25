@@ -881,8 +881,9 @@ async function chatGemini() {
 /* Pinned Section */
 .pinned-section {
   width: 90%;
-  background: var(--color-whity);
-  margin-bottom: 20px;
+  max-width: 800px;
+  background: var(--color-whitly);
+  margin-block: 20px;
   padding: 15px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);

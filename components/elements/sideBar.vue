@@ -235,6 +235,7 @@ const close = () => {
   z-index: 5000;
   background: var(--color-whitly);
   overflow-y: auto;
+  box-shadow: 0px 8px 6px var(--color-tioly);
 }
 
 .newSideBar.is-open{

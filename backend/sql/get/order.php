@@ -141,7 +141,10 @@ if (empty($orderIds)) {
 
 // Fetch Order Items
 $idsString = implode(',', array_map('intval', $orderIds));
-$sqlItems = "SELECT * FROM order_items WHERE order_id IN ($idsString)";
+$sqlItems = "SELECT oi.*, p.name as current_product_name 
+             FROM order_items oi
+             LEFT JOIN products p ON oi.product_id = p.id
+             WHERE oi.order_id IN ($idsString)";
 $resultItems = $mysqli->query($sqlItems);
 $itemsData = $resultItems->fetch_all(MYSQLI_ASSOC);
 $orderItemIds = array_column($itemsData, 'id');
@@ -176,7 +179,7 @@ foreach ($itemsData as $model) {
     $orderItemId = $model['id'];
     $groupedModels[$model['order_id']][] = [
         'id' => $model['product_id'],
-        'productName' => $model['product_name'],
+        'productName' => !empty($model['product_name']) ? $model['product_name'] : $model['current_product_name'],
         'image' => $model['image'],
         'price' => $model['price'],
         'qty' => $model['qty'],
