@@ -156,6 +156,7 @@ $routes = [
     // --- Analytics ---
     "viewPage"                     => "../backend/sql/post/viewPage.php",
     "getViewPage"                  => "../backend/sql/get/viewPage.php",
+    "getStatistics"                => "../backend/sql/get/statistics.php",
 
     // --- Reminder ---
     "createReminder"                     => "../backend/sql/post/reminder.php",
