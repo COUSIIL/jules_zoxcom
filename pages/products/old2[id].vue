@@ -22,6 +22,8 @@
             :modelValue="productData"
             @openExplorer="(idx) => { isExplorer = true; modelImageIndex = idx }"
             :imageRef="img"
+            @isMessage="openMessage"
+            @message="ridMessage"
         />
 
         <ProductParameter v-if="currentPage === 3" :modelValue="productData" />
