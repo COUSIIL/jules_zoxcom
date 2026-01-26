@@ -71,6 +71,7 @@ if ($user) {
             'profile_image' => $user['profile_image'],
             'created_at' => $user['created_at'],
             'permissions' => $permissions,
+            'settings' => isset($user['settings']) ? json_decode($user['settings'], true) : [],
             'token' => $token // Return token to ensure client state consistency if needed
         ]
     ]);
