@@ -128,6 +128,7 @@ $routes = [
     "addUser"                      => "../backend/sql/post/addUser.php",
     "updateUserProfile"            => "../backend/sql/update/profileImage.php",
     "updateUserInfo"               => "../backend/sql/update/userInfo.php",
+    "updateUserSettings"           => "../backend/sql/update/userSettings.php",
     "connexion"                    => "../backend/sql/connexion/connexion.php",
     "checkConnexion"               => "../backend/sql/connexion/checkConnexion.php",
 

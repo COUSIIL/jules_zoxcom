@@ -44,6 +44,7 @@ $alters = [
     ['table' => 'users', 'column' => 'token', 'query' => "ALTER TABLE users ADD COLUMN token VARCHAR(255) NOT NULL AFTER profile_image"],
     ['table' => 'users', 'column' => 'password', 'query' => "ALTER TABLE users ADD COLUMN password VARCHAR(255) NOT NULL AFTER token"],
     ['table' => 'users', 'column' => 'description', 'query' => "ALTER TABLE users ADD COLUMN description TEXT AFTER password"],
+    ['table' => 'users', 'column' => 'settings', 'query' => "ALTER TABLE users ADD COLUMN settings JSON NULL AFTER description"],
     ['table' => 'users', 'column' => 'created_at', 'query' => "ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER password"]
 ];
 

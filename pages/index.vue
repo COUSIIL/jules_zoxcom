@@ -377,7 +377,7 @@ const productChartData = computed(() => {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 .chart-card {
@@ -385,6 +385,8 @@ const productChartData = computed(() => {
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
 }
 .dark .chart-card {
     background: var(--color-darkow);
@@ -397,17 +399,10 @@ const productChartData = computed(() => {
 .chart-inner {
     position: relative;
     width: 100%;
+    flex-grow: 1;
 }
 .full-width {
-    grid-column: span 2;
-}
-@media (max-width: 900px) {
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-    .full-width {
-        grid-column: span 1;
-    }
+    grid-column: 1 / -1;
 }
 
 
