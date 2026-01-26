@@ -1,23 +1,6 @@
 <template>
   <div class="notif-page">
 
-    <div class="card" style="margin-bottom: 20px;">
-      <h2>Préférences</h2>
-      <div class="pref-row">
-        <span>Recevoir les notifications :</span>
-        <div class="radio-group">
-            <label class="radio-label">
-                <input type="radio" v-model="userSettings.notifications" :value="true" @change="saveSettings">
-                Activer
-            </label>
-            <label class="radio-label">
-                <input type="radio" v-model="userSettings.notifications" :value="false" @change="saveSettings">
-                Désactiver
-            </label>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <span style="display: flex; align-items: center; justify-content: center; gap: 10px;">
@@ -27,7 +10,7 @@
           <h1>Notifications</h1>
         </span>
         
-        <Radio :selected="subscription" @changed="enableNotifications" />
+        <Radio :selected="userSettings.notifications" @changed="saveSettings" />
       </div>
     </div>
     <div v-if="message" class="result">{{ message }}
