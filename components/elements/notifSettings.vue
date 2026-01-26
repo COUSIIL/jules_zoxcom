@@ -2,6 +2,23 @@
   <div class="notif-page">
     <h1>🔔 Paramètres des notifications</h1>
 
+    <div class="card" style="margin-bottom: 20px;">
+      <h2>Préférences</h2>
+      <div class="pref-row">
+        <span>Recevoir les notifications :</span>
+        <div class="radio-group">
+            <label class="radio-label">
+                <input type="radio" v-model="userSettings.notifications" :value="true" @change="saveSettings">
+                Activer
+            </label>
+            <label class="radio-label">
+                <input type="radio" v-model="userSettings.notifications" :value="false" @change="saveSettings">
+                Désactiver
+            </label>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <h2>État du système</h2>
       <ul>
@@ -74,9 +91,11 @@ const support = ref({
   permission: 'default'
 })
 const message = ref('')
+const userSettings = ref({ notifications: true })
 
 // 🧠 Charger l’état initial
 onMounted(async () => {
+  fetchSettings()
   support.value = checkSupport()
   if (!support.value.sw || !support.value.push) return
 
@@ -88,6 +107,51 @@ onMounted(async () => {
     console.warn('SW non prêt :', err)
   }
 })
+
+async function fetchSettings() {
+    if (typeof localStorage === 'undefined') return
+    const auth = JSON.parse(localStorage.getItem('auth') || '{}')
+    if (!auth.token) return
+
+    try {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=checkConnexion', {
+            method: 'POST',
+            body: JSON.stringify({ token: auth.token })
+        }).then(r => r.json())
+
+        if (res.success && res.data.settings) {
+            // Merge with default to ensure keys exist
+            userSettings.value = { ...userSettings.value, ...res.data.settings }
+        }
+    } catch (e) {
+        console.error("Error fetching settings:", e)
+    }
+}
+
+async function saveSettings() {
+     const auth = JSON.parse(localStorage.getItem('auth') || '{}')
+     if (!auth.id) return
+
+     try {
+         const res = await fetch('https://management.hoggari.com/backend/api.php?action=updateUserSettings', {
+             method: 'POST',
+             body: JSON.stringify({
+                 id: auth.id,
+                 settings: userSettings.value
+             })
+         }).then(r => r.json())
+
+         if (res.success) {
+             message.value = '✅ Préférences enregistrées'
+             setTimeout(() => message.value = '', 3000)
+         } else {
+             message.value = '❌ Erreur enregistrement'
+         }
+     } catch (e) {
+         console.error(e)
+         message.value = '❌ Erreur de connexion'
+     }
+}
 
 // 🔑 Activer les notifications via le composable
 async function enableNotifications() {
@@ -183,6 +247,23 @@ async function testNotification() {
   justify-content: space-between;
   padding: 8px 0;
   border-bottom: 1px solid #eee;
+}
+.pref-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+}
+.radio-group {
+    display: flex;
+    gap: 15px;
+}
+.radio-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
 }
 .ok { color: green; }
 .fail { color: red; }
