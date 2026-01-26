@@ -1,69 +1,32 @@
 <template>
   <div class="notif-page">
-    <h1>🔔 Paramètres des notifications</h1>
 
     <div class="card">
-      <h2>État du système</h2>
-      <ul>
-        <li>
-          <span>Support navigateur :</span>
-          <strong :class="support.push ? 'ok' : 'fail'">
-            {{ support.push ? '✅ Compatible' : '❌ Non compatible' }}
-          </strong>
-        </li>
-        <li>
-          <span>Service Worker :</span>
-          <strong :class="support.sw ? 'ok' : 'fail'">
-            {{ support.sw ? '✅ Actif' : '❌ Inactif' }}
-          </strong>
-        </li>
-        <li>
-          <span>Permission notification :</span>
-          <strong
-            :class="{
-              ok: support.permission === 'granted',
-              fail: support.permission === 'denied'
-            }"
-          >
-            {{
-              support.permission === 'granted'
-                ? '✅ Accordée'
-                : support.permission === 'denied'
-                ? '❌ Refusée'
-                : '🕓 En attente'
-            }}
-          </strong>
-        </li>
-        <li>
-          <span>Subscription enregistrée :</span>
-          <strong :class="subscription ? 'ok' : 'fail'">
-            {{ subscription ? '✅ Oui' : '❌ Non' }}
-          </strong>
-        </li>
-      </ul>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+        <span style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <div v-html="resizeSvg(icons['bell'], 24, 24)">
+
+          </div>
+          <h1>Notifications</h1>
+        </span>
+        
+        <Radio :selected="subscription" @changed="enableNotifications" />
+      </div>
     </div>
+    <div v-if="message" class="result">{{ message }}
 
-    <div class="actions">
-      <button @click="enableNotifications" :disabled="support.permission === 'granted'">
-        🔑 Activer les notifications
-      </button>
-
-      <button @click="refreshSubscription" :disabled="!subscription">
-        🔁 Mettre à jour la subscription
-      </button>
-
-      <button @click="testNotification" :disabled="!subscription">
-        🚀 Tester une notification
-      </button>
     </div>
-
-    <div v-if="message" class="result">{{ message }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useNotifications } from '@/composables/useNotifications.js'
+import Radio from './bloc/radio.vue';
+
+import icons from '../../public/icons.json'
+
+
 
 const { registerPushNotifications, sendTestNotification, checkSupport } = useNotifications()
 
@@ -74,6 +37,13 @@ const support = ref({
   permission: 'default'
 })
 const message = ref('')
+
+
+var resizeSvg = (svg, width, height) => {
+  return svg
+    .replace(/width="[^"]+"/, `width="${width}"`)
+    .replace(/height="[^"]+"/, `height="${height}"`)
+}
 
 // 🧠 Charger l’état initial
 onMounted(async () => {
@@ -91,15 +61,21 @@ onMounted(async () => {
 
 // 🔑 Activer les notifications via le composable
 async function enableNotifications() {
-  message.value = '⏳ Activation en cours...'
-  const result = await registerPushNotifications()
-  if (result.success) {
-    subscription.value = result.subscription
-    support.value.permission = 'granted'
-    message.value = '✅ Notifications activées avec succès !'
+  if(subscription.value) {
+    subscription.value = false
   } else {
-    message.value = '❌ ' + (result.message || 'Erreur lors de l’activation.')
+    message.value = '⏳ Activation en cours...'
+    const result = await registerPushNotifications()
+    if (result.success) {
+      subscription.value = result.subscription
+      support.value.permission = 'granted'
+      message.value = '✅ Notifications activées avec succès !'
+    } else {
+      message.value = '❌ ' + (result.message || 'Erreur lors de l’activation.')
+    }
   }
+  
+
 }
 
 // 🔁 Mettre à jour / réenregistrer la subscription

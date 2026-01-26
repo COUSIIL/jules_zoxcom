@@ -5,7 +5,15 @@
 
     <!-- Pinned Orders Section -->
     <div v-if="pinnedOrders.length > 0" class="pinned-section">
-      <h3>📌 {{ t('Pinned Orders') }}</h3>
+        <span style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px;">
+            <div v-html="resizeSvg(icons['pin'], 24, 24)">
+            
+            </div>
+            <h3>
+                {{ t('Pinned Orders') }}
+            </h3>
+        </span>
+        
       <div class="pinned-grid">
         <div v-for="order in pinnedOrders" :key="order.id" class="pinned-card">
           <div class="pinned-header">
@@ -98,6 +106,8 @@ import StatsPeriodCard from '../components/elements/newBloc/statsPeriodCard.vue'
 import VueDatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css'
 
+import icons from '../public/icons.json'
+
 const { t } = useLang()
 const isMounted = ref(false)
 const isLoading = ref(true)
@@ -121,6 +131,12 @@ const filters = ref({
     week: getFormattedWeek(now),
     month: getFormattedMonth(now)
 })
+
+var resizeSvg = (svg, width, height) => {
+  return svg
+    .replace(/width="[^"]+"/, `width="${width}"`)
+    .replace(/height="[^"]+"/, `height="${height}"`)
+}
 
 onMounted(async () => {
     // Detect dark mode
@@ -313,16 +329,17 @@ const productChartData = computed(() => {
 
 <style scoped>
 .kpi-grid {
-    width: 90%;
+    width: 100%;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
     padding: 20px;
 }
 
 /* Analysis Section */
 .analysis-section {
-    width: 90%;
+    width: 100%;
+    max-width: 800px;
     margin-top: 20px;
     padding: 0 20px 40px 20px;
 }
@@ -409,8 +426,6 @@ const productChartData = computed(() => {
 }
 .pinned-section h3 {
   font-size: 1.2rem;
-  margin-bottom: 15px;
-  color: var(--color-zioly4);
 }
 .pinned-grid {
   display: grid;
