@@ -8,7 +8,7 @@ if (!file_exists($configPath)) {
 }
 require_once $configPath;
 
-$product_id = isset($_GET['product_id']) ? (int)$$_GET['product_id'] : 0;
+$product_id = isset($_GET['product_id']) ? (int)$_GET['product_id'] : 0;
 
 if ($product_id <= 0) {
     echo json_encode(['success' => false, 'message' => 'Invalid Product ID']);
