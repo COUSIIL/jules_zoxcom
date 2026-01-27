@@ -26,10 +26,12 @@
             @message="ridMessage"
         />
 
-        <ProductParameter v-if="currentPage === 3" :modelValue="productData" />
-        <ProductTransaction v-if="currentPage === 4" :modelValue="productData" />
-        <ProductViewer v-if="currentPage === 5" :modelValue="productData" />
-        <ProductBusiness v-if="currentPage === 6" :modelValue="productData" />
+        <productStorage v-if="currentPage === 3" :modelValue="productData" />
+
+        <ProductParameter v-if="currentPage === 4" :modelValue="productData" />
+        <ProductTransaction v-if="currentPage === 5" :modelValue="productData" />
+        <ProductViewer v-if="currentPage === 6" :modelValue="productData" />
+        <ProductBusiness v-if="currentPage === 7" :modelValue="productData" />
     </div>
 
     <!-- Save Button Floating or Fixed at bottom -->
@@ -51,6 +53,7 @@ import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
 import ProductNavBar from '../../components/elements/productNavBar.vue';
 import ProductPart from '../../components/elements/productPart.vue';
 import ProductModels from '../../components/elements/productModels.vue';
+import ProductStorage from '../../components/elements/productStorage.vue';
 import ProductParameter from '../../components/elements/productParameter.vue';
 import ProductTransaction from '../../components/elements/productTransaction.vue';
 import ProductViewer from '../../components/elements/productViewer.vue';

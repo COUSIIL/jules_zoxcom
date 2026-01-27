@@ -216,7 +216,9 @@
 
     "print": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2\" /><path d=\"M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4\" /><path d=\"M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z\" /></svg>",
 
-    "archives": "<svg xmlns=\"http://www.w3.org/2000/svg\"width=\"24\"height=\"24\"viewBox=\"0 0 24 24\"fill=\"none\"stroke=\"currentColor\"stroke-width=\"1.5\"stroke-linecap=\"round\"stroke-linejoin=\"round\"class=\"icon icon-tabler icons-tabler-outline icon-tabler-archive\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z\" /><path d=\"M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10\" /><path d=\"M10 12l4 0\" /></svg>"
+    "archives": "<svg xmlns=\"http://www.w3.org/2000/svg\"width=\"24\"height=\"24\"viewBox=\"0 0 24 24\"fill=\"none\"stroke=\"currentColor\"stroke-width=\"1.5\"stroke-linecap=\"round\"stroke-linejoin=\"round\"class=\"icon icon-tabler icons-tabler-outline icon-tabler-archive\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z\" /><path d=\"M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10\" /><path d=\"M10 12l4 0\" /></svg>",
+
+    "stack": "<svg xmlns=\"http://www.w3.org/2000/svg\"width=\"24\"height=\"24\"viewBox=\"0 0 24 24\"fill=\"none\"stroke=\"currentColor\"stroke-width=\"1.5\"stroke-linecap=\"round\"stroke-linejoin=\"round\"class=\"icon icon-tabler icons-tabler-outline icon-tabler-stack-3\"><path stroke=\"none\" d=\"M0 0h24v24H0z\" fill=\"none\"/><path d=\"M12 2l-8 4l8 4l8 -4l-8 -4\" /><path d=\"M4 10l8 4l8 -4\" /><path d=\"M4 18l8 4l8 -4\" /><path d=\"M4 14l8 4l8 -4\" /></svg>"
     
 
 }

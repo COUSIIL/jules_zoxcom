@@ -3,10 +3,11 @@
         <div class="navBarBox">
             <ProductNavBarBtn :svg="'package'" @click="doClicker(1)" :clicker="clickingList[0].click"/>
             <ProductNavBarBtn :svg="'tag'" @click="doClicker(2)" :clicker="clickingList[1].click"/>
-            <ProductNavBarBtn :svg="'adjust'" @click="doClicker(3)" :clicker="clickingList[2].click"/>
-            <ProductNavBarBtn :svg="'function'" @click="doClicker(4)" :clicker="clickingList[3].click"/>
-            <ProductNavBarBtn :svg="'screen'" @click="doClicker(5)" :clicker="clickingList[4].click"/>
-            <ProductNavBarBtn :svg="'order'" @click="doClicker(6)" :clicker="clickingList[5].click"/>
+            <ProductNavBarBtn :svg="'stack'" @click="doClicker(3)" :clicker="clickingList[2].click"/>
+            <ProductNavBarBtn :svg="'adjust'" @click="doClicker(4)" :clicker="clickingList[3].click"/>
+            <ProductNavBarBtn :svg="'function'" @click="doClicker(5)" :clicker="clickingList[4].click"/>
+            <ProductNavBarBtn :svg="'screen'" @click="doClicker(6)" :clicker="clickingList[5].click"/>
+            <ProductNavBarBtn :svg="'order'" @click="doClicker(7)" :clicker="clickingList[6].click"/>
         </div>
     </div>
     
