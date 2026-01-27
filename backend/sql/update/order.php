@@ -15,6 +15,7 @@ if (!file_exists($configPath) || !file_exists($configPath2)) {
 
 require_once $configPath;
 require_once $configPath2;
+require_once __DIR__ . '/products/manageStockCodes.php';
 
 /* =======================
    Ensure columns exist
@@ -180,6 +181,17 @@ if ($value === 'confirmed') {
     }
 
     $items->close();
+
+    // Assign unique codes to this order
+    assignUniqueCodes($mysqli, $id);
+}
+
+/* =======================
+   Returned/Canceled logic
+======================= */
+
+if (in_array($value, ['returned', 'canceled', 'unreachable'])) {
+    releaseUniqueCodes($mysqli, $id);
 }
 
 /* =======================
