@@ -216,6 +216,7 @@ foreach ($ordersData as $orderData) {
         'owner' => $orderData['owner'] ?? '',
         'owner_conf_date' => $orderData['owner_conf_date'] ?? '',
         'owner_conf_state' => $orderData['owner_conf_state'] ?? '',
+        'owner_state' => $orderData['owner_state'] ?? null,
         // Pinned Info
         'is_pinned' => (bool)$orderData['is_pinned'],
         'pin_reason' => $orderData['pin_reason'] ?? null,

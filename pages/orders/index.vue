@@ -184,7 +184,14 @@
 
         <div class="box1">
 
-            <div v-if="dts.owner" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
+            <div v-if="dts.ownerStateParsed" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
+               <img v-if="dts.ownerStateParsed.image" :src="dts.ownerStateParsed.image.startsWith('http') ? dts.ownerStateParsed.image : webLink + dts.ownerStateParsed.image" :alt="dts.ownerStateParsed.name">
+               <img v-else-if="dts.ownerStateParsed.name === 'Bot' || dts.ownerStateParsed.type === 'bot'" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Bot" style="width: 32px; height: 32px; border-radius: 50%;">
+
+               <h1>{{ dts.ownerStateParsed.name }} :</h1>
+               <p>{{ dts.ownerStateParsed.action }}</p>
+            </div>
+            <div v-else-if="dts.owner" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
                <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
                <h1>{{ dts.owner }} :</h1>
                <p v-if="dts.owner_conf_date">{{ t('confirmed at') }} {{ dts.owner_conf_date }}</p>
@@ -1329,12 +1336,22 @@ const reverseOrders = async (vl) => {
           }];
         }
 
+        let ownerStateParsed = null;
+        try {
+            if (item.owner_state) {
+                ownerStateParsed = typeof item.owner_state === 'string' ? JSON.parse(item.owner_state) : item.owner_state;
+            }
+        } catch (e) {
+            console.error('Error parsing owner_state', e);
+        }
+
         const existingState = currentStateMap.get(item.id);
 
         if (existingState) {
           return {
             ...item,
             note,
+            ownerStateParsed,
             isMore: existingState.isMore,
             isEditing: existingState.isEditing,
             isSelected: existingState.isSelected,
@@ -1352,6 +1369,7 @@ const reverseOrders = async (vl) => {
 
         return {
           ...item,
+          ownerStateParsed,
           isMore: false,
           isEditing: false,
           isSelected: false,
