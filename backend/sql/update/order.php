@@ -28,7 +28,8 @@ $checks = [
     "delegated"        => "ALTER TABLE orders ADD COLUMN delegated INT NULL AFTER corrector_price",
     "owner"            => "ALTER TABLE orders ADD COLUMN owner VARCHAR(45) NULL AFTER delegated",
     "owner_conf_date"  => "ALTER TABLE orders ADD COLUMN owner_conf_date TIMESTAMP NULL AFTER owner",
-    "owner_conf_state" => "ALTER TABLE orders ADD COLUMN owner_conf_state VARCHAR(45) NULL AFTER owner_conf_date"
+    "owner_conf_state" => "ALTER TABLE orders ADD COLUMN owner_conf_state VARCHAR(45) NULL AFTER owner_conf_date",
+    "owner_state"      => "ALTER TABLE orders ADD COLUMN owner_state JSON NULL AFTER owner_conf_state"
 ];
 
 foreach ($checks as $col => $sql) {
@@ -101,17 +102,62 @@ if (!$currentOrder) {
 }
 
 /* =======================
+   Determine Actor (User or Bot)
+======================= */
+
+$actorName = 'Bot';
+$actorImage = ''; // Frontend should handle empty image as default bot or we provide a URL
+$actorType = 'bot';
+
+if (!empty($owner)) {
+    // It's a user action
+    $actorType = 'user';
+    // Fetch user details
+    $uStmt = $mysqli->prepare("SELECT name, family_name, profile_image FROM users WHERE username = ?");
+    if ($uStmt) {
+        $uStmt->bind_param("s", $owner);
+        $uStmt->execute();
+        $resUser = $uStmt->get_result();
+        if ($uRow = $resUser->fetch_assoc()) {
+            // Construct name
+            $fullName = trim(($uRow['name'] ?? '') . ' ' . ($uRow['family_name'] ?? ''));
+            if (empty($fullName)) {
+                $fullName = $owner;
+            }
+            $actorName = $fullName;
+            $actorImage = $uRow['profile_image'] ?? '';
+        } else {
+            // Fallback if user not found but owner string exists
+            $actorName = $owner;
+        }
+        $uStmt->close();
+    }
+}
+
+// Construct owner_state JSON
+$ownerStateData = [
+    'name' => $actorName,
+    'image' => $actorImage,
+    'type' => $actorType,
+    'action' => $status,
+    'value' => $value,
+    'date' => date('Y-m-d H:i:s')
+];
+$ownerStateJson = json_encode($ownerStateData);
+
+
+/* =======================
    Update main field
 ======================= */
 
 if ($status === 'owner_conf_date') {
-    $sql = "UPDATE orders SET owner_conf_date = CURRENT_TIMESTAMP WHERE id = ?";
+    $sql = "UPDATE orders SET owner_conf_date = CURRENT_TIMESTAMP, owner_state = ? WHERE id = ?";
     $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("i", $id);
+    $stmt->bind_param("si", $ownerStateJson, $id);
 } else {
-    $sql = "UPDATE orders SET `$status` = ? WHERE id = ?";
+    $sql = "UPDATE orders SET `$status` = ?, owner_state = ? WHERE id = ?";
     $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("si", $value, $id);
+    $stmt->bind_param("ssi", $value, $ownerStateJson, $id);
 }
 
 if (!$stmt->execute()) {
@@ -127,19 +173,20 @@ $stmt->close();
 /* =======================
    History logic
 ======================= */
-if ($owner) {
-    $historyValue = is_array($value) ? json_encode($value) : $value;
-    // Shorten value if too long
-    if (strlen($historyValue) > 65000) {
-        $historyValue = substr($historyValue, 0, 65000) . '...';
-    }
+// Always insert history, even for Bot
+$historyUser = !empty($owner) ? $owner : 'Bot';
 
-    $stmtH = $mysqli->prepare("INSERT INTO order_history (order_id, user, action, value) VALUES (?, ?, ?, ?)");
-    if ($stmtH) {
-        $stmtH->bind_param("isss", $id, $owner, $status, $historyValue);
-        $stmtH->execute();
-        $stmtH->close();
-    }
+$historyValue = is_array($value) ? json_encode($value) : $value;
+// Shorten value if too long
+if (strlen($historyValue) > 65000) {
+    $historyValue = substr($historyValue, 0, 65000) . '...';
+}
+
+$stmtH = $mysqli->prepare("INSERT INTO order_history (order_id, user, action, value) VALUES (?, ?, ?, ?)");
+if ($stmtH) {
+    $stmtH->bind_param("isss", $id, $historyUser, $status, $historyValue);
+    $stmtH->execute();
+    $stmtH->close();
 }
 
 /* =======================
