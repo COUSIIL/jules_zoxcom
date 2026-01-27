@@ -3,8 +3,8 @@
     <div class="header-section">
       <h2 class="title">Gestion du Stock</h2>
       <div class="actions">
-        <gBtn :svg="icons.refresh" text="Rafraîchir" color="var(--color-primary)" @click="refreshAll" />
-        <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-text-muted)" @click="printAll" />
+        <gBtn :svg="icons.refresh" text="Rafraîchir" color="var(--color-greeny)" @click="refreshAll" />
+        <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-greeny)" @click="printAll" />
       </div>
     </div>
 
@@ -40,14 +40,14 @@
         <div class="col-action actions-group">
             <gBtn
                 :svg="icons.plus"
-                color="var(--color-green)"
+                color="var(--color-blumy)"
                 @click="addStock(item)"
                 class="action-btn"
                 :disabled="loading"
             />
             <gBtn
-                :svg="icons.minus"
-                color="var(--color-red)"
+                :svg="icons.x"
+                color="var(--color-rady)"
                 @click="withdrawStock(item)"
                 class="action-btn"
                 :disabled="loading"
@@ -190,8 +190,10 @@ const fetchStock = async () => {
 
   loading.value = true;
   try {
-    const res = await fetch(`/backend/api.php?action=getStock&product_id=${props.modelValue.id}`);
+    const res = await fetch(`https://management.hoggari.com/backend/api.php?action=getStock&product_id=${props.modelValue.id}`);
+    console.log('res: ', res)
     const data = await res.json();
+    console.log('data: ', data)
     if (data.success) {
       // Generate Data URLs for print
        const processed = await Promise.all(data.data.map(async (item) => {
@@ -224,7 +226,7 @@ const addStock = async (item) => {
             qty: qty
         };
 
-        const res = await fetch('/backend/api.php?action=postStock', {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=postStock', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -267,7 +269,7 @@ const withdrawStock = async (item) => {
     try {
         const idsToDelete = availableItems.slice(0, qty).map(s => s.id);
 
-        const res = await fetch('/backend/api.php?action=deleteStock', {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: idsToDelete })
@@ -293,7 +295,7 @@ const deleteSingleItem = async (id) => {
     if (!confirm('Supprimer ce code spécifique ?')) return;
 
     try {
-        const res = await fetch('/backend/api.php?action=deleteStock', {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: id })
@@ -340,7 +342,7 @@ watch(() => props.modelValue.id, (v) => {
     padding: 20px;
     background-color: var(--color-whitly);
     border-radius: 12px;
-    margin-top: 20px;
+    margin-top: 100px;
 }
 .dark .product-storage {
     background-color: var(--color-darkly);
@@ -529,7 +531,9 @@ th {
     }
     .print-item {
         width: 150px; border: 1px solid #ccc; padding: 10px;
-        display: flex; flexDirection: column; alignItems: center;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center;
         page-break-inside: avoid;
     }
     .print-qr img { width: 100px; height: 100px; }
