@@ -17,7 +17,7 @@
 
 import ProductNavBarBtn from './newBloc/productNavBarBtn.vue';
 
-const clickingList = ref([{click: true}, {click: false}, {click: false}, {click: false}, {click: false}, {click: false},])
+const clickingList = ref([{click: true}, {click: false}, {click: false}, {click: false}, {click: false}, {click: false}, {click: false}])
 
 const emit = defineEmits(['getClick'])
 

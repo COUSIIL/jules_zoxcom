@@ -251,6 +251,7 @@ watch(() => props.modelValue.id, (newId) => {
 
 <style scoped>
 .product-storage {
+  margin-top: 100px;
   padding: 20px;
   background: #fff;
   border-radius: 8px;
@@ -270,6 +271,8 @@ watch(() => props.modelValue.id, (newId) => {
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -283,16 +286,17 @@ watch(() => props.modelValue.id, (newId) => {
 
 .form-row {
   display: flex;
-  gap: 20px;
-  align-items: flex-end;
-  margin-top: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 .form-group {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
 .input-select, .input-number {

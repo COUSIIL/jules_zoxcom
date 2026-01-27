@@ -24,7 +24,14 @@
 
     <div v-if="model.isActive">
        <!-- Basic Info -->
-       <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+       <div style="
+       width: 100%;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;">
           <button type="button" class="imageUploadSection" @click="openExplorer(mIndex)">
              <label class="inputImg">
                 <span v-if="!model.imageUrls">{{ t('model image 1:1') }}</span>

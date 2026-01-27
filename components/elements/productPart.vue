@@ -13,7 +13,14 @@
       <Radio :selected="modelValue.prodActive"/>
     </h1>
 
-    <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+    <div style="
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;">
       <button type="button" class="imageUploadSection" @click="openExplorer">
         <div class="important">
           <DotLottieVue
@@ -28,7 +35,7 @@
           <img v-else :src="modelValue.image" alt="Preview" />
         </label>
       </button>
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 300px;">
         <Inputer :placeHolder="t('product name')" :img="resizeSvg('package', 16, 16)" :required="true" v-model="modelValue.name" @blur:modelValue="generateSlug"/>
 
         <Inputer :placeHolder="t('slug')" :holder="t('this input must be unique')" :img="resizeSvg('link', 16, 16)" :required="true" v-model="modelValue.slug"/>
