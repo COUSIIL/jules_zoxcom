@@ -114,6 +114,11 @@ $routes = [
     "productClick"                 => "../backend/sql/post/productClick.php",
     "getProductClick"              => "../backend/sql/get/productClick.php",
 
+    // --- Stock Management ---
+    "postStock"                    => "../backend/sql/post/stock.php",
+    "getStock"                     => "../backend/sql/get/stock.php",
+    "deleteStock"                  => "../backend/sql/delete/stock.php",
+
     // --- Customers & Users ---
     "getCustomers"                 => "../backend/sql/get/customers.php",
     "getAllCustomers"              => "../backend/sql/get/allCustomers.php",
