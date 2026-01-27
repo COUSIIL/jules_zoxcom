@@ -1,82 +1,104 @@
 <template>
   <div class="product-storage">
     <div class="header-section">
-      <h2 class="title">Stock Management</h2>
+      <h2 class="title">Gestion du Stock</h2>
       <div class="actions">
-        <button class="btn btn-primary" @click="fetchStock">Refresh</button>
-        <button class="btn btn-secondary" @click="printAll">Print All QR</button>
+        <gBtn :svg="icons.refresh" text="Rafraîchir" color="var(--color-primary)" @click="refreshAll" />
+        <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-text-muted)" @click="printAll" />
       </div>
     </div>
 
-    <!-- Add Stock Section -->
-    <div class="add-stock-card">
-      <h3>Generate Stock</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Variant / Model</label>
-          <select v-model="selectedOption" class="input-select">
-            <option :value="null" disabled>Select a variant</option>
-            <template v-for="model in props.modelValue.models" :key="model.id">
-              <!-- If model has no details, show model -->
-              <option v-if="!model.details || model.details.length === 0" :value="{ modelId: model.id, detailId: null }">
-                {{ model.name || model.ref || 'Model ' + model.id }}
-              </option>
-              <!-- If model has details, show variants -->
-              <template v-else>
-                <option v-for="detail in model.details" :key="detail.id" :value="{ modelId: model.id, detailId: detail.id }">
-                  {{ model.name || model.ref }} - {{ detail.colorName || detail.color }} / {{ detail.size }}
-                </option>
-              </template>
-            </template>
-          </select>
+    <!-- Variant Grid Section -->
+    <div class="stock-grid-container">
+      <div class="grid-header">
+        <div class="col-name">Variante / Modèle</div>
+        <div class="col-stock">En Stock</div>
+        <div class="col-input">Quantité</div>
+        <div class="col-action">Actions</div>
+      </div>
+
+      <div v-for="(item, index) in variantRows" :key="index" class="grid-row">
+        <div class="col-name">
+            <div class="variant-info">
+                <img :src="item.img" class="variant-img" onerror="this.style.display='none'"/>
+                <span>{{ item.name }}</span>
+            </div>
         </div>
-        <div class="form-group">
-          <label>Quantity</label>
-          <input type="number" v-model.number="addQty" min="1" class="input-number" />
+        <div class="col-stock">
+            <span class="stock-badge" :class="{ 'low-stock': item.qty < 5, 'out-stock': item.qty == 0 }">
+                {{ item.qty }}
+            </span>
         </div>
-        <button class="btn btn-success" @click="generateStock" :disabled="loading || !selectedOption || addQty <= 0">
-          {{ loading ? 'Generating...' : 'Generate' }}
-        </button>
+        <div class="col-input">
+            <InputText
+                type="number"
+                v-model="inputMap[item.uniqueKey]"
+                placeHolder="Qté"
+                class="qty-input"
+            />
+        </div>
+        <div class="col-action actions-group">
+            <gBtn
+                :svg="icons.plus"
+                color="var(--color-green)"
+                @click="addStock(item)"
+                class="action-btn"
+                :disabled="loading"
+            />
+            <gBtn
+                :svg="icons.minus"
+                color="var(--color-red)"
+                @click="withdrawStock(item)"
+                class="action-btn"
+                :disabled="loading"
+            />
+        </div>
+      </div>
+
+      <div v-if="variantRows.length === 0" class="empty-state">
+        Aucune variante ou modèle disponible pour ce produit.
       </div>
     </div>
 
-    <!-- Stock List -->
-    <div class="stock-list">
-      <h3>Existing Codes ({{ stockList.length }})</h3>
+    <!-- Existing Codes List -->
+    <div class="codes-section">
+      <h3>Codes Générés ({{ stockList.length }})</h3>
 
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>QR</th>
-              <th>Code</th>
-              <th>Variant</th>
-              <th>Status</th>
-              <th>Order Ref</th>
+              <th>Code Unique</th>
+              <th>Variante</th>
+              <th>Statut</th>
+              <th>Ref Commande</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in stockList" :key="item.id" :class="item.status">
+            <tr v-for="stock in stockList" :key="stock.id">
               <td>
-                <canvas :ref="(el) => setCanvasRef(el, item.unique_code)" width="50" height="50"></canvas>
+                <canvas :ref="(el) => setCanvasRef(el, stock.unique_code)" width="50" height="50"></canvas>
               </td>
-              <td class="code-text">{{ item.unique_code }}</td>
+              <td class="code-text">{{ stock.unique_code }}</td>
+              <td>{{ getVariantName(stock) }}</td>
               <td>
-                {{ getVariantName(item) }}
+                 <span class="status-badge" :class="stock.status">{{ stock.status }}</span>
               </td>
+              <td>{{ stock.order_ref || '-' }}</td>
               <td>
-                <span class="status-badge" :class="item.status">{{ item.status }}</span>
-              </td>
-              <td>{{ item.order_ref || '-' }}</td>
-              <td>
-                <button v-if="item.status === 'available'" @click="deleteItem(item.id)" class="btn-icon delete">
-                  🗑️
-                </button>
+                 <gBtn
+                    v-if="stock.status === 'available'"
+                    :svg="icons.trash"
+                    color="var(--color-red)"
+                    @click="deleteSingleItem(stock.id)"
+                    style="width: 32px; height: 32px; padding: 0;"
+                 />
               </td>
             </tr>
-            <tr v-if="stockList.length === 0">
-              <td colspan="6" style="text-align: center; padding: 20px;">No stock codes generated yet.</td>
+             <tr v-if="stockList.length === 0">
+              <td colspan="6" style="text-align: center; padding: 20px; color: #888;">Aucun code généré.</td>
             </tr>
           </tbody>
         </table>
@@ -85,23 +107,26 @@
 
     <!-- Print Area (Hidden usually, visible during print) -->
     <div id="print-area" class="print-only">
-      <div v-for="item in stockList" :key="'print-'+item.id" class="print-item">
+      <div v-for="stock in stockList" :key="'print-'+stock.id" class="print-item">
         <div class="print-qr">
-           <!-- We will copy canvas content here or regenerate -->
-           <img :src="getQrDataUrl(item.unique_code)" />
+           <img :src="stock.qrDataUrl" v-if="stock.qrDataUrl" />
         </div>
         <div class="print-info">
-          <div class="print-code">{{ item.unique_code }}</div>
-          <div class="print-variant">{{ getVariantName(item) }}</div>
+          <div class="print-code">{{ stock.unique_code }}</div>
+          <div class="print-variant">{{ getVariantName(stock) }}</div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue';
+import { ref, computed, watch, onMounted, reactive } from 'vue';
 import QRCode from 'qrcode';
+import gBtn from './bloc/gBtn.vue';
+import InputText from './bloc/inputText.vue';
+import icons from '~/public/icons.json';
 
 const props = defineProps({
   modelValue: {
@@ -110,12 +135,47 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['refresh']);
+
 const stockList = ref([]);
 const loading = ref(false);
-const selectedOption = ref(null);
-const addQty = ref(1);
-const canvasRefs = ref(new Map());
+const inputMap = reactive({}); // Stores input qty for each variant key
 
+// Helper to create a unique key for the input map
+const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
+
+// Compute flattened list of variants/models
+const variantRows = computed(() => {
+    const list = [];
+    if (!props.modelValue.models) return list;
+
+    props.modelValue.models.forEach(m => {
+        if (m.details && m.details.length > 0) {
+            m.details.forEach(d => {
+                list.push({
+                    uniqueKey: getUniqueKey(m.id, d.id),
+                    modelId: m.id,
+                    detailId: d.id,
+                    name: `${m.name || m.ref || 'Model'} - ${d.colorName || d.color} ${d.size || ''}`,
+                    qty: d.quantity || 0, // Ensure 'quantity' field is correct from backend
+                    img: d.image || m.imageUrls || props.modelValue.image
+                });
+            });
+        } else {
+             list.push({
+                uniqueKey: getUniqueKey(m.id, null),
+                modelId: m.id,
+                detailId: null,
+                name: m.name || m.ref || 'Model',
+                qty: m.quantity || 0,
+                img: m.imageUrls || props.modelValue.image
+            });
+        }
+    });
+    return list;
+});
+
+// Canvas Refs for QR
 const setCanvasRef = (el, code) => {
   if (el) {
     QRCode.toCanvas(el, code, { width: 64, margin: 1 }, (error) => {
@@ -124,17 +184,7 @@ const setCanvasRef = (el, code) => {
   }
 };
 
-const getQrDataUrl = (code) => {
-  // Synchronous generation for print view (using data URL)
-  // QRCode.toDataURL is async usually, but we can hack it or use a pre-generated map.
-  // Ideally we generate these when list loads.
-  // For simplicity, let's assume we can get it.
-  // Actually, let's use a method that returns a promise but we can't await in template.
-  // Better approach: Store dataUrl in stockList items.
-  const item = stockList.value.find(i => i.unique_code === code);
-  return item ? item.qrDataUrl : '';
-};
-
+// API Actions
 const fetchStock = async () => {
   if (!props.modelValue.id || props.modelValue.id === -1) return;
 
@@ -143,8 +193,8 @@ const fetchStock = async () => {
     const res = await fetch(`/backend/api.php?action=getStock&product_id=${props.modelValue.id}`);
     const data = await res.json();
     if (data.success) {
-      // Generate QR Data URLs for printing
-      const processed = await Promise.all(data.data.map(async (item) => {
+      // Generate Data URLs for print
+       const processed = await Promise.all(data.data.map(async (item) => {
         try {
           item.qrDataUrl = await QRCode.toDataURL(item.unique_code, { width: 100, margin: 1 });
         } catch (e) {
@@ -161,196 +211,286 @@ const fetchStock = async () => {
   }
 };
 
-const generateStock = async () => {
-  if (!selectedOption.value || addQty.value <= 0) return;
+const addStock = async (item) => {
+    const qty = parseInt(inputMap[item.uniqueKey]);
+    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
 
-  loading.value = true;
-  try {
-    const payload = {
-      product_id: props.modelValue.id,
-      model_id: selectedOption.value.modelId,
-      detail_id: selectedOption.value.detailId,
-      qty: addQty.value
-    };
+    loading.value = true;
+    try {
+        const payload = {
+            product_id: props.modelValue.id,
+            model_id: item.modelId,
+            detail_id: item.detailId,
+            qty: qty
+        };
 
-    const res = await fetch('/backend/api.php?action=postStock', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+        const res = await fetch('/backend/api.php?action=postStock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-    const result = await res.json();
-    if (result.success) {
-      await fetchStock();
-      addQty.value = 1;
-    } else {
-      alert(result.message);
+        const result = await res.json();
+        if (result.success) {
+            inputMap[item.uniqueKey] = ''; // Reset input
+            await refreshAll();
+        } else {
+            alert(result.message || 'Erreur lors de l\'ajout.');
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert('Erreur réseau.');
+    } finally {
+        loading.value = false;
     }
-  } catch (e) {
-    console.error(e);
-    alert('Error generating stock');
-  } finally {
-    loading.value = false;
-  }
 };
 
-const deleteItem = async (id) => {
-  if (!confirm('Are you sure you want to delete this stock code? It will decrease the quantity count.')) return;
+const withdrawStock = async (item) => {
+    const qty = parseInt(inputMap[item.uniqueKey]);
+    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
 
-  try {
-    const res = await fetch('/backend/api.php?action=deleteStock', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    });
-    const result = await res.json();
-    if (result.success) {
-      await fetchStock();
-    } else {
-      alert(result.message);
+    // Local check for availability
+    const availableItems = stockList.value.filter(s =>
+        s.model_id == item.modelId &&
+        s.detail_id == item.detailId &&
+        s.status === 'available'
+    );
+
+    if (availableItems.length < qty) {
+        return alert(`Pas assez de stock disponible (Codes générés: ${availableItems.length}). Impossible de retirer ${qty}.`);
     }
-  } catch (e) {
-    alert('Network error');
-  }
+
+    if (!confirm(`Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`)) return;
+
+    loading.value = true;
+    try {
+        const idsToDelete = availableItems.slice(0, qty).map(s => s.id);
+
+        const res = await fetch('/backend/api.php?action=deleteStock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: idsToDelete })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+            inputMap[item.uniqueKey] = '';
+            await refreshAll();
+        } else {
+            alert(result.message || 'Erreur lors du retrait.');
+        }
+
+    } catch (e) {
+        console.error(e);
+        alert('Erreur réseau.');
+    } finally {
+        loading.value = false;
+    }
 };
 
-const getVariantName = (item) => {
-  // Find model/detail name from props.modelValue
-  if (!props.modelValue.models) return 'Unknown';
+const deleteSingleItem = async (id) => {
+    if (!confirm('Supprimer ce code spécifique ?')) return;
 
-  const model = props.modelValue.models.find(m => m.id == item.model_id);
-  if (!model) return 'Model ' + item.model_id;
+    try {
+        const res = await fetch('/backend/api.php?action=deleteStock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        if (await res.json().then(r => r.success)) {
+            await refreshAll();
+        }
+    } catch (e) { console.error(e); }
+};
 
-  let name = model.name || model.ref || 'Model';
+const refreshAll = async () => {
+    await fetchStock();
+    emit('refresh'); // Tell parent to refresh productData
+};
 
-  if (item.detail_id) {
-    if (model.details) {
-      const detail = model.details.find(d => d.id == item.detail_id);
-      if (detail) {
-        name += ` - ${detail.colorName || detail.color || ''} ${detail.size || ''}`;
-      }
+const getVariantName = (stockItem) => {
+    const m = props.modelValue.models?.find(x => x.id == stockItem.model_id);
+    if (!m) return `Model ${stockItem.model_id}`;
+
+    let name = m.name || m.ref || 'Model';
+    if (stockItem.detail_id && m.details) {
+        const d = m.details.find(x => x.id == stockItem.detail_id);
+        if (d) name += ` - ${d.colorName || d.color} ${d.size || ''}`;
     }
-  }
-
-  return name;
+    return name;
 };
 
 const printAll = () => {
-  window.print();
+    window.print();
 };
 
 onMounted(() => {
-  fetchStock();
+    if (props.modelValue.id > 0) fetchStock();
 });
 
-watch(() => props.modelValue.id, (newId) => {
-  if (newId > 0) fetchStock();
+watch(() => props.modelValue.id, (v) => {
+    if (v > 0) fetchStock();
 });
 
 </script>
 
 <style scoped>
 .product-storage {
-  margin-top: 100px;
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
+    padding: 20px;
+    background-color: var(--color-whitly);
+    border-radius: 12px;
+    margin-top: 20px;
+}
+.dark .product-storage {
+    background-color: var(--color-darkly);
 }
 
 .header-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
 }
 
 .title {
-  font-size: 1.5rem;
-  font-weight: bold;
+    font-size: 1.25rem;
+    font-weight: 700;
 }
 
 .actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+    display: flex;
+    gap: 10px;
 }
 
-.add-stock-card {
-  background: #f9fafb;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  border: 1px solid #e5e7eb;
+/* Grid Styles */
+.stock-grid-container {
+    border: 1px solid var(--color-zioly2);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 30px;
 }
 
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+.grid-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    background-color: var(--color-zioly1);
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-text-muted);
+}
+.dark .grid-header {
+    background-color: var(--color-zioly2);
 }
 
-.form-group {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+.grid-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    padding: 12px 16px;
+    align-items: center;
+    border-bottom: 1px solid var(--color-zioly2);
+    transition: background-color 0.2s;
 }
 
-.input-select, .input-number {
-  padding: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
+.grid-row:last-child {
+    border-bottom: none;
 }
 
-.btn {
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
+.grid-row:hover {
+    background-color: var(--color-whizy);
+}
+.dark .grid-row:hover {
+    background-color: var(--color-darkow);
 }
 
-.btn-primary { background: #3b82f6; color: white; }
-.btn-success { background: #10b981; color: white; }
-.btn-secondary { background: #6b7280; color: white; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.variant-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.variant-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    background-color: #eee;
+}
+
+.stock-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background-color: var(--color-whiby);
+    font-weight: 700;
+    min-width: 30px;
+    text-align: center;
+}
+
+.stock-badge.low-stock {
+    color: #eab308;
+    background-color: #fef9c3;
+}
+
+.stock-badge.out-stock {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+.qty-input {
+    max-width: 100px;
+}
+
+.actions-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* List Styles */
+.codes-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
 
 .table-container {
-  overflow-x: auto;
+    overflow-x: auto;
 }
 
 table {
-  width: 100%;
-  border-collapse: collapse;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 th, td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-zioly2);
+    font-size: 14px;
 }
 
 th {
-  background: #f3f4f6;
-  font-weight: 600;
+    background-color: var(--color-zioly1);
+    font-weight: 600;
+}
+.dark th {
+    background-color: var(--color-zioly2);
 }
 
 .code-text {
-  font-family: monospace;
-  font-weight: bold;
+    font-family: monospace;
+    font-weight: 700;
+    color: var(--color-primary);
 }
 
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 99px;
-  font-size: 12px;
-  text-transform: uppercase;
-  font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 
 .status-badge.available { background: #d1fae5; color: #065f46; }
@@ -358,60 +498,42 @@ th {
 .status-badge.returned { background: #fee2e2; color: #991b1b; }
 .status-badge.removed { background: #f3f4f6; color: #374151; }
 
-.btn-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
+/* Responsive */
+@media (max-width: 768px) {
+    .grid-header { display: none; }
+    .grid-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 16px;
+    }
+    .col-name, .col-stock, .col-input, .col-action {
+        width: 100%;
+        justify-content: space-between;
+        display: flex;
+        align-items: center;
+    }
+    .col-input { max-width: 100%; }
+    .qty-input { width: 100% !important; max-width: 100%; }
 }
 
-.print-only {
-  display: none;
-}
+/* Print */
+.print-only { display: none; }
 
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .product-storage, .product-storage * {
-    visibility: hidden;
-  }
-  #print-area, #print-area * {
-    visibility: visible;
-  }
-  #print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
-  }
-  .print-item {
-    border: 1px solid #ccc;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    page-break-inside: avoid;
-    width: 150px;
-  }
-  .print-qr img {
-    width: 100px;
-    height: 100px;
-  }
-  .print-code {
-    font-family: monospace;
-    font-size: 10px;
-    margin-top: 5px;
-    text-align: center;
-    word-break: break-all;
-  }
-  .print-variant {
-    font-size: 10px;
-    text-align: center;
-  }
+    body * { visibility: hidden; }
+    .product-storage, .product-storage * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area {
+        position: absolute; left: 0; top: 0;
+        width: 100%; display: flex; flex-wrap: wrap; gap: 20px;
+    }
+    .print-item {
+        width: 150px; border: 1px solid #ccc; padding: 10px;
+        display: flex; flexDirection: column; alignItems: center;
+        page-break-inside: avoid;
+    }
+    .print-qr img { width: 100px; height: 100px; }
+    .print-code { font-family: monospace; font-size: 10px; margin-top: 5px; text-align: center; }
+    .print-variant { font-size: 10px; text-align: center; }
 }
 </style>

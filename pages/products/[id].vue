@@ -26,7 +26,7 @@
             @message="ridMessage"
         />
 
-        <productStorage v-if="currentPage === 3" :modelValue="productData" />
+        <productStorage v-if="currentPage === 3" :modelValue="productData" @refresh="getProduct" />
 
         <ProductParameter v-if="currentPage === 4" :modelValue="productData" />
         <ProductTransaction v-if="currentPage === 5" :modelValue="productData" />
