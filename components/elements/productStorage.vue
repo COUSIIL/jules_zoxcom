@@ -105,18 +105,20 @@
       </div>
     </div>
 
-    <!-- Print Area (Hidden usually, visible during print) -->
-    <div id="print-area" class="print-only">
-      <div v-for="stock in stockList" :key="'print-'+stock.id" class="print-item">
-        <div class="print-qr">
-           <img :src="stock.qrDataUrl" v-if="stock.qrDataUrl" />
-        </div>
-        <div class="print-info">
-          <div class="print-code">{{ stock.unique_code }}</div>
-          <div class="print-variant">{{ getVariantName(stock) }}</div>
+    <!-- Print Area (Teleported to body to ensure clean printing) -->
+    <Teleport to="body">
+      <div id="print-area" class="print-only">
+        <div v-for="stock in stockList" :key="'print-'+stock.id" class="print-item">
+          <div class="print-qr">
+             <img :src="stock.qrDataUrl" v-if="stock.qrDataUrl" />
+          </div>
+          <div class="print-info">
+            <div class="print-code">{{ stock.unique_code }}</div>
+            <div class="print-variant">{{ getVariantName(stock) }}</div>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
   </div>
 </template>
@@ -191,9 +193,7 @@ const fetchStock = async () => {
   loading.value = true;
   try {
     const res = await fetch(`https://management.hoggari.com/backend/api.php?action=getStock&product_id=${props.modelValue.id}`);
-    console.log('res: ', res)
     const data = await res.json();
-    console.log('data: ', data)
     if (data.success) {
       // Generate Data URLs for print
        const processed = await Promise.all(data.data.map(async (item) => {
@@ -336,6 +336,20 @@ watch(() => props.modelValue.id, (v) => {
 });
 
 </script>
+
+<style>
+/* Global print styles to hide everything except the print-area */
+@media print {
+    body > *:not(#print-area) {
+        display: none !important;
+    }
+    body {
+        background-color: white;
+        margin: 0;
+        padding: 0;
+    }
+}
+</style>
 
 <style scoped>
 .product-storage {
@@ -522,12 +536,12 @@ th {
 .print-only { display: none; }
 
 @media print {
-    body * { visibility: hidden; }
-    .product-storage, .product-storage * { visibility: hidden; }
-    #print-area, #print-area * { visibility: visible; }
     #print-area {
-        position: absolute; left: 0; top: 0;
-        width: 100%; display: flex; flex-wrap: wrap; gap: 20px;
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 20px;
+        width: 100%;
+        padding: 20px;
     }
     .print-item {
         width: 150px; border: 1px solid #ccc; padding: 10px;
