@@ -70,7 +70,7 @@
        </div>
 
        <!-- Variants Configuration -->
-       <div class="formRow" @click="{ model.activeColor = !model.activeColor; if(!model.activeColor) model.isVariablePrice = false; }">
+       <div class="formRow" @click="{ model.activeColor = !model.activeColor; model.activeSize = model.activeColor; if(!model.activeColor) model.isVariablePrice = false; }">
           <h3>{{ t('activate variants (color/size)') }}</h3>
           <Radio :selected="model.activeColor"/>
        </div>
@@ -305,6 +305,7 @@ function addModel() {
         infinit_stock: false,
         isVariablePrice: false,
         activeColor: false,
+        activeSize: false,
         details: []
     })
 }
