@@ -324,7 +324,8 @@ function addVariant(mIndex) {
         promo: 0,
         ref: '',
         sku: '',
-        catalog_image: ''
+        catalog_image: '',
+        catalog_index: 0
     })
 }
 

@@ -8,7 +8,7 @@
     <ProductNavBar @getClick="changePage"/>
 
     <div style="width: 100%; max-width: 1000px; padding-bottom: 80px;">
-        <ProductPart v-if="currentPage === 1"
+        <ProductPart v-show="currentPage === 1"
             :modelValue="productData"
             @openExplorProdImg="isExplorer = true"
             @openExplorCataImg="(idx) => { isExplorer2 = true; imageRefIndex = idx }"
@@ -18,7 +18,7 @@
             @message="ridMessage"
         />
 
-        <ProductModels v-if="currentPage === 2"
+        <ProductModels v-show="currentPage === 2"
             :modelValue="productData"
             @openExplorer="(idx) => { isExplorer = true; modelImageIndex = idx }"
             :imageRef="img"
@@ -26,12 +26,12 @@
             @message="ridMessage"
         />
 
-        <productStorage v-if="currentPage === 3" :modelValue="productData" @refresh="getProduct" />
+        <productStorage v-show="currentPage === 3" :modelValue="productData" @refresh="getProduct" />
 
-        <ProductParameter v-if="currentPage === 4" :modelValue="productData" />
-        <ProductTransaction v-if="currentPage === 5" :modelValue="productData" />
-        <ProductViewer v-if="currentPage === 6" :modelValue="productData" />
-        <ProductBusiness v-if="currentPage === 7" :modelValue="productData" />
+        <ProductParameter v-show="currentPage === 4" :modelValue="productData" />
+        <ProductTransaction v-show="currentPage === 5" :modelValue="productData" />
+        <ProductViewer v-show="currentPage === 6" :modelValue="productData" />
+        <ProductBusiness v-show="currentPage === 7" :modelValue="productData" />
     </div>
 
     <!-- Save Button Floating or Fixed at bottom -->
@@ -233,7 +233,16 @@ const saveProduct = async () => {
             ...m,
             isActive: m.isActive ? 1 : 0,
             infinit_stock: m.infinit_stock ? 1 : 0,
-            imageUrls: m.imageUrls // Rename back if backend expects imageUrls or image? Backend uses imageUrls in insertModels
+            imageUrls: m.imageUrls, // Rename back if backend expects imageUrls or image? Backend uses imageUrls in insertModels
+            details: m.details ? m.details.map(d => ({
+                ...d,
+                catalog_index: d.catalog_index !== undefined ? d.catalog_index : 0,
+                catalog_image: d.catalog_image || '',
+                color: d.color || '#000000',
+                colorName: d.colorName || '',
+                size: d.size || '',
+                qty: d.qty || 0
+            })) : []
         }))
     };
 
