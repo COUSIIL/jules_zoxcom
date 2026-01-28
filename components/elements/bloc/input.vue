@@ -23,7 +23,7 @@
       {{ t(placeHolder) }}
       <div v-if="required" style="margin-inline: 2px;">
         <DotLottieVue
-          style="height: 16px; width: 16px"
+          style="height: 16px; width: 16px; min-width: 16px;"
           src="/animations/important.lottie"
           autoplay
           loop

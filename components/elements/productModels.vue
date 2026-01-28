@@ -22,7 +22,7 @@
       <Radio :selected="model.isActive"/>
     </div>
 
-    <div v-if="model.isActive">
+    <div v-if="model.isActive" style="width: 100%;">
        <!-- Basic Info -->
        <div style="
        width: 100%;
@@ -39,7 +39,7 @@
              </label>
           </button>
 
-          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+          <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 300px;">
              <Inputer :placeHolder="t('model name')" :img="resizeSvg('package', 16, 16)" :required="true" v-model="model.name"/>
              <Inputer :placeHolder="t('reference')" :img="resizeSvg('reference', 16, 16)" :required="false" v-model="model.ref"/>
              <Inputer :placeHolder="t('sku')" :img="resizeSvg('barcode1', 16, 16)" :required="false" v-model="model.sku"/>
@@ -111,7 +111,7 @@
                         @update:modelValue="(val) => detail.color = val"
                         @update:modelLabel="(label) => detail.colorName = label"
                      />
-                     <div :style="{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: detail.color, border: '1px solid #ccc' }"></div>
+                     <div :style="{ width: '30px',minWidth: '30px', height: '30px', borderRadius: '50%', backgroundColor: detail.color, border: '1px solid #ccc' }"></div>
                  </div>
 
                  <!-- Size Selector -->
@@ -400,9 +400,6 @@ function selectCatalogImage(imgObj) {
     flex-direction: column;
     align-items: center;
     margin: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
 }
 .inputImg {
     display: flex;
