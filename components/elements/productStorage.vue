@@ -5,6 +5,7 @@
       <div class="actions">
         <gBtn :svg="icons.refresh" text="Rafraîchir" color="var(--color-greeny)" @click="refreshAll" />
         <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-greeny)" @click="printAll" />
+        <gBtn :svg="icons.trashX" text="Supprimer tout" color="var(--color-rady)" @click="deleteAllStock" />
       </div>
     </div>
     
@@ -445,6 +446,35 @@ const getVariantName = (stockItem) => {
 const printAll = () => {
     window.print();
 };
+
+const deleteAllStock = async () => {
+    if (!props.modelValue.id || props.modelValue.id <= 0) return;
+    if (!confirm("ATTENTION : Vous êtes sur le point de supprimer tout le stock DISPONIBLE pour ce produit. Cette action est irréversible. Continuer ?")) return;
+
+    loading.value = true;
+    try {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: props.modelValue.id,
+                delete_all: true
+            })
+        });
+        const result = await res.json();
+        if (result.success) {
+            alert(result.message || 'Stock supprimé avec succès.');
+            await refreshAll();
+        } else {
+            alert(result.message || 'Erreur lors de la suppression.');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Erreur réseau.');
+    } finally {
+        loading.value = false;
+    }
+}
 
 onMounted(() => {
     if (props.modelValue.id > 0) fetchStock();

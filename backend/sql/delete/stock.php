@@ -17,29 +17,49 @@ if (isset($data['ids']) && is_array($data['ids'])) {
     $ids = [(int)$data['id']];
 }
 
-if (empty($ids)) {
-    echo json_encode(['success' => false, 'message' => 'Missing ID or IDs']);
+$productId = isset($data['product_id']) ? (int)$data['product_id'] : 0;
+$deleteAll = isset($data['delete_all']) && $data['delete_all'] === true;
+
+if (empty($ids) && (!$deleteAll || $productId <= 0)) {
+    echo json_encode(['success' => false, 'message' => 'Missing ID or IDs, or invalid Product ID for bulk delete']);
     exit;
 }
 
 $mysqli->begin_transaction();
 
 try {
-    // 1. Calculate quantities to decrement (only for 'available' items)
-    // We group by model and detail to minimize update queries
-    $idList = implode(',', $ids);
-    $sql = "SELECT model_id, detail_id, COUNT(*) as cnt
-            FROM product_stock
-            WHERE id IN ($idList) AND status = 'available'
-            GROUP BY model_id, detail_id";
+    $groups = [];
 
-    $stmt = $mysqli->prepare($sql);
-    if (!$stmt) throw new Exception($mysqli->error);
+    if ($deleteAll && $productId > 0) {
+        // Bulk Delete Logic (Only 'available' items)
+        $sql = "SELECT model_id, detail_id, COUNT(*) as cnt
+                FROM product_stock
+                WHERE product_id = ? AND status = 'available'
+                GROUP BY model_id, detail_id";
 
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $groups = $result->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+        $stmt = $mysqli->prepare($sql);
+        if (!$stmt) throw new Exception($mysqli->error);
+        $stmt->bind_param("i", $productId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $groups = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+
+    } else {
+        // Specific IDs Logic
+        $idList = implode(',', $ids);
+        $sql = "SELECT model_id, detail_id, COUNT(*) as cnt
+                FROM product_stock
+                WHERE id IN ($idList) AND status = 'available'
+                GROUP BY model_id, detail_id";
+
+        $stmt = $mysqli->prepare($sql);
+        if (!$stmt) throw new Exception($mysqli->error);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $groups = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
+    }
 
     // 2. Update Quantities
     foreach ($groups as $group) {
@@ -63,9 +83,15 @@ try {
     }
 
     // 3. Delete Rows
-    $sqlDelete = "DELETE FROM product_stock WHERE id IN ($idList)";
-    if (!$mysqli->query($sqlDelete)) {
-        throw new Exception($mysqli->error);
+    if ($deleteAll && $productId > 0) {
+         $stmtDelete = $mysqli->prepare("DELETE FROM product_stock WHERE product_id = ? AND status = 'available'");
+         $stmtDelete->bind_param("i", $productId);
+         if (!$stmtDelete->execute()) throw new Exception($stmtDelete->error);
+         $stmtDelete->close();
+    } else {
+         $idList = implode(',', $ids);
+         $sqlDelete = "DELETE FROM product_stock WHERE id IN ($idList)";
+         if (!$mysqli->query($sqlDelete)) throw new Exception($mysqli->error);
     }
 
     $mysqli->commit();
