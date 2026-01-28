@@ -48,7 +48,7 @@
        </div>
 
        <!-- Price Configuration -->
-       <div class="formRow" @click="{ model.isVariablePrice = !model.isVariablePrice; if(model.isVariablePrice) model.activeColor = true; }">
+       <div class="formRow" @click="{ model.isVariablePrice = !model.isVariablePrice; if(model.isVariablePrice && !model.activeColor && !model.activeSize) model.activeColor = true; }">
           <h3>{{ t('variable price per variant') }}</h3>
           <Radio :selected="model.isVariablePrice"/>
        </div>
@@ -70,12 +70,19 @@
        </div>
 
        <!-- Variants Configuration -->
-       <div class="formRow" @click="{ model.activeColor = !model.activeColor; model.activeSize = model.activeColor; if(!model.activeColor) model.isVariablePrice = false; }">
+       <div class="formRow">
           <h3>{{ t('activate variants (color/size)') }}</h3>
+       </div>
+       <div class="formRow" @click="{ model.activeColor = !model.activeColor; if(!model.activeColor && !model.activeSize) model.isVariablePrice = false; }">
+          <span style="margin-left: 20px;">{{ t('Activate color') }}</span>
           <Radio :selected="model.activeColor"/>
        </div>
+       <div class="formRow" @click="{ model.activeSize = !model.activeSize; if(!model.activeColor && !model.activeSize) model.isVariablePrice = false; }">
+           <span style="margin-left: 20px;">{{ t('Activate Size') }}</span>
+           <Radio :selected="model.activeSize"/>
+       </div>
 
-       <div v-if="model.activeColor" class="sub-section">
+       <div v-if="model.activeColor || model.activeSize" class="sub-section">
           <Gbtn :text="t('add variant')" @click="addVariant(mIndex)" color="var(--color-zioly2)" :svg="icons['add']"/>
 
           <div v-for="(detail, dIndex) in model.details" :key="dIndex" class="variant-item">
@@ -95,18 +102,21 @@
 
               <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
                  <!-- Colors Selector -->
-                 <Selector
-                    :options="modelValue.colors || []"
-                    :placeHolder="t('select color')"
-                    color="var(--color-zioly2)"
-                    :modelValue="detail.color"
-                    @update:modelValue="(val) => detail.color = val"
-                    @update:modelLabel="(label) => detail.colorName = label"
-                 />
-                 <div :style="{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: detail.color, border: '1px solid #ccc' }"></div>
+                 <div v-if="model.activeColor" style="display: flex; gap: 10px; align-items: center;">
+                     <Selector
+                        :options="modelValue.colors || []"
+                        :placeHolder="t('select color')"
+                        color="var(--color-zioly2)"
+                        :modelValue="detail.color"
+                        @update:modelValue="(val) => detail.color = val"
+                        @update:modelLabel="(label) => detail.colorName = label"
+                     />
+                     <div :style="{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: detail.color, border: '1px solid #ccc' }"></div>
+                 </div>
 
                  <!-- Size Selector -->
                  <Selector
+                    v-if="model.activeSize"
                     :options="modelValue.sizes || []"
                     :placeHolder="t('select size')"
                     color="var(--color-zioly2)"

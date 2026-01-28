@@ -147,6 +147,27 @@ const inputMap = reactive({}); // Stores input qty for each variant key
 // Helper to create a unique key for the input map
 const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
 
+const constructVariantName = (model, detail) => {
+    let name = model.name || model.ref || 'Model';
+    if (!detail) return name;
+
+    const hasColor = !!model.activeColor || model.activeColor === '1';
+    const hasSize = !!model.activeSize || model.activeSize === '1';
+
+    let parts = [];
+    if (hasColor && (detail.colorName || detail.color)) {
+        parts.push(detail.colorName || detail.color);
+    }
+    if (hasSize && detail.size) {
+        parts.push(detail.size);
+    }
+
+    if (parts.length > 0) {
+        name += ' - ' + parts.join(' ');
+    }
+    return name;
+};
+
 // Compute flattened list of variants/models
 const variantRows = computed(() => {
     const list = [];
@@ -159,7 +180,7 @@ const variantRows = computed(() => {
                     uniqueKey: getUniqueKey(m.id, d.id),
                     modelId: m.id,
                     detailId: d.id,
-                    name: `${m.name || m.ref || 'Model'} - ${d.colorName || d.color} ${d.size || ''}`,
+                    name: constructVariantName(m, d),
                     qty: d.quantity || 0, // Ensure 'quantity' field is correct from backend
                     img: d.image || m.imageUrls || props.modelValue.image
                 });
@@ -316,12 +337,11 @@ const getVariantName = (stockItem) => {
     const m = props.modelValue.models?.find(x => x.id == stockItem.model_id);
     if (!m) return `Model ${stockItem.model_id}`;
 
-    let name = m.name || m.ref || 'Model';
     if (stockItem.detail_id && m.details) {
         const d = m.details.find(x => x.id == stockItem.detail_id);
-        if (d) name += ` - ${d.colorName || d.color} ${d.size || ''}`;
+        return constructVariantName(m, d);
     }
-    return name;
+    return m.name || m.ref || 'Model';
 };
 
 const printAll = () => {
