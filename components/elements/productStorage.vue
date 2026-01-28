@@ -8,17 +8,33 @@
       </div>
     </div>
     
+    <!-- Bulk & Filter Toolbar -->
+    <div class="bulk-toolbar">
+        <div class="filter-group">
+             <div class="search-wrapper">
+                 <div class="icon-search" v-html="resizeSvg(icons.search, 18, 18)"></div>
+                 <input type="text" v-model="searchQuery" placeholder="Rechercher variante..." class="search-input" />
+             </div>
+        </div>
+
+        <div class="bulk-actions-group">
+            <span class="bulk-label">Actions en masse :</span>
+            <input type="number" v-model="bulkQty" placeholder="Qté" class="bulk-input" />
+            <gBtn :svg="icons.plus" text="Ajouter à la liste" color="var(--color-blumy)" @click="bulkAddStock" :disabled="loading || !bulkQty" />
+            <gBtn :svg="icons.x" text="Retirer de la liste" color="var(--color-rady)" @click="bulkWithdrawStock" :disabled="loading || !bulkQty" />
+        </div>
+    </div>
 
     <!-- Variant Grid Section -->
     <div class="stock-grid-container">
-      <div class="grid-header">
+      <div class="grid-header sticky-header">
         <div class="col-name">Variante / Modèle</div>
         <div class="col-stock">En Stock</div>
         <div class="col-input">Quantité</div>
         <div class="col-action">Actions</div>
       </div>
 
-      <div v-for="(item, index) in variantRows" :key="index" class="grid-row">
+      <div v-for="(item, index) in filteredRows" :key="index" class="grid-row">
         <div class="col-name">
             <div class="variant-info">
                 <img :src="item.img" class="variant-img" onerror="this.style.display='none'"/>
@@ -56,8 +72,9 @@
         </div>
       </div>
 
-      <div v-if="variantRows.length === 0" class="empty-state">
-        Aucune variante ou modèle disponible pour ce produit.
+      <div v-if="filteredRows.length === 0" class="empty-state">
+        <span v-if="searchQuery">Aucun résultat pour "{{ searchQuery }}".</span>
+        <span v-else>Aucune variante ou modèle disponible pour ce produit.</span>
       </div>
     </div>
 
@@ -143,9 +160,16 @@ const emit = defineEmits(['refresh']);
 const stockList = ref([]);
 const loading = ref(false);
 const inputMap = reactive({}); // Stores input qty for each variant key
+const searchQuery = ref('');
+const bulkQty = ref('');
 
 // Helper to create a unique key for the input map
 const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
+
+const resizeSvg = (svg, width, height) => {
+    if(!svg) return '';
+    return svg.replace(/width="[^"]+"/, `width="${width}"`).replace(/height="[^"]+"/, `height="${height}"`);
+}
 
 const constructVariantName = (model, detail) => {
     let name = model.name || model.ref || 'Model';
@@ -199,6 +223,12 @@ const variantRows = computed(() => {
     return list;
 });
 
+const filteredRows = computed(() => {
+    if (!searchQuery.value) return variantRows.value;
+    const lower = searchQuery.value.toLowerCase();
+    return variantRows.value.filter(r => r.name.toLowerCase().includes(lower));
+});
+
 // Canvas Refs for QR
 const setCanvasRef = (el, code) => {
   if (el) {
@@ -235,11 +265,7 @@ const fetchStock = async () => {
   }
 };
 
-const addStock = async (item) => {
-    const qty = parseInt(inputMap[item.uniqueKey]);
-    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
-
-    loading.value = true;
+const performAdd = async (item, qty, silent = false) => {
     try {
         const payload = {
             product_id: props.modelValue.id,
@@ -255,25 +281,32 @@ const addStock = async (item) => {
         });
 
         const result = await res.json();
-        if (result.success) {
-            inputMap[item.uniqueKey] = ''; // Reset input
-            await refreshAll();
-        } else {
+        if (!result.success && !silent) {
             alert(result.message || 'Erreur lors de l\'ajout.');
         }
+        return result.success;
 
     } catch (e) {
         console.error(e);
-        alert('Erreur réseau.');
-    } finally {
-        loading.value = false;
+        if(!silent) alert('Erreur réseau.');
+        return false;
     }
-};
+}
 
-const withdrawStock = async (item) => {
+const addStock = async (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
     if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
 
+    loading.value = true;
+    const success = await performAdd(item, qty);
+    if(success) {
+        inputMap[item.uniqueKey] = '';
+        await refreshAll();
+    }
+    loading.value = false;
+};
+
+const performWithdraw = async (item, qty, silent = false) => {
     // Local check for availability
     const availableItems = stockList.value.filter(s =>
         s.model_id == item.modelId &&
@@ -282,12 +315,10 @@ const withdrawStock = async (item) => {
     );
 
     if (availableItems.length < qty) {
-        return alert(`Pas assez de stock disponible (Codes générés: ${availableItems.length}). Impossible de retirer ${qty}.`);
+        if(!silent) alert(`Pas assez de stock disponible pour ${item.name} (Dispo: ${availableItems.length}).`);
+        return false;
     }
 
-    if (!confirm(`Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`)) return;
-
-    loading.value = true;
     try {
         const idsToDelete = availableItems.slice(0, qty).map(s => s.id);
 
@@ -298,20 +329,72 @@ const withdrawStock = async (item) => {
         });
 
         const result = await res.json();
-        if (result.success) {
-            inputMap[item.uniqueKey] = '';
-            await refreshAll();
-        } else {
+        if (!result.success && !silent) {
             alert(result.message || 'Erreur lors du retrait.');
         }
+        return result.success;
 
     } catch (e) {
         console.error(e);
-        alert('Erreur réseau.');
-    } finally {
-        loading.value = false;
+        if(!silent) alert('Erreur réseau.');
+        return false;
     }
+}
+
+const withdrawStock = async (item) => {
+    const qty = parseInt(inputMap[item.uniqueKey]);
+    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
+
+    if (!confirm(`Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`)) return;
+
+    loading.value = true;
+    const success = await performWithdraw(item, qty);
+    if(success) {
+         inputMap[item.uniqueKey] = '';
+         await refreshAll();
+    }
+    loading.value = false;
 };
+
+
+const bulkAddStock = async () => {
+    const qty = parseInt(bulkQty.value);
+    if (!qty || qty <= 0) return alert('Quantité invalide');
+    const targets = filteredRows.value;
+    if(targets.length === 0) return;
+
+    if(!confirm(`Ajouter ${qty} unités à ${targets.length} variantes affichées ? (Total: ${qty * targets.length})`)) return;
+
+    loading.value = true;
+    let addedCount = 0;
+    for (const item of targets) {
+        const success = await performAdd(item, qty, true); // silent
+        if(success) addedCount++;
+    }
+    await refreshAll();
+    loading.value = false;
+    alert(`Terminé. ${addedCount}/${targets.length} variantes mises à jour.`);
+}
+
+const bulkWithdrawStock = async () => {
+    const qty = parseInt(bulkQty.value);
+    if (!qty || qty <= 0) return alert('Quantité invalide');
+    const targets = filteredRows.value;
+    if(targets.length === 0) return;
+
+    if(!confirm(`Retirer ${qty} unités de ${targets.length} variantes affichées ? Attention, cette action est irréversible.`)) return;
+
+    loading.value = true;
+    let withdrawnCount = 0;
+    for (const item of targets) {
+        const success = await performWithdraw(item, qty, true); // silent
+        if(success) withdrawnCount++;
+    }
+    await refreshAll();
+    loading.value = false;
+    alert(`Terminé. ${withdrawnCount}/${targets.length} variantes mises à jour.`);
+}
+
 
 const deleteSingleItem = async (id) => {
     if (!confirm('Supprimer ce code spécifique ?')) return;
@@ -377,7 +460,7 @@ watch(() => props.modelValue.id, (v) => {
     padding: 20px;
     background-color: var(--color-whitly);
     border-radius: 12px;
-    margin-top: 100px;
+    margin-top: 50px;
 }
 .dark .product-storage {
     background-color: var(--color-darkly);
@@ -387,13 +470,12 @@ watch(() => props.modelValue.id, (v) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .title {
     font-size: 1.25rem;
     font-weight: bold;
-    width: 100%;
 }
 
 .actions {
@@ -402,12 +484,60 @@ watch(() => props.modelValue.id, (v) => {
     gap: 10px;
 }
 
+/* Bulk Toolbar */
+.bulk-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: var(--color-whizy);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    align-items: center;
+    border: 1px solid var(--color-zioly2);
+}
+.dark .bulk-toolbar {
+    background: var(--color-darkow);
+}
+
+.filter-group { flex: 1; min-width: 200px; }
+.search-wrapper {
+    display: flex; align-items: center;
+    background: var(--color-whitly);
+    border: 1px solid var(--color-zioly2);
+    border-radius: 8px;
+    padding: 0 10px;
+    height: 40px;
+}
+.dark .search-wrapper { background: var(--color-darkly); }
+.search-input {
+    border: none; background: transparent;
+    margin-left: 10px; width: 100%; height: 100%;
+    outline: none; color: inherit; font-size: 14px;
+}
+
+.bulk-actions-group {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.bulk-label { font-size: 14px; font-weight: 600; white-space: nowrap; }
+.bulk-input {
+    width: 80px; height: 40px;
+    border: 1px solid var(--color-zioly2);
+    border-radius: 8px;
+    padding: 0 10px;
+    background: var(--color-whitly);
+    color: inherit; text-align: center;
+}
+.dark .bulk-input { background: var(--color-darkly); }
+
 /* Grid Styles */
 .stock-grid-container {
     border: 1px solid var(--color-zioly2);
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 30px;
+    max-height: 600px;
+    overflow-y: auto;
 }
 
 .grid-header {
@@ -418,6 +548,9 @@ watch(() => props.modelValue.id, (v) => {
     font-weight: 600;
     font-size: 14px;
     color: var(--color-text-muted);
+}
+.sticky-header {
+    position: sticky; top: 0; z-index: 10;
 }
 .dark .grid-header {
     background-color: var(--color-zioly2);
@@ -487,6 +620,10 @@ watch(() => props.modelValue.id, (v) => {
     justify-content: flex-end;
 }
 
+.empty-state {
+    padding: 30px; text-align: center; color: var(--color-text-muted);
+}
+
 /* List Styles */
 .codes-section h3 {
     margin-bottom: 15px;
@@ -553,6 +690,8 @@ th {
     }
     .col-input { max-width: 100%; }
     .qty-input { width: 100% !important; max-width: 100%; }
+
+    .bulk-toolbar { flex-direction: column; align-items: stretch; }
 }
 
 /* Print */
