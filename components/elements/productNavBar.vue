@@ -47,15 +47,20 @@ const doClicker = (val) => {
 
     .navBarBox{
         position:fixed;
-        top: 10px;
-        right: -10px;
+        top: 80px;
+        left: 0;
         display: flex;
-        justify-content: left;
-        align-items: center;
+        justify-content: center;
+        align-items: flex-start;
         width: 100%;
-        height: 100px;
+        height: 120px;
         gap: 10px;
-        z-index: 500;
+        z-index: 900;
+        pointer-events: none;
+    }
+
+    .navBarBox > * {
+        pointer-events: auto;
     }
 
 </style>
