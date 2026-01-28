@@ -2,6 +2,7 @@
   <div :style="{display: 'flex', flexDirection: 'column', justifyContent: 'left', alignItems: 'center'}" v-if="isMounted">
 
     <Message :isVisible="isMessage" :message="message"  @ok="isMessage = false"/>
+    <Confirm :isVisible="isConfirm" :message="confirmMessage" @confirm="executeSave" @cancel="isConfirm = false"/>
     <Explorer v-if="isExplorer" :show="isExplorer" @confirm="getExplorerImg" @cancel="isExplorer = false" />
     <Explorer v-if="isExplorer2" :show="isExplorer2" @confirm="getExplorerCatalog" @cancel="isExplorer2 = false" />
 
@@ -73,9 +74,10 @@ import ProductTransaction from '../../components/elements/productTransaction.vue
 import ProductViewer from '../../components/elements/productViewer.vue';
 import ProductBusiness from '../../components/elements/productBusiness.vue';
 import Explorer from '../../components/elements/explorer.vue';
-import Message from '../components/elements/bloc/message.vue';
-import CallToAction from '../components/elements/bloc/callToActionBtn.vue';
-import CancelBtn from '../components/elements/bloc/cancelBtn.vue';
+import Message from '../../components/elements/bloc/message.vue';
+import Confirm from '../../components/elements/bloc/confirm.vue';
+import CallToAction from '../../components/elements/bloc/callToActionBtn.vue';
+import CancelBtn from '../../components/elements/bloc/cancelBtn.vue';
 
 import icons from '~/public/icons.json'
 
@@ -89,7 +91,9 @@ const { getProduct, resultProduct } = useOrders()
 const productID = ref(-1)
 const isMounted = ref(false)
 const isMessage = ref(false)
+const isConfirm = ref(false)
 const message = ref('')
+const confirmMessage = ref('')
 const uploading = ref(false)
 
 // Explorer State
@@ -221,7 +225,13 @@ const changePage = (value) => {
   currentPage.value = value
 }
 
-const saveProduct = async () => {
+const saveProduct = () => {
+    confirmMessage.value = t('confirm action');
+    isConfirm.value = true;
+}
+
+const executeSave = async () => {
+    isConfirm.value = false;
     uploading.value = true;
     
     // Transform data for backend
