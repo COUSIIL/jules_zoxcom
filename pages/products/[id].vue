@@ -272,10 +272,9 @@ const saveProduct = async () => {
         if (result.success) {
             isMessage.value = true;
             message.value = result.message;
-            if (productID.value === -1) {
-                 // If created new, redirect to edit page or list
-                 // router.push('/products');
-            }
+            setTimeout(() => {
+                 router.push('/products');
+            }, 1000);
         } else {
             isMessage.value = true;
             message.value = result.message || 'Error saving product';
