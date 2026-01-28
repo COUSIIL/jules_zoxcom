@@ -64,7 +64,7 @@ if ($detail_id) {
     $res = $stmt->get_result()->fetch_assoc();
     if ($res) {
         $parts = [];
-        if (!empty($res['color'])) $parts[] = $res['color'];
+        if (!empty($res['colorName'])) $parts[] = $res['colorName'];
         if (!empty($res['size'])) $parts[] = $res['size'];
         if (!empty($parts)) {
             $variantSuffix = '-' . implode('-', $parts);

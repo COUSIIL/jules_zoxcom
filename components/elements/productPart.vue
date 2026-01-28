@@ -375,7 +375,9 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    width: 100%;
+    width: calc(100% - 20px);
+    margin-top: 100px;
+    margin-inline: 10px;
 }
 
 .card-style {

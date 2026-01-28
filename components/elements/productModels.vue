@@ -487,7 +487,7 @@ function selectCatalogImage(imgObj) {
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background: var(--color-whity);
+    background: var(--color-zioly1);
     cursor: pointer;
     border-bottom: 1px solid transparent;
 }

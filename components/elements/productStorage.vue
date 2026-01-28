@@ -11,10 +11,11 @@
     <!-- Bulk & Filter Toolbar -->
     <div class="bulk-toolbar">
         <div class="filter-group">
-             <div class="search-wrapper">
-                 <div class="icon-search" v-html="resizeSvg(icons.search, 18, 18)"></div>
-                 <input type="text" v-model="searchQuery" placeholder="Rechercher variante..." class="search-input" />
-             </div>
+             <InputText
+                    type="text"
+                    v-model="searchQuery"
+                    placeHolder="Rechercher variante..."
+                />
         </div>
 
         <div class="bulk-actions-group">
@@ -460,7 +461,11 @@ watch(() => props.modelValue.id, (v) => {
     padding: 20px;
     background-color: var(--color-whitly);
     border-radius: 12px;
-    margin-top: 50px;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 20px);
+    margin-inline: 10px;
 }
 .dark .product-storage {
     background-color: var(--color-darkly);
