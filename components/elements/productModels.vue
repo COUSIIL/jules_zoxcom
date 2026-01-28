@@ -99,8 +99,9 @@
                     :options="modelValue.colors || []"
                     :placeHolder="t('select color')"
                     color="var(--color-zioly2)"
-                    :modelValue="detail.colorName"
-                    @update:modelValue="(val) => { detail.colorName = val.label; detail.color = val.value; }"
+                    :modelValue="detail.color"
+                    @update:modelValue="(val) => detail.color = val"
+                    @update:modelLabel="(label) => detail.colorName = label"
                  />
                  <div :style="{ width: '30px', height: '30px', borderRadius: '50%', backgroundColor: detail.color, border: '1px solid #ccc' }"></div>
 
@@ -110,7 +111,7 @@
                     :placeHolder="t('select size')"
                     color="var(--color-zioly2)"
                     :modelValue="detail.size"
-                    @update:modelValue="(val) => detail.size = val.label"
+                    @update:modelValue="(val) => detail.size = val"
                  />
               </div>
 

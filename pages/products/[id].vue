@@ -8,30 +8,44 @@
     <ProductNavBar @getClick="changePage"/>
 
     <div style="width: 100%; max-width: 1000px; padding-bottom: 80px;">
-        <ProductPart v-show="currentPage === 1"
-            :modelValue="productData"
-            @openExplorProdImg="isExplorer = true"
-            @openExplorCataImg="(idx) => { isExplorer2 = true; imageRefIndex = idx }"
-            :prodImage="img"
-            :imageRef="imageRef"
-            @isMessage="openMessage"
-            @message="ridMessage"
-        />
+        <div v-show="currentPage === 1" style="width: 100%;">
+            <ProductPart
+                :modelValue="productData"
+                @openExplorProdImg="isExplorer = true"
+                @openExplorCataImg="(idx) => { isExplorer2 = true; imageRefIndex = idx }"
+                :prodImage="img"
+                :imageRef="imageRef"
+                @isMessage="openMessage"
+                @message="ridMessage"
+            />
+        </div>
 
-        <ProductModels v-show="currentPage === 2"
-            :modelValue="productData"
-            @openExplorer="(idx) => { isExplorer = true; modelImageIndex = idx }"
-            :imageRef="img"
-            @isMessage="openMessage"
-            @message="ridMessage"
-        />
+        <div v-show="currentPage === 2" style="width: 100%;">
+            <ProductModels
+                :modelValue="productData"
+                @openExplorer="(idx) => { isExplorer = true; modelImageIndex = idx }"
+                :imageRef="img"
+                @isMessage="openMessage"
+                @message="ridMessage"
+            />
+        </div>
 
-        <productStorage v-show="currentPage === 3" :modelValue="productData" @refresh="getProduct" />
+        <div v-show="currentPage === 3" style="width: 100%;">
+            <productStorage :modelValue="productData" @refresh="getProduct" />
+        </div>
 
-        <ProductParameter v-show="currentPage === 4" :modelValue="productData" />
-        <ProductTransaction v-show="currentPage === 5" :modelValue="productData" />
-        <ProductViewer v-show="currentPage === 6" :modelValue="productData" />
-        <ProductBusiness v-show="currentPage === 7" :modelValue="productData" />
+        <div v-show="currentPage === 4" style="width: 100%;">
+            <ProductParameter :modelValue="productData" />
+        </div>
+        <div v-show="currentPage === 5" style="width: 100%;">
+            <ProductTransaction :modelValue="productData" />
+        </div>
+        <div v-show="currentPage === 6" style="width: 100%;">
+            <ProductViewer :modelValue="productData" />
+        </div>
+        <div v-show="currentPage === 7" style="width: 100%;">
+            <ProductBusiness :modelValue="productData" />
+        </div>
     </div>
 
     <!-- Save Button Floating or Fixed at bottom -->
