@@ -192,6 +192,18 @@ const constructVariantName = (model, detail) => {
     return name;
 };
 
+// Compute counts from actual stockList
+const stockCounts = computed(() => {
+    const counts = {};
+    stockList.value.forEach(s => {
+        if (s.status === 'available') {
+            const key = getUniqueKey(s.model_id, s.detail_id);
+            counts[key] = (counts[key] || 0) + 1;
+        }
+    });
+    return counts;
+});
+
 // Compute flattened list of variants/models
 const variantRows = computed(() => {
     const list = [];
@@ -200,22 +212,24 @@ const variantRows = computed(() => {
     props.modelValue.models.forEach(m => {
         if (m.details && m.details.length > 0) {
             m.details.forEach(d => {
+                const key = getUniqueKey(m.id, d.id);
                 list.push({
-                    uniqueKey: getUniqueKey(m.id, d.id),
+                    uniqueKey: key,
                     modelId: m.id,
                     detailId: d.id,
                     name: constructVariantName(m, d),
-                    qty: d.quantity || 0, // Ensure 'quantity' field is correct from backend
+                    qty: stockCounts.value[key] || 0,
                     img: d.image || m.imageUrls || props.modelValue.image
                 });
             });
         } else {
+             const key = getUniqueKey(m.id, null);
              list.push({
-                uniqueKey: getUniqueKey(m.id, null),
+                uniqueKey: key,
                 modelId: m.id,
                 detailId: null,
                 name: m.name || m.ref || 'Model',
-                qty: m.quantity || 0,
+                qty: stockCounts.value[key] || 0,
                 img: m.imageUrls || props.modelValue.image
             });
         }
