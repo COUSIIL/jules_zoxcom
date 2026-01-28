@@ -7,6 +7,7 @@
         <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-greeny)" @click="printAll" />
       </div>
     </div>
+    
 
     <!-- Variant Grid Section -->
     <div class="stock-grid-container">
@@ -90,8 +91,8 @@
               <td>
                  <gBtn
                     v-if="stock.status === 'available'"
-                    :svg="icons.trash"
-                    color="var(--color-red)"
+                    :svg="icons.x"
+                    color="var(--color-rady)"
                     @click="deleteSingleItem(stock.id)"
                     style="width: 32px; height: 32px; padding: 0;"
                  />
@@ -371,11 +372,13 @@ watch(() => props.modelValue.id, (v) => {
 
 .title {
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: bold;
+    width: 100%;
 }
 
 .actions {
-    display: flex;
+    display: flex !important;
+    flex-wrap: wrap;
     gap: 10px;
 }
 
