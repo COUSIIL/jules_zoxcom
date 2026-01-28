@@ -1,122 +1,145 @@
 <template>
-  <div class="spacer"></div>
+  <div class="product-part-wrapper">
 
-  <div class="container">
-    <h1 @click="modelValue.prodActive = !modelValue.prodActive">
-      <span v-if="!modelValue.name">
-        {{ t('product name') }}
-      </span>
-      <span v-else>
-        {{ modelValue.name }}
-      </span>
+    <!-- Header Section -->
+    <div class="part-header card-style" @click="modelValue.prodActive = !modelValue.prodActive">
+       <div class="header-title">
+          <span class="status-indicator" :class="{ active: modelValue.prodActive }"></span>
+          <h1>{{ modelValue.name || t('product name') }}</h1>
+       </div>
+       <div class="header-actions">
+           <span class="label-text">{{ modelValue.prodActive ? t('Visible') : t('Hidden') }}</span>
+           <Radio :selected="modelValue.prodActive" />
+       </div>
+    </div>
 
-      <Radio :selected="modelValue.prodActive"/>
-    </h1>
+    <div class="part-grid">
 
-    <div style="
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;">
-      <button type="button" class="imageUploadSection" @click="openExplorer">
-        <div class="important">
-          <DotLottieVue
-            style="height: 24px; width: 24px"
-            src="/animations/important.lottie"
-            autoplay
-            loop
-          />
+        <!-- Left Column -->
+        <div class="grid-column">
+
+            <!-- Identity Card -->
+            <div class="part-card card-style">
+                <h3>{{ t('Identity') }}</h3>
+                <div class="card-content">
+                     <Inputer :placeHolder="t('product name')" :img="resizeSvg('package', 16, 16)" :required="true" v-model="modelValue.name" @blur:modelValue="generateSlug"/>
+                     <Inputer :placeHolder="t('slug')" :holder="t('this input must be unique')" :img="resizeSvg('link', 16, 16)" :required="true" v-model="modelValue.slug"/>
+                     <Inputer :placeHolder="t('badge')" :holder="t('ex: limited')" :img="resizeSvg('reference', 16, 16)" :required="false" v-model="modelValue.label"/>
+                </div>
+            </div>
+
+            <!-- Media Card -->
+            <div class="part-card card-style">
+                 <div class="card-header">
+                    <h3>{{ t('Media') }}</h3>
+                 </div>
+
+                 <div class="media-section">
+                     <!-- Main Image -->
+                     <div class="main-image-area">
+                        <button type="button" class="image-upload-btn" @click="openExplorer">
+                            <div class="important-icon">
+                                <DotLottieVue style="height: 24px; width: 24px" src="/animations/important.lottie" autoplay loop />
+                            </div>
+                            <div class="image-preview-box">
+                                <span v-if="!modelValue.image" class="placeholder-text">{{ t('product image 1:1') }}</span>
+                                <img v-else :src="modelValue.image" alt="Preview" />
+                            </div>
+                        </button>
+                     </div>
+
+                     <!-- Catalog -->
+                     <div class="catalog-area">
+                        <div class="catalog-header" @click="modelValue.cataActive = !modelValue.cataActive">
+                            <span>{{ t('product catalog') }}</span>
+                            <Radio :selected="modelValue.cataActive"/>
+                        </div>
+
+                        <div class="catalog-grid">
+                            <div v-if="modelValue.catalog" v-for="(ref, index) in modelValue.catalog" :key="index" class="catalog-item">
+                                <button type="button" class="catalog-thumb" @click="openExplorer2(index)">
+                                    <span v-if="!ref.previewImage">{{ t('optimal 1:1') }}</span>
+                                    <img v-else :src="ref.previewImage" alt="Catalog" />
+                                </button>
+                                <button class="remove-btn" @click="clearCatalog(index)" type="button">
+                                     <div v-html="resizeSvg('trashX', 16, 16)"></div>
+                                </button>
+                            </div>
+
+                            <!-- Add Button -->
+                            <button class="add-catalog-btn" @click="addCatalog">
+                                <div v-html="resizeSvg('add', 24, 24)"></div>
+                                <span>{{ t('add image') }}</span>
+                            </button>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+
         </div>
-        <label class="inputImg">
-          <span v-if="!modelValue.image">{{ t('product image 1:1') }}</span>
-          <img v-else :src="modelValue.image" alt="Preview" />
-        </label>
-      </button>
-      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-width: 300px;">
-        <Inputer :placeHolder="t('product name')" :img="resizeSvg('package', 16, 16)" :required="true" v-model="modelValue.name" @blur:modelValue="generateSlug"/>
 
-        <Inputer :placeHolder="t('slug')" :holder="t('this input must be unique')" :img="resizeSvg('link', 16, 16)" :required="true" v-model="modelValue.slug"/>
+        <!-- Right Column -->
+        <div class="grid-column">
 
-        <Inputer :placeHolder="t('badge')" :holder="t('ex: limited')" :img="resizeSvg('reference', 16, 16)" :required="false" v-model="modelValue.label"/>
-      </div>
+            <!-- Classification Card -->
+            <div class="part-card card-style">
+                 <div class="card-header" @click="categoryActive = !categoryActive">
+                    <h3>{{ t('Classification') }}</h3>
+                     <!-- Using existing newCat toggle logic if needed, but grouping logic here -->
+                    <Radio :selected="categoryActive"/>
+                 </div>
+
+                 <div class="card-content" v-if="!newCat">
+                      <div v-if="categories" class="classification-inputs">
+                        <Selector :options="categories" @update:modelValue="setCat" color="var(--color-zioly2)" :placeHolder="t('categorie')" :modelValue="categoryName" v-model="categoryName"/>
+                        <Selector v-if="categoryName && subCategories" :options="subCategories" @update:modelValue="setSubCat" color="var(--color-zioly2)" :placeHolder="t('sub categorie')" :modelValue="categoryName2" v-model="categoryName2"/>
+                        <Selector v-if="categoryName2 && categoriesElements" :options="categoriesElements" @update:modelValue="setCatElements" color="var(--color-zioly2)" :placeHolder="t('categorie element')" :modelValue="categoryName3" v-model="categoryName3"/>
+                      </div>
+                      <p v-else class="empty-text">{{ t('no category yet') }}</p>
+
+                      <div class="actions-row">
+                          <Gbtn :text="t('add new category')" @click="newCategory" color="var(--color-zioly2)" :svg="icons['add']"/>
+                      </div>
+                 </div>
+
+                 <EditCat v-if="newCat" :model-value="categoryName" @saved="updatedCategories" @cancel="newCat = false"/>
+            </div>
+
+            <!-- Content Card -->
+            <div class="part-card card-style">
+                <div class="card-header" @click="modelValue.isDescription = !modelValue.isDescription">
+                    <h3>{{ t('Description') }}</h3>
+                    <Radio :selected="modelValue.isDescription"/>
+                </div>
+                <div class="editor-wrapper">
+                    <Editor :key="descriptionKey" v-model="modelValue.description" @update:modelValue="updateDescription" />
+                </div>
+            </div>
+
+             <!-- Video Card -->
+            <div class="part-card card-style">
+                <div class="card-header">
+                     <h3>{{ t('Video') }}</h3>
+                     <Radio :selected="modelValue.ytbActive" @changed="modelValue.ytbActive = !modelValue.ytbActive"/>
+                </div>
+                <div class="card-content">
+                    <Inputer :placeHolder="t('youtube link')" :img="resizeSvg('youtube', 24, 24)" :required="false" v-model="modelValue.youtubeUrl" @onBlur="updateVideoId"/>
+
+                    <div v-if="videoId" class="video-preview">
+                        <iframe
+                            :src="`https://www.youtube.com/embed/${videoId}`"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
   </div>
-
-  <div class="container">
-    <div class="formRow" @click="modelValue.cataActive = !modelValue.cataActive">
-      <h2>{{ t('product catalog') }}</h2>
-      <Radio :selected="modelValue.cataActive"/>
-    </div>
-
-    <Gbtn :text="t('add image')" @click="addCatalog" color="var(--color-zioly2)" :svg="icons['add']"/>
-
-    <div class="folder-tree">
-      <div v-if="modelValue.catalog" v-for="(ref, index) in modelValue.catalog" :key="index">
-        <button type="button" class="folder-item" @click="openExplorer2(index)">
-          <label class="inputImg2">
-            <span v-if="!ref.previewImage">{{ t('optimal 1:1') }}</span>
-            <img v-else :src="ref.previewImage" alt="Preview" />
-          </label>
-        </button>
-
-        <button class="removeImg" @click="clearCatalog(index)" type="button">
-          <div v-html="resizeSvg('trashX', 24, 24)"></div>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="container">
-    <div v-if="!newCat" class="formRow" @click="categoryActive = !categoryActive">
-      <h2>{{ t('activate category') }}</h2>
-      <Radio :selected="categoryActive"/>
-    </div>
-
-    <div v-if="!newCat">
-      <div v-if="categories" class="formRow">
-        <Selector :options="categories" @update:modelValue="setCat" color="var(--color-zioly2)" :placeHolder="t('categorie')" :modelValue="categoryName" v-model="categoryName"/>
-        <Selector v-if="categoryName && subCategories" :options="subCategories" @update:modelValue="setSubCat" color="var(--color-zioly2)" :placeHolder="t('sub categorie')" :modelValue="categoryName2" v-model="categoryName2"/>
-        <Selector v-if="categoryName2 && categoriesElements" :options="categoriesElements" @update:modelValue="setCatElements" color="var(--color-zioly2)" :placeHolder="t('categorie element')" :modelValue="categoryName3" v-model="categoryName3"/>
-      </div>
-      <p v-else>{{ t('no category yet') }}</p>
-
-      <Gbtn :text="t('add new category')" @click="newCategory" color="var(--color-zioly2)" :svg="icons['add']"/>
-    </div>
-  </div>
-
-  <EditCat v-if="newCat" :model-value="categoryName" @saved="updatedCategories" @cancel="newCat = false"/>
-
-  <div class="container">
-    <div class="formRow" @click="modelValue.isDescription = !modelValue.isDescription">
-      <h2>{{ t('activate description') }}</h2>
-      <Radio :selected="modelValue.isDescription"/>
-    </div>
-
-    <Editor :key="descriptionKey" v-model="modelValue.description" @update:modelValue="updateDescription" />
-  </div>
-
-  <div class="container">
-    <div class="formRow">
-      <Inputer :placeHolder="t('youtube link')" :img="resizeSvg('youtube', 24, 24)" :required="false" v-model="modelValue.youtubeUrl" @onBlur="updateVideoId"/>
-      <Radio :selected="modelValue.ytbActive" @changed="modelValue.ytbActive = !modelValue.ytbActive"/>
-    </div>
-
-    <div :style="{ marginBlock: '5px', width: '80%', maxWidth: '800px', minWidth: '200px' }">
-      <iframe
-        v-if="videoId"
-        :src="`https://www.youtube.com/embed/${videoId}`"
-        frameborder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-        class="youtube"
-      ></iframe>
-    </div>
-  </div>
-
-  <div class="spacer"></div>
 </template>
 
 <script setup>
@@ -348,240 +371,200 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.spacer{
-  height: 80px;
-}
-
-.container{
+.product-part-wrapper {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 90%;
+    gap: 15px;
+    width: 100%;
+}
+
+.card-style {
     background-color: var(--color-whitly);
-    border-radius: 10px;
-    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.1);
-    margin-block: 5px;
-    padding-block: 5px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    transition: all 0.2s;
 }
-.dark .container {
+.dark .card-style {
     background-color: var(--color-darkly);
-    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.container h1{
+/* Header */
+.part-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 100%;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: pointer;
-    background-color: var(--color-whity);
-    border-radius: 20px;
-    padding-inline: 5px;
-    margin-block: 5px;
-}
-.dark .container h1{
-    background-color: var(--color-darkow);
-}
-.container h2{
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    width: 100%;
-    font-size: 18px;
-}
-
-.formRow{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding-inline: 5px;
-    margin-block: 5px;
-    background-color: var(--color-whity);
-    border-radius: 20px;
     cursor: pointer;
 }
-.dark .formRow{
-    background-color: var(--color-darkow);
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.status-indicator {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background-color: var(--color-rady);
+}
+.status-indicator.active {
+    background-color: var(--color-greeny);
+}
+.part-header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.imageUploadSection {
-    width: 100%;
-    max-width: 200px;
+/* Grid Layout */
+.part-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+@media(max-width: 900px) {
+    .part-grid { grid-template-columns: 1fr; }
+}
+
+.grid-column {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: 5px;
+    gap: 15px;
 }
 
-.important {
+.part-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--color-text-muted);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+.card-header h3 { margin-bottom: 0; }
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Media Section */
+.media-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+.main-image-area {
+    display: flex;
+    justify-content: center;
+}
+.image-upload-btn {
     position: relative;
-    bottom: 0;
-    left: 0px;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    border-radius: 50%;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 500;
-}
-
-.inputImg {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 200px;
-    height: 200px;
-    background-color: var(--color-whizy);
-    border: 1px solod var(--color-rangy);
-    border-radius: 5px;
-    padding: 5px;
-    cursor: pointer; /* Indique que c'est cliquable */
-    transition: all 0.3s ease;
-    margin: 5px;
-    text-align: center;
-    color: var(--color-rangy);
-
-}
-
-.inputImg img {
-    max-width: 200px;
-    max-height: 200px;
-    object-fit: contain;
-}
-
-.dark .inputImg{
-    background-color: var(--color-darky);
-}
-.inputImg button{
-    background-color: var(--color-rangy);
-    cursor: pointer;
-    border: none;
+    border: 2px dashed var(--color-zioly2);
+    border-radius: 8px;
+    background: transparent;
     cursor: pointer;
     padding: 10px;
+    transition: border-color 0.2s;
+}
+.image-upload-btn:hover { border-color: var(--color-primary); }
+.important-icon {
+    position: absolute; top: -10px; left: -10px;
+    background: var(--color-whitly);
     border-radius: 50%;
+}
+.dark .important-icon { background: var(--color-darkly); }
+.image-preview-box {
+    width: 180px; height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.3s ease;
+    overflow: hidden;
 }
-.inputImg button svg{
-    color: var(--color-whity);
-}
-
-.inputImg2 {
-display: flex;
-align-items: center;
-justify-content: center;
-width: 100px;
-height: 100px;
-background-color: var(--color-whizy);
-border: 1px solod var(--color-rangy);
-border-radius: 5px;
-cursor: pointer; /* Indique que c'est cliquable */
-transition: all 0.3s ease;
-text-align: center;
-color: var(--color-rangy);
-}
-.dark .inputImg2{
-background-color: var(--color-darky);
-/*box-shadow: 0px 0px 8px var(--color-rangy);*/
-}
-.inputImg2 img {
-max-width: 100px;
-max-height: 100px;
-object-fit: contain;
+.image-preview-box img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
 }
 
-
-.folder-tree {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 2fr));
-  gap: 12px;
-  padding: 12px;
-  max-height: 400px;
-  overflow-y: auto;
-
-  /* Scrollbar styling */
-  scrollbar-width: thin;              /* Firefox */
-  scrollbar-color: #888 transparent; /* Firefox */
+/* Catalog */
+.catalog-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; cursor: pointer;
+    font-size: 0.9rem; font-weight: 600;
+}
+.catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+}
+.catalog-item {
+    position: relative;
+    aspect-ratio: 1;
+}
+.catalog-thumb {
+    width: 100%; height: 100%;
+    border: 1px solid var(--color-zioly2);
+    border-radius: 6px;
+    background: var(--color-whizy);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden;
+    padding: 2px;
+}
+.dark .catalog-thumb { background: var(--color-darky); }
+.catalog-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.remove-btn {
+    position: absolute; top: -5px; right: -5px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--color-whitly);
+    border: 1px solid var(--color-rady);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--color-rady);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* Chrome, Edge, Safari */
-.folder-tree::-webkit-scrollbar {
-  width: 8px;
+.add-catalog-btn {
+    aspect-ratio: 1;
+    border: 2px dashed var(--color-zioly2);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 5px; color: var(--color-zioly2);
+    font-size: 0.75rem;
 }
+.add-catalog-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
-.folder-tree::-webkit-scrollbar-track {
-  background: transparent;
+/* Classification */
+.classification-inputs {
+    display: flex; flex-direction: column; width: 100%; align-items: center; gap: 5px;
 }
+.empty-text { color: var(--color-text-muted); text-align: center; font-style: italic; }
+.actions-row { width: 100%; display: flex; justify-content: center; margin-top: 10px; }
 
-.folder-tree::-webkit-scrollbar-thumb {
-  background-color: rgba(125, 105, 142, 0.6); /* couleur mauve translucide */
-  border-radius: 10px;
-  border: 2px solid transparent; /* espace autour */
-  background-clip: content-box;
-  transition: background-color 0.3s ease;
+/* Video */
+.video-preview {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 10px;
 }
+.video-preview iframe { width: 100%; height: 100%; }
 
-.folder-tree::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(125, 105, 142, 0.9);
-}
-
-.folder-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  user-select: none;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-  background-color: var(--color-whity);
-}
-.dark .folder-item {
-  background-color: var(--color-darkow);
-}
-
-.folder-item:hover {
-  background-color: #1400003f;
-}
-.dark .folder-item:hover {
-  background-color: #e0e0e03f;
-}
-
-
-.removeImg {
-  position: relative;
-  top: -105px;
-  left: 85px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  border-radius: 50%;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 500;
-  color: var(--color-rady);
-  background-color: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.dark .removeImg {
-  background-color: var(--color-darkow);
-}
-.removeImg svg {
-  color: var(--color-rady);
-}
-
-.youtube {
-  width: 100%; 
-  height: 300px; 
-  margin-top: 50px;
+.editor-wrapper {
+    /* Style fix for the editor component if needed */
+    width: 100%;
 }
 </style>
