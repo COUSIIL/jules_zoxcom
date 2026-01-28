@@ -71,7 +71,10 @@
               <Inputer type="number" :placeHolder="t('selling price')" :img="resizeSvg('moneyTag', 16, 16)" :required="true" v-model="model.sell"/>
               <Inputer type="number" :placeHolder="t('promo price')" :img="resizeSvg('promotion', 16, 16)" v-model="model.promo"/>
               <div class="qty-group">
-                 <Inputer v-if="!model.infinit_stock" type="number" :placeHolder="t('quantity')" :img="resizeSvg('box', 16, 16)" v-model="model.qty"/>
+                 <div v-if="!model.infinit_stock" style="display: flex; flex-direction: column; min-width: 100px;">
+                    <label style="font-size: 10px; margin-left: 10px; color: var(--color-zioly2);">{{ t('quantity') }}</label>
+                    <input type="number" :value="model.qty" disabled style="width: 100%; padding: 10px; border-radius: 20px; border: 1px solid var(--color-rangy); background: var(--color-whizy); color: var(--color-zioly2); cursor: not-allowed; height: 42px;" />
+                 </div>
                  <div class="infinite-toggle" @click="model.infinit_stock = !model.infinit_stock">
                     <span>{{ t('infinite') }}</span>
                     <Radio :selected="model.infinit_stock"/>
@@ -168,7 +171,7 @@
                               </div>
                           </td>
                           <td>
-                              <input type="number" v-model="detail.qty" class="mini-input qty-input"/>
+                              <input type="number" :value="detail.qty" class="mini-input qty-input" disabled style="opacity: 0.7; cursor: not-allowed; background-color: var(--color-whizy);"/>
                           </td>
                           <td>
                               <button class="icon-btn" @click="duplicateVariant(mIndex, dIndex)" :title="t('duplicate')">
