@@ -33,30 +33,20 @@ if (empty($prompt)) {
     respond(400, ["success" => false, "error" => "Prompt is required"]);
 }
 
-// Prepare prompt with aspect ratio for Midjourney
-$finalPrompt = $prompt;
-if ($aspect) {
-    // Convert 16:9 to --ar 16:9 format if using MJ
-    $finalPrompt .= " --ar " . $aspect;
-}
-
-$model = "midjourney"; // Using Midjourney via Kie
-$endpoint = "https://api.kie.ai/api/v1/jobs/createTask";
-
-$input = [
-    "prompt" => $finalPrompt
-];
-
-// If image provided, typically Midjourney accepts it at the start of prompt or as separate field depending on wrapper
-// For Kie/MJ, usually prepending the URL to the prompt works best for img2img.
-if ($imageUrl) {
-    $input["prompt"] = $imageUrl . " " . $finalPrompt;
-}
+// Flux Kontext API Endpoint
+$endpoint = "https://api.kie.ai/api/v1/flux/kontext/generate";
+$model = "flux-kontext-pro";
 
 $payload = [
-    "model" => $model,
-    "input" => $input
+    "prompt" => $prompt,
+    "aspectRatio" => $aspect,
+    "model" => $model
 ];
+
+// If input image is provided (for editing/variation)
+if ($imageUrl) {
+    $payload["inputImage"] = $imageUrl;
+}
 
 $ch = curl_init($endpoint);
 curl_setopt_array($ch, [
@@ -81,13 +71,14 @@ $decoded = json_decode($body ?: '', true);
 if (!is_array($decoded) || ($decoded["code"] ?? null) !== 200) {
     respond(502, [
         "success" => false,
-        "error" => "KIE createTask failed",
+        "error" => "KIE Flux Generate failed",
         "kie_code" => $decoded["code"] ?? null,
-        "message" => $decoded["message"] ?? null,
+        "message" => $decoded["msg"] ?? null, // Flux uses 'msg'
         "raw" => $decoded
     ]);
 }
 
+// Flux returns { code: 200, data: { taskId: "..." } }
 $taskId = $decoded["data"]["taskId"] ?? "";
 if ($taskId === "") {
     respond(502, ["success" => false, "error" => "taskId missing", "raw" => $decoded]);
@@ -97,6 +88,6 @@ if ($taskId === "") {
 respond(200, [
     "success" => true,
     "taskId" => $taskId,
-    "info" => "Task created successfully"
+    "info" => "Task created successfully (Flux)"
 ]);
 ?>
