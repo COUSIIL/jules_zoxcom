@@ -50,14 +50,14 @@
             </svg>
           </button>
 
-          <div class="activer_info_float" v-if="product.prodActive == 1">
+          <div class="activer_info_float" v-if="product.prodActive == 1" @click.stop="toggleStatus(product)" style="cursor: pointer;">
             <div style="width: 10px; height: 10px; min-width: 10px; min-height: 10px; background-color: var(--color-greny); margin-inline: 5px; border-radius: 50%;">
             </div>
             <p>
               {{ t('active') }}
             </p>
           </div>
-          <div class="activer_info_float" v-else>
+          <div class="activer_info_float" v-else @click.stop="toggleStatus(product)" style="cursor: pointer;">
             <div style="width: 10px; height: 10px; min-width: 10px; min-height: 10px; background-color: var(--color-rady); margin-inline: 5px; border-radius: 50%;">
             </div>
             <p>
@@ -117,10 +117,12 @@
   import LoaderBlack from '../components/elements/animations/loaderBlack.vue';
   import Confirm from '../components/elements/bloc/confirm.vue';
   import Linker from '../components/elements/bloc/classBtn.vue';
+  import { useAuth } from '../../composables/useAuth';
 
   import icons from '~/public/icons.json'
 
   const { t } = useLang()
+  const { auth } = useAuth()
 
   
   
@@ -271,6 +273,38 @@
       isUpdating.value = false;
 
   };
+  const toggleStatus = async (product) => {
+    const oldStatus = product.prodActive;
+    const newStatus = oldStatus == 1 ? 0 : 1;
+    product.prodActive = newStatus;
+
+    // Get token from auth composable or fallback to localStorage if needed
+    let token = auth.value?.token;
+    if(!token) {
+        const stored = localStorage.getItem('auth');
+        if(stored) token = JSON.parse(stored).token;
+    }
+
+    try {
+        const response = await fetch('https://management.hoggari.com/backend/api.php?action=updateProductStatus', {
+            method: 'POST',
+            body: JSON.stringify({
+                id: product.id,
+                isActive: newStatus,
+                token: token
+            })
+        });
+        const res = await response.json();
+        if (!res.success) {
+            product.prodActive = oldStatus;
+            console.error(res.message);
+        }
+    } catch (e) {
+        product.prodActive = oldStatus;
+        console.error(e);
+    }
+  };
+
   const selectProduct = (id) => {
     productID.value = id;
     localStorage.setItem('productID', id);

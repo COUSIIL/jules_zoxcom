@@ -47,47 +47,49 @@
             </div>
 
             <div class="input-group full-width">
-                 <label>{{ t('Product') }}</label>
-                 <select v-model="filters.product_id" class="custom-select">
-                    <option value="">{{ t('All Products') }}</option>
-                    <option v-for="p in products" :key="p.id" :value="p.id">
-                        {{ p.name }}
-                    </option>
-                </select>
+                 <Selector
+                    v-model="filters.product_id"
+                    :options="productOptions"
+                    :placeHolder="t('All Products')"
+                    :img="icons['package']"
+                    class="full-width-selector"
+                 />
             </div>
 
-            <div class="input-group">
-                <label>{{ t('Wilaya') }}</label>
-                <select v-model="filters.wilaya" class="custom-select">
-                    <option value="">{{ t('All Wilayas') }}</option>
-                    <option v-for="w in wilayas" :key="w.wilaya_id" :value="w.wilaya_name">
-                        {{ w.wilaya_id }} - {{ w.wilaya_name }}
-                    </option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>{{ t('Commune') }}</label>
-                <input type="text" v-model="filters.commune" :placeholder="t('Commune')" class="custom-input"/>
-            </div>
-
-            <div class="input-group">
-                <label>{{ t('Delivery Company') }}</label>
-                <select v-model="filters.method" class="custom-select">
-                    <option value="">{{ t('All') }}</option>
-                    <option value="yalidine">Yalidine</option>
-                    <option value="guepex">Guepex</option>
-                    <option value="anderson">Anderson</option>
-                    <option value="ups">UPS</option>
-                    <option value="zr">ZR Express</option>
-                </select>
+            <div class="inputs-grid">
+                <div class="input-group">
+                    <Selector
+                        v-model="filters.wilaya"
+                        :options="wilayaOptions"
+                        :placeHolder="t('All Wilayas')"
+                        :img="icons['location']"
+                    />
+                </div>
+                <div class="input-group">
+                    <Inputer
+                        v-model="filters.commune"
+                        :placeHolder="t('Commune')"
+                        :img="icons['location']"
+                    />
+                </div>
             </div>
 
-            <div class="input-group">
+            <div class="input-group full-width">
+                <Selector
+                    v-model="filters.method"
+                    :options="deliveryOptions"
+                    :placeHolder="t('Delivery Company')"
+                    :img="icons['truck']"
+                    class="full-width-selector"
+                 />
+            </div>
+
+            <div class="input-group full-width">
                 <label>{{ t('Price Range') }}</label>
                 <div class="price-range">
-                    <input type="number" v-model="filters.min_price" placeholder="Min" class="custom-input"/>
+                    <Inputer type="number" v-model="filters.min_price" :placeHolder="t('Min')" :img="icons['money']" />
                     <span>-</span>
-                    <input type="number" v-model="filters.max_price" placeholder="Max" class="custom-input"/>
+                    <Inputer type="number" v-model="filters.max_price" :placeHolder="t('Max')" :img="icons['money']" />
                 </div>
             </div>
 
@@ -110,6 +112,8 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
 import Btn from './elements/newBloc/rectBtn.vue'
+import Selector from './elements/bloc/select.vue'
+import Inputer from './elements/bloc/input.vue'
 import icons from '~/public/icons.json'
 import iconsFilled from '~/public/iconsFilled.json'
 import VueDatePicker from '@vuepic/vue-datepicker';
@@ -176,6 +180,73 @@ const statusMap = ref([
   { label: 'Returned', value: 'returned', svg: iconsFilled['back'] },
   { label: 'Shipping', value: 'shipping', svg: iconsFilled['truck'] },
 ])
+
+const productOptions = computed(() => {
+    const opts = [{ label: t('All Products'), value: '' }];
+    if (props.products) {
+        props.products.forEach(p => {
+            // Check if image is URL or path
+            let img = p.image;
+            if (img && !img.startsWith('http') && !img.startsWith('<svg')) {
+                 img = 'https://management.hoggari.com' + img;
+            }
+            // Actually Selector expects relative or full path, let's just pass what we have.
+            // Note: Selector implementation uses `src="/${props.modelImage}"`. If we pass a full URL, `/https://...` breaks.
+            // Wait, Selector implementation:
+            // <img v-if="!selectedImage && props.modelImage" :src="`/${props.modelImage}`" ... />
+            // <img v-else-if="selectedImage" :src="`/${selectedImage}`" ... />
+            // It prepends `/`. This is problematic for full URLs.
+            // But `Selector.vue` also checks `isSvgString`.
+            // If `option.img` is passed, `selectedImage` uses it.
+            // Code: `<img v-if="option.img && !isSvgString(option.img)" class="img-circle" :src="`/${option.img}`" alt="icon" />`
+            // It forces `/`.
+            // BUT, `pages/products/index.vue` displays images.
+            // The `Selector` seems designed for internal icons in public/ dir.
+            // If I want to use product images, I might need to hack the URL or accept that it might be broken if I can't modify Selector.
+            // However, the `Selector` component is used for status selection which uses SVG strings (icons).
+            // Let's look at `products/index.vue` again. Images are `https://management.hoggari.com...`.
+            // If I pass `option.img`, `Selector` renders it with `<img :src="/${option.img}">`.
+            // This effectively breaks external URLs.
+            // I should stick to using a generic package icon for products if I can't fix Selector, OR I assume `Selector` handles it if I didn't read it carefully.
+            // Re-reading Selector.vue:
+            // `:src="\`/\${option.img}\`"`
+            // Yes, it enforces root relative path.
+            // I'll leave `img` undefined for products options to avoid broken images, or use a generic icon.
+            // The user said "utiliser les composant du project".
+            // I'll rely on the default behavior or maybe passing a generic icon is safer.
+            // I'll pass no image for product items, just label.
+
+            opts.push({
+                label: p.name,
+                value: p.id
+                // img: p.image
+            });
+        });
+    }
+    return opts;
+});
+
+const wilayaOptions = computed(() => {
+    const opts = [{ label: t('All Wilayas'), value: '' }];
+    if (props.wilayas) {
+        props.wilayas.forEach(w => {
+            opts.push({
+                label: `${w.wilaya_id} - ${w.wilaya_name}`,
+                value: w.wilaya_name
+            });
+        });
+    }
+    return opts;
+});
+
+const deliveryOptions = computed(() => [
+    { label: t('All'), value: '' },
+    { label: 'Yalidine', value: 'yalidine' },
+    { label: 'Guepex', value: 'guepex' },
+    { label: 'Anderson', value: 'anderson' },
+    { label: 'UPS', value: 'ups' },
+    { label: 'ZR Express', value: 'zr' }
+]);
 
 const selectStatus = (val) => {
     filters.value.status = val
@@ -293,7 +364,7 @@ const resetFilters = () => {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    cursor: pointer;
+    gap: 10px;
 }
 
 .divider {
@@ -307,19 +378,19 @@ const resetFilters = () => {
 
 /* Inputs */
 .inputs-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 20px;
+    width: 100%;
+}
+.inputs-grid > .input-group {
+    flex: 1;
 }
 
 .input-group {
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-.input-group.full-width {
-    grid-column: span 2;
 }
 
 .input-group label {
@@ -329,25 +400,6 @@ const resetFilters = () => {
 }
 .dark .input-group label { color: #aaa; }
 
-.custom-input, .custom-select {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background: var(--color-whizy);
-    color: var(--color-darky);
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-.custom-input:focus, .custom-select:focus {
-    border-color: var(--color-zioly2);
-}
-
-.dark .custom-input, .dark .custom-select {
-    border: 1px solid #444;
-    background: var(--color-darkow);
-    color: var(--color-whity);
-}
 
 .price-range {
     display: flex;
@@ -363,13 +415,11 @@ const resetFilters = () => {
     gap: 10px;
 }
 
-.reset-btn {
-    background: transparent;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 0.9rem;
-    text-decoration: underline;
+/* Overrides for Selectors to fill width */
+:deep(.floating-input3), :deep(.floating-input2) {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
 }
 
 /* ✅ Couleurs dynamiques */
@@ -385,10 +435,7 @@ const resetFilters = () => {
 
 @media (max-width: 600px) {
     .inputs-grid {
-        grid-template-columns: 1fr;
-    }
-    .input-group.full-width {
-        grid-column: span 1;
+        flex-direction: column;
     }
 }
 </style>
