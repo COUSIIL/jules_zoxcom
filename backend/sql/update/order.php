@@ -227,10 +227,14 @@ if ($value === 'confirmed') {
 }
 
 /* =======================
-   Returned/Canceled logic
+   Returned/Canceled logic (Stock Release)
 ======================= */
 
-if (in_array($value, ['returned', 'canceled', 'unreachable', 'waiting'])) {
+// Statuses that hold stock
+$stockHoldingStatuses = ['confirmed', 'shipping', 'completed'];
+
+// If changing status AND new status is NOT in holding list, release stock.
+if ($status === 'status' && !in_array($value, $stockHoldingStatuses)) {
     releaseUniqueCodes($mysqli, $id);
 }
 

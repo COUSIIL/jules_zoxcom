@@ -778,3 +778,16 @@
 }
 
 
+
+/* Unique Code Tag */
+.tag.code {
+  font-family: monospace;
+  background-color: var(--color-whiby);
+  border: 1px solid var(--color-zioly2);
+  color: var(--color-zioly1);
+  box-shadow: none;
+}
+.dark .tag.code {
+  background-color: var(--color-darkow);
+  border: 1px solid var(--color-zioly4);
+}

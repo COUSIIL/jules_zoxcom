@@ -369,6 +369,10 @@
                                   </span>
                                   <span v-if="sub.size" class="tag size">Taille: {{ sub.size }}</span>
                                   <span class="tag qty">x{{ sub.qty }}</span>
+
+                                  <span v-for="code in getCodes(dts.assigned_codes, item.model_id, sub.id)" :key="code.unique_code" class="tag code">
+                                    {{ code.unique_code }}
+                                  </span>
                                 </div>
 
                                 <div class="price">
@@ -385,6 +389,10 @@
                                 <div class="tags">
                                   <span class="tag size">{{ item.productName }}</span>
                                   <span class="tag qty">x{{ item.qty }}</span>
+
+                                  <span v-for="code in getCodes(dts.assigned_codes, item.model_id, null)" :key="code.unique_code" class="tag code">
+                                    {{ code.unique_code }}
+                                  </span>
                                 </div>
 
                                 <div class="price">
@@ -1813,7 +1821,21 @@ const formatOwner = (owner) => {
   return owner;
 }
 
-
+const getCodes = (codes, modelId, detailId) => {
+    if (!codes || !Array.isArray(codes)) return [];
+    return codes.filter(c => {
+        // Match model
+        if (c.model_id != modelId) return false;
+        // Match detail
+        // If detailId is provided, c.detail_id must match.
+        if (detailId) {
+             return c.detail_id == detailId;
+        } else {
+             // If detailId is null/undefined, c.detail_id must be null or 0.
+             return !c.detail_id || c.detail_id == 0;
+        }
+    });
+}
 </script>
 
 <style scoped>
