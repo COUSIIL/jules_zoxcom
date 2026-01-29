@@ -111,6 +111,7 @@ $routes = [
     "postProducts"                 => "../backend/sql/post/products.php",
     "getProducts"                  => "../backend/sql/get/products.php",
     "deleteProduct"                => "../backend/sql/delete/product.php",
+    "updateProductStatus"          => "../backend/sql/update/productStatus.php",
     "productClick"                 => "../backend/sql/post/productClick.php",
     "getProductClick"              => "../backend/sql/get/productClick.php",
 
