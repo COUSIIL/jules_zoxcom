@@ -92,16 +92,23 @@ const handleImageSelected = (url) => {
 const startConversion = async () => {
   if (!selectedImageUrl.value) return
 
-  // Extract filename from URL (assuming /uploads/brands/filename)
-  const filename = selectedImageUrl.value.split('/').pop()
-
   isLoading.value = true
   generatedHtml.value = ''
   error.value = ''
 
   try {
-    const response = await fetch(`https://management.hoggari.com/backend/api.php?action=convertImageToHtml&fileId=${filename}`, {
-      method: 'GET', // SSE uses GET usually, or POST but EventSource is GET. We use fetch stream.
+    // Extract relative path from URL
+    let filePath = ''
+    try {
+      const urlObj = new URL(selectedImageUrl.value)
+      filePath = urlObj.pathname
+    } catch (e) {
+      // Fallback if not a valid URL (e.g. relative path)
+      filePath = selectedImageUrl.value
+    }
+
+    const response = await fetch(`https://management.hoggari.com/backend/api.php?action=convertImageToHtml&filePath=${encodeURIComponent(filePath)}`, {
+      method: 'GET',
     })
 
     if (!response.ok) {

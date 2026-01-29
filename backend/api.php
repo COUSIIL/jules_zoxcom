@@ -52,6 +52,7 @@ $routes = [
     "deleteImages"                 => "../backend/sql/delete/images.php",
     "moveImage"                    => "../backend/sql/update/moveImage.php",
     "imageBlob"                    => "../backend/download/imageBlob.php",
+    "saveExternalUrl"              => "../backend/download/saveUrl.php",
 
     // --- Categories & Folders ---
     "postCategory"                 => "../backend/sql/post/category.php",

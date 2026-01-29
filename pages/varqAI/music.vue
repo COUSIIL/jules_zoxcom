@@ -105,7 +105,7 @@ async function generateMusic() {
   audioUrl.value = ""
 
   try {
-    status.value = "Composition en cours (Suno via KIE)..."
+    status.value = "Initialisation..."
 
     const fd = new FormData()
     fd.append("prompt", form.prompt)
@@ -114,7 +114,7 @@ async function generateMusic() {
       fd.append("audio_sample", selectedFile.value)
     }
 
-    // Call backend API
+    // 1. Start Generation
     const res = await $fetch("https://management.hoggari.com/backend/api.php?action=giminiMusicGen", {
       method: "POST",
       body: fd,
@@ -122,11 +122,48 @@ async function generateMusic() {
 
     if (!res || !res.success) throw new Error(res?.error || "Erreur de génération")
 
-    audioUrl.value = res.url
+    const taskId = res.taskId
+    if (!taskId) throw new Error("Pas de taskId reçu")
+
+    status.value = "Composition en cours..."
+
+    // 2. Poll
+    let finalUrl = ""
+    while (true) {
+      await new Promise(r => setTimeout(r, 3000)) // 3s delay
+
+      const pollRes = await $fetch(`https://management.hoggari.com/backend/api.php?action=giminiPoll&taskId=${taskId}`)
+
+      if (!pollRes) continue
+
+      if (pollRes.state === "fail") {
+        throw new Error(pollRes.failMsg || "Erreur durant la génération")
+      }
+
+      if (pollRes.state === "success" && pollRes.resultUrls && pollRes.resultUrls.length > 0) {
+        finalUrl = pollRes.resultUrls[0]
+        break
+      }
+
+      status.value = `Composition en cours... (${pollRes.state || 'waiting'})`
+    }
+
+    // 3. Save to local
+    status.value = "Sauvegarde du fichier..."
+    const saveRes = await $fetch("https://management.hoggari.com/backend/api.php?action=saveExternalUrl", {
+      method: "POST",
+      body: JSON.stringify({ url: finalUrl })
+    })
+
+    if (!saveRes || !saveRes.success) throw new Error("Erreur de sauvegarde locale")
+
+    // Use local path relative to domain
+    audioUrl.value = saveRes.data.path
     status.value = "Terminé ✅"
 
   } catch (e) {
     error.value = (e && e.message) || "Erreur inconnue"
+    status.value = "Erreur"
   } finally {
     loading.value = false
   }

@@ -109,7 +109,7 @@ async function generateImage() {
   imageUrl.value = ""
 
   try {
-    status.value = "Génération de l'image (KIE)..."
+    status.value = "Initialisation..."
 
     const fd = new FormData()
     fd.append("prompt", form.prompt)
@@ -118,7 +118,7 @@ async function generateImage() {
       fd.append("image_url", form.imgUrl)
     }
 
-    // Call backend API
+    // 1. Start Generation
     const res = await $fetch("https://management.hoggari.com/backend/api.php?action=giminiImageGen", {
       method: "POST",
       body: fd,
@@ -126,11 +126,48 @@ async function generateImage() {
 
     if (!res || !res.success) throw new Error(res?.error || "Erreur de génération")
 
-    imageUrl.value = res.url
+    const taskId = res.taskId
+    if (!taskId) throw new Error("Pas de taskId reçu")
+
+    status.value = "Génération en cours..."
+
+    // 2. Poll
+    let finalUrl = ""
+    while (true) {
+      await new Promise(r => setTimeout(r, 3000)) // 3s delay
+
+      const pollRes = await $fetch(`https://management.hoggari.com/backend/api.php?action=giminiPoll&taskId=${taskId}`)
+
+      if (!pollRes) continue
+
+      if (pollRes.state === "fail") {
+        throw new Error(pollRes.failMsg || "Erreur durant la génération")
+      }
+
+      if (pollRes.state === "success" && pollRes.resultUrls && pollRes.resultUrls.length > 0) {
+        finalUrl = pollRes.resultUrls[0]
+        break
+      }
+
+      status.value = `Génération en cours... (${pollRes.state || 'waiting'})`
+    }
+
+    // 3. Save to local
+    status.value = "Sauvegarde de l'image..."
+    const saveRes = await $fetch("https://management.hoggari.com/backend/api.php?action=saveExternalUrl", {
+      method: "POST",
+      body: JSON.stringify({ url: finalUrl })
+    })
+
+    if (!saveRes || !saveRes.success) throw new Error("Erreur de sauvegarde locale")
+
+    // Use local path relative to domain
+    imageUrl.value = saveRes.data.path
     status.value = "Terminé ✅"
 
   } catch (e) {
     error.value = (e && e.message) || "Erreur inconnue"
+    status.value = "Erreur"
   } finally {
     loading.value = false
   }
