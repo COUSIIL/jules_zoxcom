@@ -1,119 +1,142 @@
 <template>
-  <div class="image-to-html-container">
+  <div class="wrap">
     <h1>Image to HTML Converter</h1>
-    <p>Upload an image of a website mockup, and the AI will convert it into HTML and CSS code.</p>
+    <p class="subtitle">Convertissez une maquette image en landing page HTML/CSS/JS avec Kie.</p>
 
-    <div class="uploader-section">
-      <div class="file-input-wrapper">
-        <button class="btn-select-file" @click="triggerFileInput">{{ selectedFile ? selectedFile.name : 'Select an Image' }}</button>
-        <input type="file" ref="fileInput" @change="handleFileSelect" accept="image/png, image/jpeg, image/webp" style="display: none;" />
+    <div class="card">
+      <div class="uploader-section">
+        <label class="lbl">Image de la maquette</label>
+        <div class="selector-row">
+          <Gbtn
+            :text="selectedImageUrl ? 'Changer l\'image' : 'Sélectionner une image'"
+            @click="showExplorer = true"
+            color="#7D698E"
+            :svg="icons['imageImg']"
+          />
+          <div v-if="selectedImageUrl" class="selected-thumb">
+            <img :src="selectedImageUrl" alt="Selected" />
+          </div>
+        </div>
       </div>
-      <button @click="uploadAndConvert" :disabled="!selectedFile || isLoading" class="btn-convert">
-        <span v-if="isLoading">
-          <div class="spinner-small"></div>
-          Converting...
-        </span>
-        <span v-else>Convert to HTML</span>
-      </button>
-    </div>
 
-    <div v-if="isLoading" class="loading-indicator">
-      <p>The AI is generating the code. This may take a moment...</p>
-      <div class="spinner"></div>
-    </div>
-
-    <div v-if="error" class="error-message">
-      <p>An error occurred: {{ error }}</p>
-    </div>
-
-    <div v-if="generatedHtml" class="result-section">
-      <div class="html-preview">
-        <h2>Preview</h2>
-        <iframe :srcdoc="generatedHtml" frameborder="0"></iframe>
+      <div class="actions">
+        <Gbtn
+          text="Convertir en HTML"
+          :disabled="!selectedImageUrl || isLoading"
+          @click="startConversion"
+          color="#007aff"
+          svg=""
+        />
       </div>
-      <div class="code-view">
+
+      <div v-if="isLoading" class="loading-indicator">
+        <div class="spinner"></div>
+        <p>L'IA génère le code... ({{ generatedLength }} caractères)</p>
+      </div>
+
+      <p v-if="error" class="err">{{ error }}</p>
+    </div>
+
+    <div v-if="cleanHtml" class="card result-section">
+      <div class="tabs">
+        <button :class="{ active: viewMode === 'preview' }" @click="viewMode = 'preview'">Aperçu</button>
+        <button :class="{ active: viewMode === 'code' }" @click="viewMode = 'code'">Code</button>
+      </div>
+
+      <div v-if="viewMode === 'preview'" class="html-preview">
+        <iframe :srcdoc="cleanHtml" frameborder="0"></iframe>
+      </div>
+
+      <div v-else class="code-view">
         <div class="code-header">
-          <h2>Code</h2>
-          <button @click="copyToClipboard">Copy Code</button>
+          <button @click="copyToClipboard">Copier le code</button>
         </div>
         <pre><code>{{ cleanHtml }}</code></pre>
       </div>
     </div>
+
+    <Explorer
+      :show="showExplorer"
+      @confirm="handleImageSelected"
+      @cancel="showExplorer = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
+import Gbtn from '~/components/elements/bloc/gBtn.vue'
+import Explorer from '~/components/elements/explorer.vue'
+import icons from '~/public/icons.json'
 
-const fileInput = ref(null);
-const selectedFile = ref(null);
-const isLoading = ref(false);
-const generatedHtml = ref('');
-const error = ref('');
+const showExplorer = ref(false)
+const selectedImageUrl = ref(null)
+const isLoading = ref(false)
+const generatedHtml = ref('')
+const error = ref('')
+const viewMode = ref('preview')
 
-const triggerFileInput = () => {
-  fileInput.value.click();
-};
-
-const handleFileSelect = (event) => {
-  selectedFile.value = event.target.files[0];
-  generatedHtml.value = '';
-  error.value = '';
-};
+const generatedLength = computed(() => generatedHtml.value.length)
 
 const cleanHtml = computed(() => {
-    // Remove Markdown backticks and "html" language identifier
     return generatedHtml.value.replace(/```html|```/g, '').trim();
 });
 
+const handleImageSelected = (url) => {
+  selectedImageUrl.value = url
+  showExplorer.value = false
+  generatedHtml.value = ''
+  error.value = ''
+}
 
-const uploadAndConvert = async () => {
-  if (!selectedFile.value) {
-    error.value = 'Please select a file first.';
-    return
-  }
+const startConversion = async () => {
+  if (!selectedImageUrl.value) return
+
+  // Extract filename from URL (assuming /uploads/brands/filename)
+  const filename = selectedImageUrl.value.split('/').pop()
 
   isLoading.value = true
   generatedHtml.value = ''
   error.value = ''
 
   try {
-    // --- Step 1: Upload the file ---
-    const formData = new FormData()
-    formData.append('image', selectedFile.value)
-
-    const uploadResponse = await fetch('https://management.hoggari.com/backend/api.php?action=uploadImage', {
-      method: 'POST',
-      body: formData,
+    const response = await fetch(`https://management.hoggari.com/backend/api.php?action=convertImageToHtml&fileId=${filename}`, {
+      method: 'GET', // SSE uses GET usually, or POST but EventSource is GET. We use fetch stream.
     })
 
-    if (!uploadResponse.ok) {
-      const errRes = await uploadResponse.json().catch(() => ({}))
-      throw new Error(errRes.error || 'File upload failed')
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`)
     }
 
-    const uploadResult = await uploadResponse.json()
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error)
-    }
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder("utf-8")
 
-    // --- Step 2: Call Gemini ---
-    const fileId = uploadResult.fileId
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    // Exemple : envoie du message avec la référence de l’image
-    const message = `Convert this image to HTML: https://management.hoggari.com/uploads/brands/${fileId}`
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split("\n")
 
-    const res = await $fetch('https://management.hoggari.com/backend/api.php?action=convertImageToHtml', {
-      method: 'POST',
-      body: {
-        fileId: fileId,
-        message: message
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const jsonStr = line.substring(6).trim()
+          if (jsonStr === "[DONE]") break
+
+          try {
+            const data = JSON.parse(jsonStr)
+            if (data.text) {
+              generatedHtml.value += data.text
+            }
+            if (data.error) {
+              throw new Error(data.error)
+            }
+          } catch (e) {
+            // ignore partial json
+          }
+        }
       }
-    });
-    console.log('res: ', res)
-    if (!res.success) throw new Error(res.error)
-
-    generatedHtml.value = res.reply
+    }
 
   } catch (err) {
     error.value = err.message
@@ -122,149 +145,42 @@ const uploadAndConvert = async () => {
   }
 }
 
-
 const copyToClipboard = () => {
   navigator.clipboard.writeText(cleanHtml.value).then(() => {
-    alert('Code copied to clipboard!');
+    alert('Code copié !');
   });
 };
 
 </script>
 
 <style scoped>
-.image-to-html-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: auto;
-}
+.wrap { max-width: 1200px; margin: 30px auto; padding: 0 14px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 20px; margin: 14px 0; box-shadow: 0 4px 18px rgba(0,0,0,.04); }
+.subtitle { color: #666; margin-bottom: 20px; }
 
-.uploader-section {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-bottom: 2rem;
-  background-color: #f7f7f7;
-  padding: 1.5rem;
-  border-radius: 8px;
-}
+.uploader-section { margin-bottom: 20px; }
+.lbl { display:block; font-size: 12px; opacity:.7; margin: 10px 0 6px; }
+.selector-row { display: flex; align-items: center; gap: 10px; }
+.selected-thumb { width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; }
+.selected-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-.file-input-wrapper .btn-select-file {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.file-input-wrapper .btn-select-file:hover {
-  background-color: #f0f0f0;
-}
+.actions { display: flex; justify-content: center; }
 
-.btn-convert {
-  background-color: #007aff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-convert:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
-}
-.btn-convert:hover:not(:disabled) {
-  background-color: #0056b3;
-}
+.loading-indicator { text-align: center; margin-top: 20px; }
+.spinner { width: 30px; height: 30px; border: 3px solid #eee; border-top-color: #007aff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.loading-indicator {
-  text-align: center;
-  padding: 2rem;
-}
+.err { color: #b00020; margin-top: 10px; }
 
-.spinner, .spinner-small {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-left-color: #09f;
-  animation: spin 1s ease infinite;
-}
-.spinner {
-  width: 48px;
-  height: 48px;
-  margin: 1rem auto;
-}
-.spinner-small {
-    width: 18px;
-    height: 18px;
-    border-width: 2px;
-}
+.result-section { padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 800px; }
+.tabs { display: flex; border-bottom: 1px solid #eee; background: #f9f9f9; }
+.tabs button { flex: 1; padding: 12px; border: none; background: none; cursor: pointer; font-weight: 500; }
+.tabs button.active { background: #fff; border-bottom: 2px solid #007aff; color: #007aff; }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+.html-preview, .code-view { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.html-preview iframe { width: 100%; height: 100%; border: none; }
 
-.error-message {
-  color: #d9534f;
-  background-color: #f2dede;
-  border: 1px solid #ebccd1;
-  padding: 15px;
-  border-radius: 4px;
-  margin: 1rem 0;
-}
-
-.result-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 2rem;
-  height: 70vh;
-}
-
-.html-preview, .code-view {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.html-preview h2, .code-header h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-.code-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #ccc;
-}
-.code-header button {
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    background: #fff;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-
-.html-preview iframe {
-  width: 100%;
-  flex-grow: 1;
-  border: none;
-}
-
-.code-view pre {
-  background-color: #2d2d2d;
-  color: #f1f1f1;
-  padding: 1rem;
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  flex-grow: 1;
-  overflow-y: auto;
-  font-family: 'Courier New', Courier, monospace;
-}
+.code-header { padding: 10px; background: #f5f5f5; border-bottom: 1px solid #eee; text-align: right; }
+.code-header button { padding: 6px 12px; background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+.code-view pre { margin: 0; padding: 20px; overflow: auto; background: #1e1e1e; color: #d4d4d4; flex: 1; font-family: monospace; }
 </style>

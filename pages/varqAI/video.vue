@@ -5,46 +5,77 @@
     <div class="card">
 
       <div class="grid">
-        <div>
-          <label class="lbl">Url de l'image</label>
-          <input v-model="form.imgUrl" class="inp" placeholder="Ex: https://....." />
-        </div>
-        <div>
-          <label class="lbl">Nom du produit</label>
-          <input v-model="form.productName" class="inp" placeholder="Ex: Parfum Oud Royal" />
-        </div>
-        <div>
-          <label class="lbl">Prix (DA)</label>
-          <input v-model="form.price" class="inp" placeholder="Ex: 4500" />
-        </div>
-        <div>
-          <label class="lbl">WhatsApp</label>
-          <input v-model="form.whatsapp" class="inp" placeholder="Ex: +213xxxxxxxxx" />
-        </div>
-        <div>
-          <label class="lbl">Livraison</label>
-          <input v-model="form.delivery" class="inp" placeholder="Ex: 58 wilayas" />
-        </div>
-        <div>
-          <label class="lbl">Format vidéo</label>
-          <select v-model="form.aspect" class="inp">
-            <option value="9:16">9:16 (Reels/TikTok)</option>
-            <option value="16:9">16:9 (YouTube)</option>
-          </select>
-        </div>
-        <div>
-          <label class="lbl">Langue</label>
-          <select v-model="form.language" class="inp">
-            <option value="dz_darija">Darija DZ + sous-titres FR</option>
-            <option value="fr">FR</option>
-            <option value="ar">AR</option>
-          </select>
-        </div>
+        <Input
+          v-model="form.imgUrl"
+          placeHolder="Url de l'image"
+          img="link"
+          :required="true"
+        />
+        <Input
+          v-model="form.productName"
+          placeHolder="Nom du produit"
+          img="tag"
+          :required="true"
+        />
+        <Input
+          v-model="form.price"
+          placeHolder="Prix (DA)"
+          img="moneyTag"
+          :required="true"
+        />
+        <Input
+          v-model="form.whatsapp"
+          placeHolder="WhatsApp"
+          img="phone"
+          :required="true"
+        />
+        <Input
+          v-model="form.delivery"
+          placeHolder="Livraison"
+          img="delivery"
+        />
+
+        <Select
+          v-model="form.model"
+          :options="modelOptions"
+          placeHolder="Modèle Vidéo"
+          img="settings"
+          :showIt="showModelSelect"
+          @close="showModelSelect = false"
+          @click="showModelSelect = !showModelSelect"
+        />
+
+        <Select
+          v-model="form.aspect"
+          :options="aspectOptions"
+          placeHolder="Format vidéo"
+          img="screen"
+          :showIt="showAspectSelect"
+          @close="showAspectSelect = false"
+          @click="showAspectSelect = !showAspectSelect"
+        />
+
+        <Select
+          v-model="form.language"
+          :options="langOptions"
+          placeHolder="Langue"
+          img="location"
+          :showIt="showLangSelect"
+          @close="showLangSelect = false"
+          @click="showLangSelect = !showLangSelect"
+        />
       </div>
 
-      <button class="btn" :disabled="!canGenerate || loading" @click="generateAll">
-        {{ loading ? "Génération..." : "Générer (script + clips)" }}
-      </button>
+      <div class="actions">
+        <Gbtn
+          text="Générer (script + clips)"
+          :disabled="!canGenerate || loading"
+          @click="generateAll"
+          color="#111"
+          svg=""
+        />
+        <!-- Note: GBtn uses svg prop for icon, I can pass a play icon if needed -->
+      </div>
 
       <p v-if="error" class="err">{{ error }}</p>
       <p v-if="status" class="status">{{ status }}</p>
@@ -84,6 +115,10 @@
 </template>
 
 <script setup>
+import { ref, reactive, computed } from 'vue'
+import Input from '~/components/elements/bloc/input.vue'
+import Select from '~/components/elements/bloc/select.vue'
+import Gbtn from '~/components/elements/bloc/gBtn.vue'
 
 const loading = ref(false)
 const status = ref("")
@@ -91,6 +126,10 @@ const error = ref("")
 
 const plan = ref(null)
 const clips = ref([])
+
+const showModelSelect = ref(false)
+const showAspectSelect = ref(false)
+const showLangSelect = ref(false)
 
 const form = reactive({
   productName: "",
@@ -100,7 +139,26 @@ const form = reactive({
   delivery: "58 wilayas",
   aspect: "9:16",
   language: "dz_darija",
+  model: "kling-2.6/image-to-video"
 })
+
+const modelOptions = [
+  { label: "Kling 2.6 (Recommandé)", value: "kling-2.6/image-to-video" },
+  { label: "Veo 3 Fast", value: "veo3_fast" },
+  { label: "Luma Ray", value: "luma-ray" },
+  { label: "Minimax", value: "minimax" }
+]
+
+const aspectOptions = [
+  { label: "9:16 (Reels/TikTok)", value: "9:16" },
+  { label: "16:9 (YouTube)", value: "16:9" }
+]
+
+const langOptions = [
+  { label: "Darija DZ + sous-titres FR", value: "dz_darija" },
+  { label: "Français", value: "fr" },
+  { label: "Arabe", value: "ar" }
+]
 
 const canGenerate = computed(() => {
   return !!form.imgUrl && !!form.productName && !!form.price && !!form.whatsapp
@@ -146,13 +204,13 @@ async function generatePlan() {
 
 
 /**
- * Lance Veo pour un prompt -> retourne operation.name
+ * Lance Veo/Kling pour un prompt -> retourne operation.name
  */
 async function startVideo(prompt) {
   const fd = new FormData()
   fd.append("prompt", prompt)
   fd.append("image_url", form.imgUrl)     // ✅ image URL
-  fd.append("model", "veo3_fast")         // ou le modèle exact côté KIE
+  fd.append("model", form.model)          // ✅ Choix dynamique
   fd.append("duration", "5")              // "5" ou "10"
   fd.append("sound", "false")             // "true" / "false"
 
@@ -237,12 +295,8 @@ async function generateAll() {
 <style scoped>
 .wrap { max-width: 980px; margin: 30px auto; padding: 0 14px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
 .card { background: #fff; border: 1px solid #eee; border-radius: 14px; padding: 16px; margin: 14px 0; box-shadow: 0 4px 18px rgba(0,0,0,.04); }
-.lbl { display:block; font-size: 12px; opacity:.7; margin: 10px 0 6px; }
-.inp { width: 100%; padding: 10px 12px; border:1px solid #ddd; border-radius: 10px; outline: none; }
 .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-top: 10px; }
-.btn { margin-top: 12px; padding: 10px 14px; border-radius: 12px; border:0; background:#111; color:#fff; cursor:pointer; }
-.btn:disabled { opacity:.5; cursor:not-allowed; }
-.preview img { max-width: 260px; border-radius: 12px; border: 1px solid #eee; margin-top: 10px; }
+.actions { margin-top: 20px; display: flex; justify-content: center; }
 .pre { white-space: pre-wrap; background:#fafafa; border:1px solid #eee; padding: 12px; border-radius: 12px; overflow:auto; }
 .ol { padding-left: 18px; }
 .err { color: #b00020; margin-top: 10px; }

@@ -51,38 +51,47 @@ if ($image_data === false) {
 }
 
 $image_base64 = base64_encode($image_data);
+$dataUrl = "data:{$file_mime_type};base64,{$image_base64}";
 
-// --- 4. Gemini API Setup ---
-$apiKey = $_ENV['API_GEMINI'];
+// --- 4. Kie API Setup ---
+$apiKey = $_ENV['KIE_API_KEY'] ?? '';
 if (!$apiKey) {
     unlink($filepath);
-    send_error("API key not configured.");
+    send_error("KIE_API_KEY not configured.");
 }
 
-$url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=" . urlencode($apiKey);
+// Use Kie's Gemini 3 Pro endpoint (OpenAI compatible)
+$url = "https://api.kie.ai/gemini-3-pro/v1/chat/completions";
 
-$prompt = "Transforme cette image en un seul fichier HTML avec le CSS intégré. 
-Le CSS doit être dans une balise <style> dans le <head>. 
-Le code doit être aussi fidèle que possible à l'image, responsive et utiliser des pratiques modernes. 
-Ne retourne que le code HTML, sans texte supplémentaire avant ou après.";
+$prompt = "Transforme cette image en un seul fichier HTML avec le CSS et le JS intégrés.
+Le CSS doit être dans une balise <style> et le JS dans <script>.
+Le code doit être moderne, responsive, avec des animations smooth et agréables (transitions, hover effects, etc).
+Le design doit être fidèle à l'image mais amélioré pour une expérience utilisateur fluide.
+Ne retourne QUE le code HTML complet, sans balises markdown (```html) ni texte explicatif avant ou après.";
 
-$data = [
-    "contents" => [
+$payload = [
+    "model" => "gemini-3-pro", // Nom du modèle (souvent optionnel si endpoint spécifique, mais bon de le mettre)
+    "stream" => true,
+    "messages" => [
         [
-            "parts" => [
-                ["inline_data" => [
-                    "mime_type" => $file_mime_type,
-                    "data" => $image_base64
-                ]],
-                ["text" => $prompt]
+            "role" => "system",
+            "content" => "Tu es un expert en développement web frontend (HTML/CSS/JS) et UI/UX design."
+        ],
+        [
+            "role" => "user",
+            "content" => [
+                [
+                    "type" => "text",
+                    "text" => $prompt
+                ],
+                [
+                    "type" => "image_url",
+                    "image_url" => [
+                        "url" => $dataUrl
+                    ]
+                ]
             ]
         ]
-    ],
-    "generationConfig" => [
-        "temperature" => 0.4,
-        "topK" => 32,
-        "topP" => 1,
-        "maxOutputTokens" => 8192
     ]
 ];
 
@@ -94,10 +103,10 @@ if (!$ch) {
 }
 
 curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "Content-Type: application/json",
-    "X-goog-api-key: $apiKey"
+    "Authorization: Bearer $apiKey"
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
 curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($curl, $chunk) {
@@ -106,12 +115,10 @@ curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($curl, $chunk) {
         $line = trim($line);
         if ($line === '') continue;
 
-        // Gemini stream renvoie "data: ..."
         if (strpos($line, 'data: ') === 0) {
             $jsonStr = substr($line, 6);
 
             if ($jsonStr === "[DONE]") {
-                // ✅ Fin du stream
                 echo "event: end\n";
                 echo "data: {\"message\": \"Stream ended\"}\n\n";
                 @ob_flush();
@@ -121,9 +128,14 @@ curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($curl, $chunk) {
 
             $decoded = json_decode($jsonStr, true);
             if (json_last_error() === JSON_ERROR_NONE) {
-                echo "data: " . json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n\n";
-            } else {
-                echo "data: " . $jsonStr . "\n\n";
+                // OpenAI format: choices[0].delta.content
+                $content = $decoded['choices'][0]['delta']['content'] ?? '';
+                if ($content !== '') {
+                    // On envoie le texte partiel
+                    // Structure compatible avec le frontend existant qui attendait candidates[0].content.parts[0].text
+                    // On va simplifier pour le frontend : renvoyer juste le texte dans une structure simple
+                    echo "data: " . json_encode(['text' => $content], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n\n";
+                }
             }
             @ob_flush();
             @flush();
@@ -149,7 +161,7 @@ if (file_exists($filepath)) {
     unlink($filepath);
 }
 
-if ($httpCode !== 200) {
-    send_error("Gemini API returned HTTP $httpCode");
+if ($httpCode >= 400) {
+    send_error("Kie API returned HTTP $httpCode");
 }
 ?>
