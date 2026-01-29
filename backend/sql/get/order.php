@@ -155,6 +155,18 @@ $resultItems = $mysqli->query($sqlItems);
 $itemsData = $resultItems->fetch_all(MYSQLI_ASSOC);
 $orderItemIds = array_column($itemsData, 'id');
 
+// Fetch Assigned Unique Codes
+$assignedCodes = [];
+if (!empty($idsString)) {
+    $sqlCodes = "SELECT unique_code, order_id, model_id, detail_id FROM product_stock WHERE order_id IN ($idsString)";
+    $resultCodes = $mysqli->query($sqlCodes);
+    $codesData = $resultCodes->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($codesData as $code) {
+        $assignedCodes[$code['order_id']][] = $code;
+    }
+}
+
 // Fetch Product Items
 $productItemsData = [];
 if (!empty($orderItemIds)) {
@@ -185,6 +197,7 @@ foreach ($itemsData as $model) {
     $orderItemId = $model['id'];
     $groupedModels[$model['order_id']][] = [
         'id' => $model['product_id'],
+        'model_id' => $model['model_id'], // Add model_id to help matching
         'productName' => !empty($model['product_name']) ? $model['product_name'] : $model['current_product_name'],
         'image' => $model['image'],
         'price' => $model['price'],
@@ -223,6 +236,7 @@ foreach ($ordersData as $orderData) {
         'owner_conf_date' => $orderData['owner_conf_date'] ?? '',
         'owner_conf_state' => $orderData['owner_conf_state'] ?? '',
         'owner_state' => $orderData['owner_state'] ?? null,
+        'assigned_codes' => $assignedCodes[$orderId] ?? [],
         // Pinned Info
         'is_pinned' => (bool)$orderData['is_pinned'],
         'pin_reason' => $orderData['pin_reason'] ?? null,

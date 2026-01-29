@@ -194,7 +194,11 @@ const showMessage = (msg) => {
 };
 
 // Helper to create a unique key for the input map
-const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
+const getUniqueKey = (modelId, detailId) => {
+    // Normalize detailId: 0, "0", null, undefined -> "null"
+    const dId = (detailId && detailId != 0 && detailId !== "0") ? detailId : 'null';
+    return `${modelId}-${dId}`;
+};
 
 const resizeSvg = (svg, width, height) => {
     if(!svg) return '';
@@ -225,8 +229,10 @@ const constructVariantName = (model, detail) => {
 // Compute counts from actual stockList
 const stockCounts = computed(() => {
     const counts = {};
+    if (!stockList.value) return counts;
+
     stockList.value.forEach(s => {
-        if (s.status === 'available') {
+        if (s.status && s.status.toLowerCase() === 'available') {
             const key = getUniqueKey(s.model_id, s.detail_id);
             counts[key] = (counts[key] || 0) + 1;
         }
