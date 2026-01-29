@@ -48,7 +48,7 @@ function assignUniqueCodes($mysqli, $orderId) {
         } else {
              // If we bought a simple model (or product_items has 0), look for matching model_id
              // AND detail_id IS NULL (to ensure we don't pick a variant code for a generic order if mixed)
-             $query .= " AND model_id = ? AND detail_id IS NULL";
+             $query .= " AND model_id = ? AND (detail_id IS NULL OR detail_id = 0)";
              $params[0] .= "i";
              $params[] = $modelId;
         }
