@@ -26,10 +26,17 @@ $apiKey = $_ENV['KIE_API_KEY'] ?? '';
 if (!$apiKey) respond(500, ["success" => false, "error" => "KIE_API_KEY manquante (.env)"]);
 
 $taskId = safeStr($_GET["taskId"] ?? "");
+$type   = safeStr($_GET["type"] ?? "image"); // "image" or "video"
+
 if ($taskId === "") respond(400, ["success" => false, "error" => "taskId requis"]);
 
-// Flux Kontext Polling Endpoint
-$endpoint = "https://api.kie.ai/api/v1/flux/kontext/record-info?taskId=" . rawurlencode($taskId);
+if ($type === 'video') {
+    // Video Polling (Veo, Kling, etc.)
+    $endpoint = "https://api.kie.ai/api/v1/jobs/fetch?taskId=" . rawurlencode($taskId);
+} else {
+    // Flux Polling (Default/Image)
+    $endpoint = "https://api.kie.ai/api/v1/flux/kontext/record-info?taskId=" . rawurlencode($taskId);
+}
 
 $ch = curl_init($endpoint);
 curl_setopt_array($ch, [
@@ -52,63 +59,102 @@ if (!is_array($decoded)) {
 if (($decoded["code"] ?? null) !== 200) {
   respond(502, [
     "success" => false,
-    "error" => "KIE Flux recordInfo failed",
+    "error" => "KIE Polling failed",
     "http" => $http,
     "kie_code" => $decoded["code"] ?? null,
-    "message" => $decoded["msg"] ?? null,
+    "message" => $decoded["msg"] ?? ($decoded["message"] ?? null),
     "raw" => $decoded
   ]);
 }
 
 $data = $decoded["data"] ?? [];
-$successFlag = isset($data["successFlag"]) ? (int)$data["successFlag"] : -1;
 
-/*
-   Status Values (Flux):
-     0: GENERATING
-     1: SUCCESS
-     2: CREATE_TASK_FAILED
-     3: GENERATE_FAILED
-*/
+if ($type === 'video') {
+    // --- Video Logic ---
+    // status: 0=created/generating, 1=success, 2=failed
+    $status = isset($data["status"]) ? (int)$data["status"] : -1;
 
-if ($successFlag === 1) {
-    // Success
-    $resp = $data["response"] ?? [];
-    $resultImageUrl = $resp["resultImageUrl"] ?? "";
+    if ($status === 1) {
+        $result = $data["result"] ?? [];
+        // Attempt to find video url
+        $videoUrl = $result["videoUrl"] ?? ($result["video_url"] ?? ($result["url"] ?? ""));
 
-    // Frontend expects resultUrls array
-    $resultUrls = [];
-    if ($resultImageUrl) {
-        $resultUrls[] = $resultImageUrl;
+        respond(200, [
+            "success" => true,
+            "done" => true,
+            "state" => "success",
+            "video_url" => $videoUrl
+        ]);
     }
 
+    if ($status === 2 || $status === 3) {
+         respond(200, [
+            "success" => true,
+            "done" => true,
+            "state" => "fail",
+            "failCode" => $status,
+            "failMsg" => "Video generation failed (Status $status)"
+         ]);
+    }
+
+    // Generating
     respond(200, [
         "success" => true,
-        "done" => true,
-        "state" => "success",
-        "resultUrls" => $resultUrls,
-        "video_url" => $resultUrls[0] ?? null
+        "done" => false,
+        "state" => "generating",
+        "detail" => $status
     ]);
-}
 
-if ($successFlag === 2 || $successFlag === 3) {
-    // Fail
-    $errorMsg = $data["errorMessage"] ?? "Erreur inconnue";
+} else {
+    // --- Flux/Image Logic ---
+    /*
+       Status Values (Flux):
+         0: GENERATING
+         1: SUCCESS
+         2: CREATE_TASK_FAILED
+         3: GENERATE_FAILED
+    */
+    $successFlag = isset($data["successFlag"]) ? (int)$data["successFlag"] : -1;
+
+    if ($successFlag === 1) {
+        // Success
+        $resp = $data["response"] ?? [];
+        $resultImageUrl = $resp["resultImageUrl"] ?? "";
+
+        // Frontend expects resultUrls array
+        $resultUrls = [];
+        if ($resultImageUrl) {
+            $resultUrls[] = $resultImageUrl;
+        }
+
+        respond(200, [
+            "success" => true,
+            "done" => true,
+            "state" => "success",
+            "resultUrls" => $resultUrls,
+            "video_url" => $resultUrls[0] ?? null
+        ]);
+    }
+
+    if ($successFlag === 2 || $successFlag === 3) {
+        // Fail
+        $errorMsg = $data["errorMessage"] ?? "Erreur inconnue";
+        respond(200, [
+            "success" => true,
+            "done" => true,
+            "state" => "fail",
+            "failCode" => $successFlag,
+            "failMsg" => $errorMsg,
+            "resultUrls" => []
+        ]);
+    }
+
+    // Otherwise: Generating (0) or Unknown
     respond(200, [
-        "success" => true,
-        "done" => true,
-        "state" => "fail",
-        "failCode" => $successFlag,
-        "failMsg" => $errorMsg,
-        "resultUrls" => []
+      "success" => true,
+      "done" => false,
+      "state" => "generating",
+      "detail" => $successFlag
     ]);
 }
-
-// Otherwise: Generating (0) or Unknown
-respond(200, [
-  "success" => true,
-  "done" => false,
-  "state" => "generating",
-  "detail" => $successFlag
-]);
 ?>

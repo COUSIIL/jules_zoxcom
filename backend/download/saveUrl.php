@@ -95,10 +95,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $counter++;
     }
 
-    // Download file
-    $fileContent = @file_get_contents($url);
-    if ($fileContent === false) {
-        echo json_encode(['success' => false, 'message' => 'Failed to download file from URL.']);
+    // Download file (using cURL for better reliability)
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    $fileContent = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    if ($fileContent === false || $httpCode !== 200) {
+        echo json_encode(['success' => false, 'message' => 'Failed to download file. Code: ' . $httpCode . ' Error: ' . $curlError]);
         exit;
     }
 
