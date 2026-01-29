@@ -213,6 +213,7 @@ async function startVideo(prompt) {
   fd.append("model", form.model)          // ✅ Choix dynamique
   fd.append("duration", "5")              // "5" ou "10"
   fd.append("sound", "false")             // "true" / "false"
+  fd.append("aspect_ratio", form.aspect)  // ✅ requis pour Veo
 
   const res = await $fetch("https://management.hoggari.com/backend/api.php?action=giminiImageToVideo", {
     method: "POST",
@@ -237,7 +238,7 @@ async function pollUntilDone(taskId) {
     if (Date.now() - started > timeoutMs) throw new Error("Timeout polling task KIE")
 
     const op = await $fetch("https://management.hoggari.com/backend/api.php?action=giminiPoll", {
-      params: { taskId },
+      params: { taskId, type: 'video' },
     })
 
     if (!op || op.success !== true) {

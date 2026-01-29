@@ -27,9 +27,10 @@ if (!$apiKey) respond(500, ["success" => false, "error" => "KIE_API_KEY manquant
 
 $prompt   = safeStr($_POST["prompt"] ?? "");
 $imageUrl = safeStr($_POST["image_url"] ?? "");
-$model    = safeStr($_POST["model"] ?? "kling-2.6/image-to-video"); // <= tu peux changer ici si KIE attend un autre nom
-$duration = safeStr($_POST["duration"] ?? "5");      // doc: "5" ou "10"
+$model    = safeStr($_POST["model"] ?? "kling-2.6/image-to-video");
+$duration = safeStr($_POST["duration"] ?? "5");      // doc: "5" ou "10" (Kling)
 $soundStr = safeStr($_POST["sound"] ?? "false");     // "true"/"false"
+$aspect   = safeStr($_POST["aspect_ratio"] ?? "16:9");
 
 // validations
 if ($prompt === "") respond(400, ["success" => false, "error" => "prompt requis"]);
@@ -39,24 +40,37 @@ if ($imageUrl === "" || !preg_match('#^https?://#i', $imageUrl)) {
   respond(400, ["success" => false, "error" => "image_url invalide (http/https requis)"]);
 }
 
-if ($duration !== "5" && $duration !== "10") {
+$isVeo = (strpos($model, 'veo') === 0);
+
+if (!$isVeo && $duration !== "5" && $duration !== "10") {
   respond(400, ["success" => false, "error" => "duration invalide (valeurs: '5' ou '10')"]);
 }
 
 $sound = in_array(strtolower($soundStr), ['1','true','yes','on'], true);
 
-$endpoint = "https://api.kie.ai/api/v1/jobs/createTask";
-
-$payload = [
-  "model" => $model,
-  // "callBackUrl" => "https://ton-domaine.com/api/kie-callback", // optionnel
-  "input" => [
-    "prompt" => $prompt,
-    "image_urls" => [$imageUrl],
-    "sound" => $sound,
-    "duration" => $duration
-  ]
-];
+// Configure Payload based on Model
+if ($isVeo) {
+    // Veo specific endpoint and payload
+    $endpoint = "https://api.kie.ai/api/v1/veo/generate";
+    $payload = [
+        "model" => $model, // e.g. "veo3_fast"
+        "prompt" => $prompt,
+        "imageUrls" => [$imageUrl],
+        "aspect_ratio" => $aspect
+    ];
+} else {
+    // Kling / Default (createTask)
+    $endpoint = "https://api.kie.ai/api/v1/jobs/createTask";
+    $payload = [
+        "model" => $model,
+        "input" => [
+            "prompt" => $prompt,
+            "image_urls" => [$imageUrl],
+            "sound" => $sound,
+            "duration" => $duration
+        ]
+    ];
+}
 
 $ch = curl_init($endpoint);
 curl_setopt_array($ch, [
@@ -84,14 +98,16 @@ if (!is_array($decoded)) {
 if (($decoded["code"] ?? null) !== 200) {
   respond(502, [
     "success" => false,
-    "error" => "KIE createTask failed",
+    "error" => "KIE Task Creation failed",
     "http" => $http,
     "kie_code" => $decoded["code"] ?? null,
-    "message" => $decoded["message"] ?? null,
+    "message" => $decoded["message"] ?? ($decoded["msg"] ?? null),
     "raw" => $decoded
   ]);
 }
 
+// Veo response: {"code":200, "data": {"taskId": "..."}}
+// Kling response: {"code":200, "data": {"taskId": "..."}}
 $taskId = $decoded["data"]["taskId"] ?? "";
 if (!is_string($taskId) || $taskId === "") {
   respond(502, ["success" => false, "error" => "taskId manquant dans la réponse KIE", "raw" => $decoded]);
