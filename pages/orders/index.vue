@@ -537,6 +537,7 @@ const isReminder = ref(false)
 const isFilter = ref(false)
 const editOrderChanger = ref(false)
 
+const productsList = ref([])
 const ordersCount = ref(0)
 const orderData = ref([])
 const showDelegate = ref(false)
@@ -788,6 +789,12 @@ onMounted(() => {
   getDelivery()
   getUsers()
   
+  getProduct().then(() => {
+    if (resultProduct.value && resultProduct.value.data) {
+      productsList.value = resultProduct.value.data
+    }
+  })
+
   // SSE Setup
   evtSource = new EventSource('/backend/api.php?action=sseOrders');
 

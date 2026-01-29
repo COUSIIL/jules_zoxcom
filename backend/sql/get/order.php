@@ -111,6 +111,12 @@ if (isset($_GET['max_price']) && is_numeric($_GET['max_price'])) {
     $where[] = "o.total_price <= $p";
 }
 
+// Product Filter
+if (isset($_GET['product_id']) && is_numeric($_GET['product_id'])) {
+    $pid = (int)$_GET['product_id'];
+    $where[] = "o.id IN (SELECT order_id FROM order_items WHERE product_id = $pid)";
+}
+
 $whereClause = implode(' AND ', $where);
 
 // Fetch Orders with Pinned Info

@@ -151,6 +151,8 @@ import { ref, computed, watch, onMounted, reactive } from 'vue';
 import QRCode from 'qrcode';
 import gBtn from './bloc/gBtn.vue';
 import InputText from './bloc/inputText.vue';
+import Confirm from './bloc/confirm.vue';
+import Message from './bloc/message.vue';
 import icons from '~/public/icons.json';
 import Confirm from './bloc/confirm.vue';
 import Message from './bloc/message.vue';
