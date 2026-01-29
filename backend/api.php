@@ -37,6 +37,8 @@ $routes = [
     "giminiGeneratePlan"           => "../backend/IA/gemini/generate_plan.php",
     "giminiImageToVideo"           => "../backend/IA/gemini/image_to_video.php",
     "giminiPoll"                   => "../backend/IA/gemini/polling.php",
+    "giminiImageGen"               => "../backend/IA/gemini/generate_image.php",
+    "giminiMusicGen"               => "../backend/IA/gemini/generate_music.php",
 
     // --- Image & Upload ---
     "convertImageToHtml"           => "../backend/imageToHtml/convert.php",
