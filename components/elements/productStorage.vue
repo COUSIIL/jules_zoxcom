@@ -1,5 +1,9 @@
 <template>
   <div class="product-storage">
+
+    <Message :isVisible="showMessage" :message="messageText" @ok="showMessage = false" />
+    <Confirm :isVisible="showConfirm" :message="confirmMessage" @confirm="executeConfirm" @cancel="showConfirm = false" />
+
     <div class="header-section">
       <h2 class="title">Gestion du Stock</h2>
       <div class="actions">
@@ -148,6 +152,8 @@ import { ref, computed, watch, onMounted, reactive } from 'vue';
 import QRCode from 'qrcode';
 import gBtn from './bloc/gBtn.vue';
 import InputText from './bloc/inputText.vue';
+import Confirm from './bloc/confirm.vue';
+import Message from './bloc/message.vue';
 import icons from '~/public/icons.json';
 
 const props = defineProps({
@@ -164,6 +170,22 @@ const loading = ref(false);
 const inputMap = reactive({}); // Stores input qty for each variant key
 const searchQuery = ref('');
 const bulkQty = ref('');
+
+const showConfirm = ref(false);
+const confirmMessage = ref('');
+const onConfirm = ref(null);
+const showMessage = ref(false);
+const messageText = ref('');
+
+const executeConfirm = () => {
+  if (onConfirm.value) onConfirm.value();
+  showConfirm.value = false;
+};
+
+const triggerMessage = (msg) => {
+  messageText.value = msg;
+  showMessage.value = true;
+};
 
 // Helper to create a unique key for the input map
 const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
@@ -311,7 +333,7 @@ const performAdd = async (item, qty, silent = false) => {
 
 const addStock = async (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
-    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
+    if (!qty || qty <= 0) return triggerMessage('Veuillez entrer une quantité valide.');
 
     loading.value = true;
     const success = await performAdd(item, qty);
@@ -331,7 +353,7 @@ const performWithdraw = async (item, qty, silent = false) => {
     );
 
     if (availableItems.length < qty) {
-        if(!silent) alert(`Pas assez de stock disponible pour ${item.name} (Dispo: ${availableItems.length}).`);
+        if(!silent) triggerMessage(`Pas assez de stock disponible pour ${item.name} (Dispo: ${availableItems.length}).`);
         return false;
     }
 
@@ -346,85 +368,93 @@ const performWithdraw = async (item, qty, silent = false) => {
 
         const result = await res.json();
         if (!result.success && !silent) {
-            alert(result.message || 'Erreur lors du retrait.');
+            triggerMessage(result.message || 'Erreur lors du retrait.');
         }
         return result.success;
 
     } catch (e) {
         console.error(e);
-        if(!silent) alert('Erreur réseau.');
+        if(!silent) triggerMessage('Erreur réseau.');
         return false;
     }
 }
 
 const withdrawStock = async (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
-    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
+    if (!qty || qty <= 0) return triggerMessage('Veuillez entrer une quantité valide.');
 
-    if (!confirm(`Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`)) return;
-
-    loading.value = true;
-    const success = await performWithdraw(item, qty);
-    if(success) {
-         inputMap[item.uniqueKey] = '';
-         await refreshAll();
-    }
-    loading.value = false;
+    confirmMessage.value = `Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`;
+    onConfirm.value = async () => {
+        loading.value = true;
+        const success = await performWithdraw(item, qty);
+        if(success) {
+            inputMap[item.uniqueKey] = '';
+            await refreshAll();
+        }
+        loading.value = false;
+    };
+    showConfirm.value = true;
 };
 
 
 const bulkAddStock = async () => {
     const qty = parseInt(bulkQty.value);
-    if (!qty || qty <= 0) return alert('Quantité invalide');
+    if (!qty || qty <= 0) return triggerMessage('Quantité invalide');
     const targets = filteredRows.value;
     if(targets.length === 0) return;
 
-    if(!confirm(`Ajouter ${qty} unités à ${targets.length} variantes affichées ? (Total: ${qty * targets.length})`)) return;
-
-    loading.value = true;
-    let addedCount = 0;
-    for (const item of targets) {
-        const success = await performAdd(item, qty, true); // silent
-        if(success) addedCount++;
-    }
-    await refreshAll();
-    loading.value = false;
-    alert(`Terminé. ${addedCount}/${targets.length} variantes mises à jour.`);
+    confirmMessage.value = `Ajouter ${qty} unités à ${targets.length} variantes affichées ? (Total: ${qty * targets.length})`;
+    onConfirm.value = async () => {
+        loading.value = true;
+        let addedCount = 0;
+        for (const item of targets) {
+            const success = await performAdd(item, qty, true); // silent
+            if(success) addedCount++;
+        }
+        await refreshAll();
+        loading.value = false;
+        triggerMessage(`Terminé. ${addedCount}/${targets.length} variantes mises à jour.`);
+    };
+    showConfirm.value = true;
 }
 
 const bulkWithdrawStock = async () => {
     const qty = parseInt(bulkQty.value);
-    if (!qty || qty <= 0) return alert('Quantité invalide');
+    if (!qty || qty <= 0) return triggerMessage('Quantité invalide');
     const targets = filteredRows.value;
     if(targets.length === 0) return;
 
-    if(!confirm(`Retirer ${qty} unités de ${targets.length} variantes affichées ? Attention, cette action est irréversible.`)) return;
-
-    loading.value = true;
-    let withdrawnCount = 0;
-    for (const item of targets) {
-        const success = await performWithdraw(item, qty, true); // silent
-        if(success) withdrawnCount++;
-    }
-    await refreshAll();
-    loading.value = false;
-    alert(`Terminé. ${withdrawnCount}/${targets.length} variantes mises à jour.`);
+    confirmMessage.value = `Retirer ${qty} unités de ${targets.length} variantes affichées ? Attention, cette action est irréversible.`;
+    onConfirm.value = async () => {
+        loading.value = true;
+        let withdrawnCount = 0;
+        for (const item of targets) {
+            const success = await performWithdraw(item, qty, true); // silent
+            if(success) withdrawnCount++;
+        }
+        await refreshAll();
+        loading.value = false;
+        triggerMessage(`Terminé. ${withdrawnCount}/${targets.length} variantes mises à jour.`);
+    };
+    showConfirm.value = true;
 }
 
 
 const deleteSingleItem = async (id) => {
-    if (!confirm('Supprimer ce code spécifique ?')) return;
-
-    try {
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        if (await res.json().then(r => r.success)) {
-            await refreshAll();
-        }
-    } catch (e) { console.error(e); }
+    confirmMessage.value = 'Supprimer ce code spécifique ?';
+    onConfirm.value = async () => {
+        try {
+            const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            if (await res.json().then(r => r.success)) {
+                await refreshAll();
+            }
+        } catch (e) { console.error(e); }
+    };
+    showConfirm.value = true;
 };
 
 const refreshAll = async () => {
@@ -449,31 +479,34 @@ const printAll = () => {
 
 const deleteAllStock = async () => {
     if (!props.modelValue.id || props.modelValue.id <= 0) return;
-    if (!confirm("ATTENTION : Vous êtes sur le point de supprimer tout le stock DISPONIBLE pour ce produit. Cette action est irréversible. Continuer ?")) return;
 
-    loading.value = true;
-    try {
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                product_id: props.modelValue.id,
-                delete_all: true
-            })
-        });
-        const result = await res.json();
-        if (result.success) {
-            alert(result.message || 'Stock supprimé avec succès.');
-            await refreshAll();
-        } else {
-            alert(result.message || 'Erreur lors de la suppression.');
+    confirmMessage.value = "ATTENTION : Vous êtes sur le point de supprimer tout le stock DISPONIBLE pour ce produit. Cette action est irréversible. Continuer ?";
+    onConfirm.value = async () => {
+        loading.value = true;
+        try {
+            const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: props.modelValue.id,
+                    delete_all: true
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                triggerMessage(result.message || 'Stock supprimé avec succès.');
+                await refreshAll();
+            } else {
+                triggerMessage(result.message || 'Erreur lors de la suppression.');
+            }
+        } catch (e) {
+            console.error(e);
+            triggerMessage('Erreur réseau.');
+        } finally {
+            loading.value = false;
         }
-    } catch (e) {
-        console.error(e);
-        alert('Erreur réseau.');
-    } finally {
-        loading.value = false;
-    }
+    };
+    showConfirm.value = true;
 }
 
 onMounted(() => {

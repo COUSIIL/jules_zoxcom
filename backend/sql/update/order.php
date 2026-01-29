@@ -112,23 +112,15 @@ $actorType = 'bot';
 if (!empty($owner)) {
     // It's a user action
     $actorType = 'user';
+    $actorName = $owner;
     // Fetch user details
-    $uStmt = $mysqli->prepare("SELECT name, family_name, profile_image FROM users WHERE username = ?");
+    $uStmt = $mysqli->prepare("SELECT profile_image FROM users WHERE username = ?");
     if ($uStmt) {
         $uStmt->bind_param("s", $owner);
         $uStmt->execute();
         $resUser = $uStmt->get_result();
         if ($uRow = $resUser->fetch_assoc()) {
-            // Construct name
-            $fullName = trim(($uRow['name'] ?? '') . ' ' . ($uRow['family_name'] ?? ''));
-            if (empty($fullName)) {
-                $fullName = $owner;
-            }
-            $actorName = $fullName;
             $actorImage = $uRow['profile_image'] ?? '';
-        } else {
-            // Fallback if user not found but owner string exists
-            $actorName = $owner;
         }
         $uStmt->close();
     }

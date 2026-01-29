@@ -1,6 +1,9 @@
 <template>
   <div class="spacer"></div>
 
+  <Message :isVisible="showMessage" :message="messageText" @ok="showMessage = false"/>
+  <Confirm :isVisible="showConfirm" :message="confirmMessage" @confirm="executeConfirm" @cancel="showConfirm = false"/>
+
   <!-- Global Configuration (Colors & Sizes) -->
   <div class="container global-config">
       <div class="header-row">
@@ -216,6 +219,8 @@ import InputBtn from './bloc/inputBtn.vue';
 import Lister from './bloc/list.vue';
 import Selector from './bloc/select.vue';
 import Gbtn from './bloc/gBtn.vue';
+import Confirm from './bloc/confirm.vue';
+import Message from './bloc/message.vue';
 import iconsFilled from '../../public/iconsFilled.json'
 import icons from '../../public/icons.json'
 
@@ -231,6 +236,17 @@ const emit = defineEmits(['openExplorProdImg', 'message', 'isMessage', 'openExpl
 const activeModelIndex = ref(-1)
 const showCatalogPicker = ref(false)
 const pickingFor = ref({ mIndex: -1, dIndex: -1 })
+
+const showConfirm = ref(false)
+const confirmMessage = ref('')
+const onConfirm = ref(null)
+const showMessage = ref(false)
+const messageText = ref('')
+
+const executeConfirm = () => {
+  if(onConfirm.value) onConfirm.value()
+  showConfirm.value = false
+}
 
 // Global Config State
 const color = ref('')
@@ -302,8 +318,8 @@ const addColor = (c, n) => {
   if (!exists && n && c) {
     props.modelValue.colors.push({ value: c, label: n })
   } else {
-    emit('isMessage', true)
-    emit('message', t('you cannot have the same color twice'))
+    messageText.value = t('you cannot have the same color twice')
+    showMessage.value = true
   }
 }
 
@@ -313,8 +329,8 @@ const addSize = (n) => {
   if (!exists && n) {
     props.modelValue.sizes.push({ value: n, label: n })
   } else {
-    emit('isMessage', true)
-    emit('message', t('you cannot have the same size twice'))
+    messageText.value = t('you cannot have the same size twice')
+    showMessage.value = true
   }
 }
 
@@ -361,9 +377,11 @@ function addModel() {
 }
 
 function removeModel(index) {
-    if(confirm(t('Are you sure you want to remove this model?'))) {
+    confirmMessage.value = t('Are you sure you want to remove this model?')
+    onConfirm.value = () => {
         props.modelValue.models.splice(index, 1)
     }
+    showConfirm.value = true
 }
 
 function duplicateModel(index) {

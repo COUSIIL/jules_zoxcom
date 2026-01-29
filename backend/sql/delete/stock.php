@@ -31,19 +31,23 @@ try {
     $groups = [];
 
     if ($deleteAll && $productId > 0) {
-        // Bulk Delete Logic (Only 'available' items)
-        $sql = "SELECT model_id, detail_id, COUNT(*) as cnt
-                FROM product_stock
-                WHERE product_id = ? AND status = 'available'
-                GROUP BY model_id, detail_id";
+        // Bulk Delete Logic: Reset quantities to 0 and Delete Rows
+        $stmtResetModels = $mysqli->prepare("UPDATE product_models SET quantity = 0 WHERE product_id = ?");
+        $stmtResetModels->bind_param("i", $productId);
+        $stmtResetModels->execute();
+        $stmtResetModels->close();
 
-        $stmt = $mysqli->prepare($sql);
-        if (!$stmt) throw new Exception($mysqli->error);
-        $stmt->bind_param("i", $productId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $groups = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
+        $stmtResetDetails = $mysqli->prepare("UPDATE model_details SET quantity = 0 WHERE model_id IN (SELECT id FROM product_models WHERE product_id = ?)");
+        $stmtResetDetails->bind_param("i", $productId);
+        $stmtResetDetails->execute();
+        $stmtResetDetails->close();
+
+        $stmtDelete = $mysqli->prepare("DELETE FROM product_stock WHERE product_id = ? AND status = 'available'");
+        $stmtDelete->bind_param("i", $productId);
+        if (!$stmtDelete->execute()) throw new Exception($stmtDelete->error);
+        $stmtDelete->close();
+
+        $groups = []; // Skip the foreach loop
 
     } else {
         // Specific IDs Logic
@@ -83,12 +87,7 @@ try {
     }
 
     // 3. Delete Rows
-    if ($deleteAll && $productId > 0) {
-         $stmtDelete = $mysqli->prepare("DELETE FROM product_stock WHERE product_id = ? AND status = 'available'");
-         $stmtDelete->bind_param("i", $productId);
-         if (!$stmtDelete->execute()) throw new Exception($stmtDelete->error);
-         $stmtDelete->close();
-    } else {
+    if (!($deleteAll && $productId > 0)) {
          $idList = implode(',', $ids);
          $sqlDelete = "DELETE FROM product_stock WHERE id IN ($idList)";
          if (!$mysqli->query($sqlDelete)) throw new Exception($mysqli->error);
