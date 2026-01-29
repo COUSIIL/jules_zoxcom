@@ -99,9 +99,9 @@
       </div>
 
       <div class="newSideBar__item" @click="close">
-        <NuxtLink class="newSideBar__link" to="/image_video" exact-active-class="is-active">
-          <div class="newSideBar__icon" v-html="icons['imageVideo']"></div>
-          <h3 class="newSideBar__text">{{ t('image to video') }}</h3>
+        <NuxtLink class="newSideBar__link" to="/varqAI" active-class="is-active">
+          <div class="newSideBar__icon" v-html="icons['ai']"></div>
+          <h3 class="newSideBar__text">Varq AI</h3>
         </NuxtLink>
       </div>
 
