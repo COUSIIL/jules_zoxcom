@@ -110,7 +110,8 @@ const { t } = useLang()
 
 const emit = defineEmits(['close', 'selected'])
 const props = defineProps({
-    wilayas: { type: Array, default: () => [] }
+    wilayas: { type: Array, default: () => [] },
+    products: { type: Array, default: () => [] }
 })
 
 // Detect Dark Mode (assuming class 'dark' on html or body)
@@ -131,7 +132,8 @@ const filters = ref({
     commune: '',
     method: '',
     min_price: '',
-    max_price: ''
+    max_price: '',
+    product_id: ''
 })
 
 const dateRange = ref(null)
@@ -183,7 +185,8 @@ const resetFilters = () => {
         commune: '',
         method: '',
         min_price: '',
-        max_price: ''
+        max_price: '',
+        product_id: ''
     }
     dateRange.value = null
 }

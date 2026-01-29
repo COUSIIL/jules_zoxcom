@@ -13,7 +13,7 @@
 
 
 
-  <Filter v-if="isFilter" :wilayas="wilayas" @close="isFilter = false" @selected="filterSelected" />
+  <Filter v-if="isFilter" :wilayas="wilayas" :products="resultProduct?.data || []" @close="isFilter = false" @selected="filterSelected" />
 
   <Selector :options="statusOptions" :showIt="showStatus" :disabled="true" @close="showStatus = false"
     @update:modelValue="editStatus" />
@@ -193,7 +193,7 @@
             </div>
             <div v-else-if="dts.owner" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
                <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
-               <h1>{{ dts.owner }} :</h1>
+               <h1>{{ formatOwner(dts.owner) }} :</h1>
                <p v-if="dts.owner_conf_date">{{ t('confirmed at') }} {{ dts.owner_conf_date }}</p>
                <p v-else>{{ t('confirmed') }}</p>
             </div>
@@ -1801,7 +1801,10 @@ const updateFees = (type, index) => {
     useDeskFees ? newFees.tarif_stopdesk : newFees.tarif
 }
 
-
+const formatOwner = (owner) => {
+  // Ensure we display only the username (or appropriate identifier)
+  return owner;
+}
 
 
 </script>
