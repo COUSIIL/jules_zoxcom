@@ -21,8 +21,8 @@
               <span v-else-if="v.price" class="price">{{ v.price }} DA</span>
               <span v-else-if="v.total" class="price">{{ v.total }} DA</span>
               <span >Qty : <strong>{{ item.qty }}</strong></span>
-              <span v-if="v.color_name">Couleur : <strong>{{ v.color_name }}</strong></span>
-              <span v-if="v.size"> Taille : <strong>{{ v.size }}</strong></span>
+              <span v-if="v.color_name && v.color_name !== '-'">Couleur : <strong>{{ v.color_name }}</strong></span>
+              <span v-if="v.size && v.size !== '-'"> Taille : <strong>{{ v.size }}</strong></span>
               <!--span v-if="v.qty"> Stock: {{ v.qty }}</span-->
             </p>
           </div>

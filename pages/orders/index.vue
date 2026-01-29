@@ -363,11 +363,11 @@
                                 class="sub-item">
                                 <div class="tags">
 
-                                  <span class="tag color">
+                                  <span v-if="sub.color_name || sub.color" class="tag color">
                                     <span class="color-dot" :style="{ background: sub.color }"></span>
                                     {{ sub.color_name }}
                                   </span>
-                                  <span class="tag size">Taille: {{ sub.size }}</span>
+                                  <span v-if="sub.size" class="tag size">Taille: {{ sub.size }}</span>
                                   <span class="tag qty">x{{ sub.qty }}</span>
                                 </div>
 

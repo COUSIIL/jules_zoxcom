@@ -51,10 +51,14 @@
             :class="['variant-card', {selector: selectorVariant && selectorVariant.id === v.id}]"
             @click="pickVariant(v)"
           >
-            <div class="colour" :style="{background: v.color}"></div>
+            <div v-if="isActiveColor" class="colour" :style="{background: v.color}"></div>
             <div class="v-meta">
-              <div class="v-name">{{ v.colorName || v.color }}</div>
-              <div class="v-sub">{{ v.size || '-' }} • Stock: {{ v.qty }}</div>
+              <div v-if="isActiveColor" class="v-name">{{ v.colorName || v.color }}</div>
+              <div class="v-sub">
+                <span v-if="isActiveSize">{{ v.size || '-' }}</span>
+                <span v-if="isActiveSize"> • </span>
+                <span>Stock: {{ v.qty }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -140,6 +144,18 @@ const activeProducts = computed(() =>
 const activeModels = computed(() => {
   if (!selectorProduct.value) return []
   return (selectorProduct.value.models || []).filter(m => m.isActive == "1")
+})
+
+const isActiveColor = computed(() => {
+  if (!selectorModel.value) return false
+  const m = selectorModel.value
+  return !!m.activeColor && String(m.activeColor) === '1'
+})
+
+const isActiveSize = computed(() => {
+  if (!selectorModel.value) return false
+  const m = selectorModel.value
+  return !!m.activeSize && String(m.activeSize) === '1'
 })
 
 const activeVariants = computed(() => {
