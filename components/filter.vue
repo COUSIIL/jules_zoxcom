@@ -46,6 +46,16 @@
                 />
             </div>
 
+            <div class="input-group full-width">
+                 <label>{{ t('Product') }}</label>
+                 <select v-model="filters.product_id" class="custom-select">
+                    <option value="">{{ t('All Products') }}</option>
+                    <option v-for="p in products" :key="p.id" :value="p.id">
+                        {{ p.name }}
+                    </option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <label>{{ t('Wilaya') }}</label>
                 <select v-model="filters.wilaya" class="custom-select">
@@ -110,7 +120,8 @@ const { t } = useLang()
 
 const emit = defineEmits(['close', 'selected'])
 const props = defineProps({
-    wilayas: { type: Array, default: () => [] }
+    wilayas: { type: Array, default: () => [] },
+    products: { type: Array, default: () => [] }
 })
 
 // Detect Dark Mode (assuming class 'dark' on html or body)
@@ -131,7 +142,8 @@ const filters = ref({
     commune: '',
     method: '',
     min_price: '',
-    max_price: ''
+    max_price: '',
+    product_id: ''
 })
 
 const dateRange = ref(null)
@@ -183,7 +195,8 @@ const resetFilters = () => {
         commune: '',
         method: '',
         min_price: '',
-        max_price: ''
+        max_price: '',
+        product_id: ''
     }
     dateRange.value = null
 }
