@@ -32,7 +32,7 @@
         </div>
 
         <div v-show="currentPage === 3" style="width: 100%;">
-            <productStorage :modelValue="productData" @refresh="getProduct" />
+            <productStorage :modelValue="productData" @refresh="getProduct" @reset-models="resetModelsQty" @update-model-qty="updateModelQty" />
         </div>
 
         <div v-show="currentPage === 4" style="width: 100%;">
@@ -296,6 +296,35 @@ const executeSave = async () => {
     } finally {
         uploading.value = false;
     }
+}
+
+const resetModelsQty = () => {
+  if (productData.models) {
+    productData.models.forEach(m => {
+      m.qty = 0;
+      if (m.details) {
+        m.details.forEach(d => d.qty = 0);
+      }
+    });
+  }
+}
+
+const updateModelQty = ({ modelId, detailId, qty }) => {
+  if (!productData.models) return;
+
+  const model = productData.models.find(m => m.id == modelId);
+  if (model) {
+    if (detailId) {
+      if (model.details) {
+        const detail = model.details.find(d => d.id == detailId);
+        if (detail) {
+          detail.qty = Math.max(0, parseInt(detail.qty || 0) + parseInt(qty));
+        }
+      }
+    } else {
+       model.qty = Math.max(0, parseInt(model.qty || 0) + parseInt(qty));
+    }
+  }
 }
 
 </script>

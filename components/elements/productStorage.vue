@@ -1,5 +1,8 @@
 <template>
   <div class="product-storage">
+    <Confirm :isVisible="isConfirm" :message="confirmMessage" @confirm="executeConfirm" @cancel="isConfirm = false" />
+    <Message :isVisible="isMessage" :message="messageText" @ok="isMessage = false" />
+
     <div class="header-section">
       <h2 class="title">Gestion du Stock</h2>
       <div class="actions">
@@ -149,6 +152,8 @@ import QRCode from 'qrcode';
 import gBtn from './bloc/gBtn.vue';
 import InputText from './bloc/inputText.vue';
 import icons from '~/public/icons.json';
+import Confirm from './bloc/confirm.vue';
+import Message from './bloc/message.vue';
 
 const props = defineProps({
   modelValue: {
@@ -157,13 +162,30 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['refresh']);
+const emit = defineEmits(['refresh', 'reset-models', 'update-model-qty']);
 
 const stockList = ref([]);
 const loading = ref(false);
 const inputMap = reactive({}); // Stores input qty for each variant key
 const searchQuery = ref('');
 const bulkQty = ref('');
+
+// UI State
+const isConfirm = ref(false);
+const confirmMessage = ref('');
+const isMessage = ref(false);
+const messageText = ref('');
+const confirmCallback = ref(null);
+
+const executeConfirm = () => {
+  if (confirmCallback.value) confirmCallback.value();
+  isConfirm.value = false;
+};
+
+const showMessage = (msg) => {
+    messageText.value = msg;
+    isMessage.value = true;
+};
 
 // Helper to create a unique key for the input map
 const getUniqueKey = (modelId, detailId) => `${modelId}-${detailId || 'null'}`;
@@ -311,13 +333,14 @@ const performAdd = async (item, qty, silent = false) => {
 
 const addStock = async (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
-    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
+    if (!qty || qty <= 0) return showMessage('Veuillez entrer une quantité valide.');
 
     loading.value = true;
     const success = await performAdd(item, qty);
     if(success) {
         inputMap[item.uniqueKey] = '';
         await refreshAll();
+        emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: qty });
     }
     loading.value = false;
 };
@@ -331,7 +354,7 @@ const performWithdraw = async (item, qty, silent = false) => {
     );
 
     if (availableItems.length < qty) {
-        if(!silent) alert(`Pas assez de stock disponible pour ${item.name} (Dispo: ${availableItems.length}).`);
+        if(!silent) showMessage(`Pas assez de stock disponible pour ${item.name} (Dispo: ${availableItems.length}).`);
         return false;
     }
 
@@ -346,85 +369,104 @@ const performWithdraw = async (item, qty, silent = false) => {
 
         const result = await res.json();
         if (!result.success && !silent) {
-            alert(result.message || 'Erreur lors du retrait.');
+            showMessage(result.message || 'Erreur lors du retrait.');
         }
         return result.success;
 
     } catch (e) {
         console.error(e);
-        if(!silent) alert('Erreur réseau.');
+        if(!silent) showMessage('Erreur réseau.');
         return false;
     }
 }
 
-const withdrawStock = async (item) => {
+const withdrawStock = (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
-    if (!qty || qty <= 0) return alert('Veuillez entrer une quantité valide.');
+    if (!qty || qty <= 0) return showMessage('Veuillez entrer une quantité valide.');
 
-    if (!confirm(`Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`)) return;
-
-    loading.value = true;
-    const success = await performWithdraw(item, qty);
-    if(success) {
-         inputMap[item.uniqueKey] = '';
-         await refreshAll();
-    }
-    loading.value = false;
+    confirmMessage.value = `Confirmez-vous le retrait de ${qty} unité(s) pour ${item.name} ? Cela supprimera les codes correspondants.`;
+    confirmCallback.value = async () => {
+        loading.value = true;
+        const success = await performWithdraw(item, qty);
+        if(success) {
+             inputMap[item.uniqueKey] = '';
+             await refreshAll();
+             emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: -qty });
+        }
+        loading.value = false;
+    };
+    isConfirm.value = true;
 };
 
 
 const bulkAddStock = async () => {
     const qty = parseInt(bulkQty.value);
-    if (!qty || qty <= 0) return alert('Quantité invalide');
+    if (!qty || qty <= 0) return showMessage('Quantité invalide');
     const targets = filteredRows.value;
     if(targets.length === 0) return;
 
-    if(!confirm(`Ajouter ${qty} unités à ${targets.length} variantes affichées ? (Total: ${qty * targets.length})`)) return;
-
-    loading.value = true;
-    let addedCount = 0;
-    for (const item of targets) {
-        const success = await performAdd(item, qty, true); // silent
-        if(success) addedCount++;
-    }
-    await refreshAll();
-    loading.value = false;
-    alert(`Terminé. ${addedCount}/${targets.length} variantes mises à jour.`);
+    confirmMessage.value = `Ajouter ${qty} unités à ${targets.length} variantes affichées ? (Total: ${qty * targets.length})`;
+    confirmCallback.value = async () => {
+        loading.value = true;
+        let addedCount = 0;
+        for (const item of targets) {
+            const success = await performAdd(item, qty, true); // silent
+            if(success) {
+                addedCount++;
+                emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: qty });
+            }
+        }
+        await refreshAll();
+        loading.value = false;
+        showMessage(`Terminé. ${addedCount}/${targets.length} variantes mises à jour.`);
+    };
+    isConfirm.value = true;
 }
 
 const bulkWithdrawStock = async () => {
     const qty = parseInt(bulkQty.value);
-    if (!qty || qty <= 0) return alert('Quantité invalide');
+    if (!qty || qty <= 0) return showMessage('Quantité invalide');
     const targets = filteredRows.value;
     if(targets.length === 0) return;
 
-    if(!confirm(`Retirer ${qty} unités de ${targets.length} variantes affichées ? Attention, cette action est irréversible.`)) return;
-
-    loading.value = true;
-    let withdrawnCount = 0;
-    for (const item of targets) {
-        const success = await performWithdraw(item, qty, true); // silent
-        if(success) withdrawnCount++;
-    }
-    await refreshAll();
-    loading.value = false;
-    alert(`Terminé. ${withdrawnCount}/${targets.length} variantes mises à jour.`);
+    confirmMessage.value = `Retirer ${qty} unités de ${targets.length} variantes affichées ? Attention, cette action est irréversible.`;
+    confirmCallback.value = async () => {
+        loading.value = true;
+        let withdrawnCount = 0;
+        for (const item of targets) {
+            const success = await performWithdraw(item, qty, true); // silent
+            if(success) {
+                withdrawnCount++;
+                emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: -qty });
+            }
+        }
+        await refreshAll();
+        loading.value = false;
+        showMessage(`Terminé. ${withdrawnCount}/${targets.length} variantes mises à jour.`);
+    };
+    isConfirm.value = true;
 }
 
 
-const deleteSingleItem = async (id) => {
-    if (!confirm('Supprimer ce code spécifique ?')) return;
+const deleteSingleItem = (id) => {
+    const stockItem = stockList.value.find(s => s.id == id);
+    if(!stockItem) return;
 
-    try {
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id })
-        });
-        if (await res.json().then(r => r.success)) {
-            await refreshAll();
-        }
-    } catch (e) { console.error(e); }
+    confirmMessage.value = 'Supprimer ce code spécifique ?';
+    confirmCallback.value = async () => {
+        try {
+            const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            if (await res.json().then(r => r.success)) {
+                await refreshAll();
+                emit('update-model-qty', { modelId: stockItem.model_id, detailId: stockItem.detail_id, qty: -1 });
+            }
+        } catch (e) { console.error(e); }
+    };
+    isConfirm.value = true;
 };
 
 const refreshAll = async () => {
@@ -447,33 +489,37 @@ const printAll = () => {
     window.print();
 };
 
-const deleteAllStock = async () => {
+const deleteAllStock = () => {
     if (!props.modelValue.id || props.modelValue.id <= 0) return;
-    if (!confirm("ATTENTION : Vous êtes sur le point de supprimer tout le stock DISPONIBLE pour ce produit. Cette action est irréversible. Continuer ?")) return;
 
-    loading.value = true;
-    try {
-        const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                product_id: props.modelValue.id,
-                delete_all: true
-            })
-        });
-        const result = await res.json();
-        if (result.success) {
-            alert(result.message || 'Stock supprimé avec succès.');
-            await refreshAll();
-        } else {
-            alert(result.message || 'Erreur lors de la suppression.');
+    confirmMessage.value = "ATTENTION : Vous êtes sur le point de supprimer tout le stock DISPONIBLE pour ce produit. Cette action est irréversible. Continuer ?";
+    confirmCallback.value = async () => {
+        loading.value = true;
+        try {
+            const res = await fetch('https://management.hoggari.com/backend/api.php?action=deleteStock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: props.modelValue.id,
+                    delete_all: true
+                })
+            });
+            const result = await res.json();
+            if (result.success) {
+                showMessage(result.message || 'Stock supprimé avec succès.');
+                await refreshAll();
+                emit('reset-models');
+            } else {
+                showMessage(result.message || 'Erreur lors de la suppression.');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('Erreur réseau.');
+        } finally {
+            loading.value = false;
         }
-    } catch (e) {
-        console.error(e);
-        alert('Erreur réseau.');
-    } finally {
-        loading.value = false;
-    }
+    };
+    isConfirm.value = true;
 }
 
 onMounted(() => {
