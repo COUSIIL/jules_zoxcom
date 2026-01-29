@@ -7,8 +7,6 @@
       <h2 class="title">Gestion du Stock</h2>
       <div class="actions">
         <gBtn :svg="icons.refresh" text="Rafraîchir" color="var(--color-greeny)" @click="refreshAll" />
-        <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-greeny)" @click="printAll" />
-        <gBtn :svg="icons.trashX" text="Supprimer tout" color="var(--color-rady)" @click="deleteAllStock" />
       </div>
     </div>
     
@@ -85,7 +83,15 @@
 
     <!-- Existing Codes List -->
     <div class="codes-section">
-      <h3>Codes Générés ({{ stockList.length }})</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Codes Générés ({{ stockList.length }})</h3>
+
+            <div class="actions">
+                <gBtn :svg="icons.print" text="Imprimer QR" color="var(--color-greeny)" @click="printAll" />
+                <gBtn :svg="icons.x" text="Supprimer tout" color="var(--color-rady)" @click="deleteAllStock" />
+            </div>
+        </div>
+      
 
       <div class="table-container">
         <table>
@@ -152,9 +158,7 @@ import QRCode from 'qrcode';
 import gBtn from './bloc/gBtn.vue';
 import InputText from './bloc/inputText.vue';
 import Confirm from './bloc/confirm.vue';
-import Message from './bloc/message.vue';
 import icons from '~/public/icons.json';
-import Confirm from './bloc/confirm.vue';
 import Message from './bloc/message.vue';
 
 const props = defineProps({
@@ -723,9 +727,8 @@ watch(() => props.modelValue.id, (v) => {
 
 /* List Styles */
 .codes-section h3 {
-    margin-bottom: 15px;
     font-size: 1.1rem;
-    font-weight: 600;
+    font-weight: bold;
 }
 
 .table-container {
