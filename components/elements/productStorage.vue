@@ -288,7 +288,7 @@ const fetchStock = async () => {
 
   loading.value = true;
   try {
-    const res = await fetch(`https://management.hoggari.com/backend/api.php?action=getStock&product_id=${props.modelValue.id}`);
+    const res = await fetch(`https://management.hoggari.com/backend/api.php?action=getStock&product_id=${props.modelValue.id}&t=${Date.now()}`);
     const data = await res.json();
     if (data.success) {
       // Generate Data URLs for print

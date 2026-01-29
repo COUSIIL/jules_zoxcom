@@ -222,6 +222,7 @@ if ($value === 'confirmed') {
     $items->close();
 
     // Assign unique codes to this order
+    releaseUniqueCodes($mysqli, $id); // Safety: Release any previously assigned codes to avoid duplicates
     assignUniqueCodes($mysqli, $id);
 }
 
@@ -229,7 +230,7 @@ if ($value === 'confirmed') {
    Returned/Canceled logic
 ======================= */
 
-if (in_array($value, ['returned', 'canceled', 'unreachable'])) {
+if (in_array($value, ['returned', 'canceled', 'unreachable', 'waiting'])) {
     releaseUniqueCodes($mysqli, $id);
 }
 
