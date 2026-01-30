@@ -594,6 +594,7 @@ export const useOrders = () => {
             //await getOrders();
             updated.value = 1;
             //loading.value = false;
+            return textResponse;
         } else {
             if(textResponse.message != 'Not enough stock available.') {
                 updated.value = -1;
