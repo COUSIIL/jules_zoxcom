@@ -1046,7 +1046,12 @@ const editStatus = async (vl, index, id) => {
     const mainStatus = dt.value[statusIndex.value].status
     dt.value[statusIndex.value].status = vl
     
-    await updateOrderValue(statusID.value, 'status', vl, auth.value.username);
+    const res = await updateOrderValue(statusID.value, 'status', vl, auth.value.username);
+
+    if (res && res.assigned_codes) {
+      dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+    }
+
     dt.value[statusIndex.value].owner = auth.value.username
     if(updated.value == -1) {
       dt.value[statusIndex.value].owner = null
@@ -1057,7 +1062,13 @@ const editStatus = async (vl, index, id) => {
   } else {
     const mainStatus = dt.value[statusIndex.value].status
     dt.value[statusIndex.value].status = vl
-    await updateOrderValue(statusID.value, 'status', vl, auth.value.username);
+
+    const res = await updateOrderValue(statusID.value, 'status', vl, auth.value.username);
+
+    if (res && res.assigned_codes) {
+      dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+    }
+
     if(updated.value === -1) {
       dt.value[statusIndex.value].status = mainStatus
       showOrLog.value = true

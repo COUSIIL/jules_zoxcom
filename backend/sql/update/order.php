@@ -260,9 +260,23 @@ if ($status === 'status' && $value === 'completed' && $currentOrder['status'] !=
 include_once __DIR__ . '/../../trigger_update.php';
 triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mysqli);
 
+$assignedCodes = [];
+if ($status === 'status') {
+    // Fetch assigned codes
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
+    $stmtCodes->bind_param("i", $id);
+    $stmtCodes->execute();
+    $resCodes = $stmtCodes->get_result();
+    while ($row = $resCodes->fetch_assoc()) {
+        $assignedCodes[] = $row;
+    }
+    $stmtCodes->close();
+}
+
 echo json_encode([
     'success' => true,
-    'message' => 'Order updated successfully.'
+    'message' => 'Order updated successfully.',
+    'assigned_codes' => $assignedCodes
 ]);
 
 $mysqli->close();
