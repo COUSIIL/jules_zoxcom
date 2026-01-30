@@ -247,6 +247,12 @@ if ($value === 'confirmed') {
                     $types = "i";
                     $params = [$prodId];
 
+                    if ($modId > 0) {
+                        $sqlFind .= " AND model_id = ?";
+                        $types .= "i";
+                        $params[] = $modId;
+                    }
+
                     if ($detailId > 0) {
                         $sqlFind .= " AND detail_id = ?";
                         $types .= "i";
@@ -266,6 +272,7 @@ if ($value === 'confirmed') {
                     $foundIds = [];
                     while ($row = $resFind->fetch_assoc()) {
                          $foundIds[] = $row['id'];
+                         $assignedCodes[] = $row;
                     }
                     $stmtFind->close();
 
