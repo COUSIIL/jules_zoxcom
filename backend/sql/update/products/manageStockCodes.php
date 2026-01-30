@@ -85,33 +85,52 @@ function assignAndDecrementStock($mysqli, $orderId) {
         if ($resP) $infinitStock = $resP['infinit_stock'];
         $stmtP->close();
 
-        // Find available codes
-        $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available'";
-        $params = ["i", $productId];
-
-        if ($detailId && $detailId > 0) {
-             $query .= " AND detail_id = ?";
-             $params[0] .= "i";
-             $params[] = $detailId;
-        } else {
-             if ($modelId > 0) {
-                $query .= " AND model_id = ?";
-                $params[0] .= "i";
-                $params[] = $modelId;
-             }
-             $query .= " AND (detail_id IS NULL OR detail_id = 0)";
-        }
-        $query .= " LIMIT ?";
-        $params[0] .= "i";
-        $params[] = $qty;
-
-        $stmtSearch = $mysqli->prepare($query);
-        $stmtSearch->bind_param(...$params);
-        $stmtSearch->execute();
-        $res = $stmtSearch->get_result();
+        // Find available codes (Multi-step Search)
         $foundIds = [];
-        while ($row = $res->fetch_assoc()) $foundIds[] = $row['id'];
-        $stmtSearch->close();
+        $remainingQty = $qty;
+
+        // Step 1: Specific Detail ID (if requested)
+        if ($remainingQty > 0 && $detailId && $detailId > 0) {
+            $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND detail_id = ? LIMIT ?";
+            $stmtSearch = $mysqli->prepare($query);
+            $stmtSearch->bind_param("iii", $productId, $detailId, $remainingQty);
+            $stmtSearch->execute();
+            $res = $stmtSearch->get_result();
+            while ($row = $res->fetch_assoc()) {
+                $foundIds[] = $row['id'];
+                $remainingQty--;
+            }
+            $stmtSearch->close();
+        }
+
+        // Step 2: Generic Model ID (if still needed)
+        // Matches stock with correct model but no specific detail (NULL or 0)
+        if ($remainingQty > 0 && $modelId > 0) {
+             $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND model_id = ? AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
+             $stmtSearch = $mysqli->prepare($query);
+             $stmtSearch->bind_param("iii", $productId, $modelId, $remainingQty);
+             $stmtSearch->execute();
+             $res = $stmtSearch->get_result();
+             while ($row = $res->fetch_assoc()) {
+                 $foundIds[] = $row['id'];
+                 $remainingQty--;
+             }
+             $stmtSearch->close();
+        }
+
+        // Step 3: Generic Product (if still needed and Model/Detail were not effectively constraining)
+        if ($remainingQty > 0 && $modelId == 0 && ($detailId == 0 || $detailId == null)) {
+             $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
+             $stmtSearch = $mysqli->prepare($query);
+             $stmtSearch->bind_param("ii", $productId, $remainingQty);
+             $stmtSearch->execute();
+             $res = $stmtSearch->get_result();
+             while ($row = $res->fetch_assoc()) {
+                 $foundIds[] = $row['id'];
+                 $remainingQty--;
+             }
+             $stmtSearch->close();
+        }
 
         $foundCount = count($foundIds);
 
