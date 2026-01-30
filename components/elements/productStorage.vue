@@ -33,7 +33,7 @@
       <div class="grid-header sticky-header">
         <div class="col-name">Variante / Modèle</div>
         <div class="col-stock">En Stock</div>
-        <div class="col-input">Quantité</div>
+        <div class="col-input">Saisie</div>
         <div class="col-action">Actions</div>
       </div>
 
@@ -50,12 +50,21 @@
             </span>
         </div>
         <div class="col-input">
-            <InputText
-                type="number"
-                v-model="inputMap[item.uniqueKey]"
-                placeHolder="Qté"
-                class="qty-input"
-            />
+            <div style="display: flex; gap: 5px; flex-direction: column;">
+                <InputText
+                    type="number"
+                    v-model="inputMap[item.uniqueKey]"
+                    placeHolder="Qté"
+                    class="qty-input"
+                />
+                 <InputText
+                    type="text"
+                    v-model="inputCommentMap[item.uniqueKey]"
+                    placeHolder="Commentaire (opt)"
+                    class="comment-input"
+                    style="font-size: 12px;"
+                />
+            </div>
         </div>
         <div class="col-action actions-group">
             <gBtn
@@ -100,6 +109,7 @@
               <th>QR</th>
               <th>Code Unique</th>
               <th>Variante</th>
+              <th>Commentaire</th>
               <th>Statut</th>
               <th>Ref Commande</th>
               <th>Action</th>
@@ -112,6 +122,15 @@
               </td>
               <td class="code-text">{{ stock.unique_code }}</td>
               <td>{{ getVariantName(stock) }}</td>
+              <td>
+                  <input
+                    type="text"
+                    v-model="stock.comment"
+                    @blur="updateComment(stock)"
+                    class="table-input"
+                    placeholder="..."
+                  />
+              </td>
               <td>
                  <span class="status-badge" :class="stock.status">{{ stock.status }}</span>
               </td>
@@ -127,7 +146,7 @@
               </td>
             </tr>
              <tr v-if="stockList.length === 0">
-              <td colspan="6" style="text-align: center; padding: 20px; color: #888;">Aucun code généré.</td>
+              <td colspan="7" style="text-align: center; padding: 20px; color: #888;">Aucun code généré.</td>
             </tr>
           </tbody>
         </table>
@@ -173,6 +192,7 @@ const emit = defineEmits(['refresh', 'reset-models', 'update-model-qty']);
 const stockList = ref([]);
 const loading = ref(false);
 const inputMap = reactive({}); // Stores input qty for each variant key
+const inputCommentMap = reactive({}); // Stores input comment
 const searchQuery = ref('');
 const bulkQty = ref('');
 
@@ -317,13 +337,14 @@ const fetchStock = async () => {
   }
 };
 
-const performAdd = async (item, qty, silent = false) => {
+const performAdd = async (item, qty, comment, silent = false) => {
     try {
         const payload = {
             product_id: props.modelValue.id,
             model_id: item.modelId,
             detail_id: item.detailId,
-            qty: qty
+            qty: qty,
+            comment: comment
         };
 
         const res = await fetch('https://management.hoggari.com/backend/api.php?action=postStock', {
@@ -347,12 +368,14 @@ const performAdd = async (item, qty, silent = false) => {
 
 const addStock = async (item) => {
     const qty = parseInt(inputMap[item.uniqueKey]);
+    const comment = inputCommentMap[item.uniqueKey] || '';
     if (!qty || qty <= 0) return showMessage('Veuillez entrer une quantité valide.');
 
     loading.value = true;
-    const success = await performAdd(item, qty);
+    const success = await performAdd(item, qty, comment);
     if(success) {
         inputMap[item.uniqueKey] = '';
+        inputCommentMap[item.uniqueKey] = '';
         await refreshAll();
         emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: qty });
     }
@@ -424,7 +447,8 @@ const bulkAddStock = async () => {
         loading.value = true;
         let addedCount = 0;
         for (const item of targets) {
-            const success = await performAdd(item, qty, true); // silent
+            // Bulk add does not support individual comments currently, or we could add a bulk comment input
+            const success = await performAdd(item, qty, '', true); // silent
             if(success) {
                 addedCount++;
                 emit('update-model-qty', { modelId: item.modelId, detailId: item.detailId, qty: qty });
@@ -534,6 +558,21 @@ const deleteAllStock = () => {
         }
     };
     isConfirm.value = true;
+}
+
+const updateComment = async (stock) => {
+    try {
+        await fetch('https://management.hoggari.com/backend/api.php?action=updateStockComment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: stock.id,
+                comment: stock.comment
+            })
+        });
+    } catch(e) {
+        console.error(e);
+    }
 }
 
 onMounted(() => {
@@ -781,6 +820,20 @@ th {
 .status-badge.sold { background: #dbeafe; color: #1e40af; }
 .status-badge.returned { background: #fee2e2; color: #991b1b; }
 .status-badge.removed { background: #f3f4f6; color: #374151; }
+
+.table-input {
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 4px;
+    border-radius: 4px;
+    width: 100%;
+    color: inherit;
+}
+.table-input:focus {
+    border-color: var(--color-blumy);
+    background: var(--color-whizy);
+    outline: none;
+}
 
 /* Responsive */
 @media (max-width: 768px) {

@@ -203,113 +203,19 @@ if ($value === 'confirmed') {
     $stmt2->execute();
     $stmt2->close();
 
-    $items = $mysqli->prepare("SELECT * FROM order_items WHERE order_id = ?");
-    $items->bind_param("i", $id);
-    $items->execute();
-    $itemsRes = $items->get_result();
+    // Assign unique codes to this order (and consume stock)
+    releaseUniqueCodes($mysqli, $id); // Safety: Release any previously assigned codes (and restore stock) to avoid duplicates/double-counting
 
-    while ($item = $itemsRes->fetch_assoc()) {
-        $stockResult = updateStock(
-            $mysqli,
-            $item['model_id'],
-            $item['product_id'],
-            $item['qty']
-        );
-
-        if (!$stockResult['success']) {
-            echo json_encode($stockResult);
-            exit;
-        }
-    }
-
-    $items->close();
-
-    // Assign unique codes to this order
-    releaseUniqueCodes($mysqli, $id); // Safety: Release any previously assigned codes to avoid duplicates
-
-    if (!empty($products) && is_array($products)) {
-        // Use provided products map
-        foreach ($products as $prod) {
-            $prodId = (int)($prod['product_id'] ?? 0);
-            $modId  = (int)($prod['model_id'] ?? 0);
-            $pQty   = (int)($prod['qty'] ?? 0);
-            $variants = $prod['variants'] ?? [];
-
-            // If variants exist, iterate them
-            if (!empty($variants) && is_array($variants)) {
-                foreach ($variants as $var) {
-                    $detailId = (int)($var['id'] ?? 0);
-                    $qty      = (int)($var['qty'] ?? 0);
-
-                    // Find codes
-                    // Query: product_id + detail_id (status=available)
-                    $sqlFind = "SELECT id, unique_code, model_id, detail_id FROM product_stock WHERE product_id = ? AND status = 'available'";
-                    $types = "i";
-                    $params = [$prodId];
-
-                    if ($detailId > 0) {
-                        $sqlFind .= " AND detail_id = ?";
-                        $types .= "i";
-                        $params[] = $detailId;
-                    } else {
-                        $sqlFind .= " AND (detail_id IS NULL OR detail_id = 0)";
-                    }
-
-                    $sqlFind .= " LIMIT ?";
-                    $types .= "i";
-                    $params[] = $qty;
-
-                    $stmtFind = $mysqli->prepare($sqlFind);
-                    $stmtFind->bind_param($types, ...$params);
-                    $stmtFind->execute();
-                    $resFind = $stmtFind->get_result();
-                    $foundIds = [];
-                    while ($row = $resFind->fetch_assoc()) {
-                         $foundIds[] = $row['id'];
-                    }
-                    $stmtFind->close();
-
-                    if (!empty($foundIds)) {
-                        $idsStr = implode(',', $foundIds);
-                        $mysqli->query("UPDATE product_stock SET order_id = $id, status = 'sold' WHERE id IN ($idsStr)");
-                    }
-                }
-            } else {
-                // No variants, use main item (generic model or simple product)
-                // Query: product_id + model_id (if > 0) + detail_id IS NULL/0
-                $sqlFind = "SELECT id, unique_code, model_id, detail_id FROM product_stock WHERE product_id = ? AND status = 'available' AND (detail_id IS NULL OR detail_id = 0)";
-                $types = "i";
-                $params = [$prodId];
-
-                if ($modId > 0) {
-                    $sqlFind .= " AND model_id = ?";
-                    $types .= "i";
-                    $params[] = $modId;
-                }
-                $sqlFind .= " LIMIT ?";
-                $types .= "i";
-                $params[] = $pQty;
-
-                $stmtFind = $mysqli->prepare($sqlFind);
-                $stmtFind->bind_param($types, ...$params);
-                $stmtFind->execute();
-                $resFind = $stmtFind->get_result();
-                $foundIds = [];
-                while ($row = $resFind->fetch_assoc()) {
-                        $foundIds[] = $row['id'];
-                        $assignedCodes[] = $row;
-                }
-                $stmtFind->close();
-
-                if (!empty($foundIds)) {
-                    $idsStr = implode(',', $foundIds);
-                    $mysqli->query("UPDATE product_stock SET order_id = $id, status = 'sold' WHERE id IN ($idsStr)");
-                }
-            }
-        }
-    } else {
-        // Fallback to existing logic if no products sent
-        assignUniqueCodes($mysqli, $id);
+    // Unified function to Assign Codes + Decrement Stock Counters
+    $stockResult = assignAndDecrementStock($mysqli, $id);
+    if (!$stockResult['success']) {
+        // Rollback confirmation if stock failed?
+        // Since we are not in a global transaction here (mysqli->begin_transaction was not called at top level),
+        // we might leave the order as 'confirmed' but without stock.
+        // Ideally we should revert the status update.
+        $mysqli->query("UPDATE orders SET owner_conf_state = NULL WHERE id = $id");
+        echo json_encode($stockResult);
+        exit;
     }
 
     // Always refetch assigned codes from DB to ensure response is accurate
