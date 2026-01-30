@@ -264,10 +264,10 @@ include_once __DIR__ . '/../../trigger_update.php';
 triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mysqli);
 
 $assignedCodes = [];
-if ($product_id != 0 && ($status === 'status' || $value === 'confirmed')) {
+if ($status === 'status' || $value === 'confirmed') {
     // Fetch assigned codes
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE product_id = ?");
-    $stmtCodes->bind_param("i", $product_id);
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, product_id FROM product_stock WHERE order_id = ?");
+    $stmtCodes->bind_param("i", $id);
     $stmtCodes->execute();
     $resCodes = $stmtCodes->get_result();
     while ($row = $resCodes->fetch_assoc()) {
@@ -279,8 +279,7 @@ if ($product_id != 0 && ($status === 'status' || $value === 'confirmed')) {
 echo json_encode([
     'success' => true,
     'message' => 'Order updated successfully.',
-    'assigned_codes' => $assignedCodes,
-    'resCodes' => $resCodes
+    'assigned_codes' => $assignedCodes
 ]);
 
 $mysqli->close();
