@@ -54,9 +54,6 @@ if (!isset($data['id'], $data['status'], $data['value'])) {
 }
 
 $id     = (int)$data['id'];
-$product_id = (int)$data['product_id']  ?? 0;
-$model_id = (int)$data['model_id']  ?? 0;
-$detail_id = (int)$data['detail_id']  ?? 0;
 $status = $data['status'];
 $value  = $data['value'];
 
