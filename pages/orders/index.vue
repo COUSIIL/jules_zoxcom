@@ -1693,85 +1693,59 @@ const updateSelectedFees = async (index, vl) => {
 
 const updateCommune = async (index, wilaya) => {
 
-  //console.log('wilaya: ', wilaya)
-  
-  
-
-  if (!Array.isArray(wilaya)) {
+  // If wilaya is just a name, find the object
+  if (!Array.isArray(wilaya) && typeof wilaya !== 'object') {
     for (const wil of wilayas.value) {
       if (wil.wilaya_name == wilaya) {
         wilaya = wil
+        break
       }
     }
   }
 
+  // Safety check: if wilaya is still not an object/array (meaning not found), abort
+  if (!wilaya || (typeof wilaya !== 'object')) {
+     console.warn("Wilaya not found for updateCommune:", wilaya);
+     return;
+  }
+
   var newMunic
 
+  // Fetch communes for this wilaya
+  await getCommune(wilaya)
+
+  if(municipalitys.value?.data) {
+      newMunic = municipalitys.value.data
+  } else {
+      newMunic = municipalitys.value
+  }
+
+  // Ensure selectedCommune is set (initially from sZone if empty)
   if(!limitedDt.value[index].selectedCommune) {
     limitedDt.value[index].selectedCommune = limitedDt.value[index].sZone
-    await getCommune(wilaya, limitedDt.value[index].selectedCommune)
-
-    
-
-    if(municipalitys.value?.data) {
-      newMunic = municipalitys.value.data
-    } else {
-      newMunic = municipalitys.value
-    }
-  } else {
-    await getCommune(wilaya)
-
-    if(municipalitys.value?.data) {
-      newMunic = municipalitys.value.data
-    } else {
-      newMunic = municipalitys.value
-    }
-    if(newMunic[0]?.nom) {
-      limitedDt.value[index].selectedCommune = newMunic[0].nom
-    } else {
-      limitedDt.value[index].selectedCommune = newMunic[0].name
-    }
-    
   }
 
-
-  if (!Array.isArray(limitedDt.value[index].commune)) {
-    limitedDt.value[index].commune = []
-  }
-
-  if (limitedDt.value[index].commune.length > 0) {
-    limitedDt.value[index].commune = []
-  }
+  // Reset commune list
+  limitedDt.value[index].commune = []
 
   var selectedCommuneObj = null
-  for (const i of newMunic) {
-    
-    var newName = ''
-    if(i.nom) {
-      newName = i.nom
-    } else {
-      newName = i.name
-    }
 
-    if (newName == limitedDt.value[index].selectedCommune) {
-      selectedCommuneObj = i
-    }
+  if (newMunic && Array.isArray(newMunic)) {
+      for (const i of newMunic) {
+        var newName = i.nom || i.name || ''
 
-    if (i.has_stop_desk == 0) {
-      
-      limitedDt.value[index].commune.push({
-        label: newName,
-        value: i,
-        img: ''
-      })
-    } else {
-      limitedDt.value[index].commune.push({
-        label: newName + ' (Desk)',
-        value: i,
-        img: ''
-      })
-    }
+        if (newName == limitedDt.value[index].selectedCommune) {
+          selectedCommuneObj = i
+        }
 
+        const label = (i.has_stop_desk == 1) ? newName + ' (Desk)' : newName;
+
+        limitedDt.value[index].commune.push({
+            label: label,
+            value: i,
+            img: ''
+        })
+      }
   }
 
   limitedDt.value[index].has_desk = null
