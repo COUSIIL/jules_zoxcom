@@ -2,6 +2,7 @@
 
 function assignUniqueCodes($mysqli, $orderId) {
     // 1. Fetch product_items
+    // We fetch 'ids' as detail_id. 'ids' usually corresponds to model_details.id
     $sqlPI = "SELECT product_id, qty, ids as detail_id, indx FROM product_items WHERE order_id = ?";
     $stmtPI = $mysqli->prepare($sqlPI);
     $stmtPI->bind_param("i", $orderId);
@@ -9,7 +10,7 @@ function assignUniqueCodes($mysqli, $orderId) {
     $pItems = $stmtPI->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmtPI->close();
 
-    // 2. Fetch order_items (for model_id lookup)
+    // 2. Fetch order_items (for model_id lookup fallback)
     $sqlOI = "SELECT id, model_id, product_id, qty FROM order_items WHERE order_id = ?";
     $stmtOI = $mysqli->prepare($sqlOI);
     $stmtOI->bind_param("i", $orderId);
@@ -29,24 +30,44 @@ function assignUniqueCodes($mysqli, $orderId) {
         // We have detailed items
         foreach ($pItems as $pi) {
             $modelId = 0;
-            // Try to find model_id via indx
-            if (isset($orderItemsById[$pi['indx']])) {
-                $modelId = $orderItemsById[$pi['indx']]['model_id'];
-            } else {
-                // indx might be broken or 0. Try to match by product_id?
+            $detailId = (int)$pi['detail_id'];
+
+            // STRATEGY 1: If we have a detail_id, we can find the exact model_id from the DB.
+            // This is robust against broken 'indx'.
+            if ($detailId > 0) {
+                $stmtD = $mysqli->prepare("SELECT model_id FROM model_details WHERE id = ?");
+                if ($stmtD) {
+                    $stmtD->bind_param("i", $detailId);
+                    $stmtD->execute();
+                    $resD = $stmtD->get_result();
+                    if ($rowD = $resD->fetch_assoc()) {
+                        $modelId = (int)$rowD['model_id'];
+                    }
+                    $stmtD->close();
+                }
+            }
+
+            // STRATEGY 2: If modelId is still 0 (generic item or lookup failed), try 'indx'
+            if ($modelId === 0 && isset($orderItemsById[$pi['indx']])) {
+                $modelId = (int)$orderItemsById[$pi['indx']]['model_id'];
+            }
+
+            // STRATEGY 3: Fallback - try to match by product_id in order_items
+            // (Only if we still don't have a modelId)
+            if ($modelId === 0) {
                 foreach ($oItems as $oi) {
                     if ($oi['product_id'] == $pi['product_id']) {
-                        $modelId = $oi['model_id'];
-                        break;
+                        $modelId = (int)$oi['model_id'];
+                        break; // Risky for multi-model orders, but better than nothing
                     }
                 }
             }
 
             $itemsToProcess[] = [
                 'product_id' => $pi['product_id'],
-                'detail_id' => $pi['detail_id'],
-                'model_id' => $modelId,
-                'qty' => $pi['qty']
+                'detail_id'  => $detailId,
+                'model_id'   => $modelId,
+                'qty'        => $pi['qty']
             ];
         }
     } else {
@@ -54,18 +75,18 @@ function assignUniqueCodes($mysqli, $orderId) {
         foreach ($oItems as $oi) {
             $itemsToProcess[] = [
                 'product_id' => $oi['product_id'],
-                'detail_id' => 0,
-                'model_id' => $oi['model_id'],
-                'qty' => $oi['qty']
+                'detail_id'  => 0,
+                'model_id'   => $oi['model_id'],
+                'qty'        => $oi['qty']
             ];
         }
     }
 
     foreach ($itemsToProcess as $item) {
         $productId = $item['product_id'];
-        $modelId = $item['model_id'];
-        $detailId = $item['detail_id'];
-        $qty = $item['qty'];
+        $modelId   = $item['model_id'];
+        $detailId  = $item['detail_id'];
+        $qty       = $item['qty'];
 
         // Find available codes
         $query = "SELECT id FROM product_stock
@@ -81,12 +102,12 @@ function assignUniqueCodes($mysqli, $orderId) {
              $params[] = $detailId;
         } else {
              // If we bought a simple model (or product_items has 0), look for matching model_id
-             // AND detail_id IS NULL (to ensure we don't pick a variant code for a generic order if mixed)
              if ($modelId > 0) {
                 $query .= " AND model_id = ?";
                 $params[0] .= "i";
                 $params[] = $modelId;
              }
+             // CRITICAL: Ensure we don't pick a variant code for a generic order
              $query .= " AND (detail_id IS NULL OR detail_id = 0)";
         }
 
