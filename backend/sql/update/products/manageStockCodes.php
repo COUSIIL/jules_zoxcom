@@ -27,7 +27,7 @@ function assignAndDecrementStock($mysqli, $orderId) {
     if (!empty($pItems)) {
         foreach ($pItems as $pi) {
             $modelId = 0;
-            $detailId = (int)$pi['detail_id'];
+            $detailId = (int)$pi['indx'];
             if ($detailId > 0) {
                 $stmtD = $mysqli->prepare("SELECT model_id FROM model_details WHERE id = ?");
                 if ($stmtD) {
@@ -38,8 +38,8 @@ function assignAndDecrementStock($mysqli, $orderId) {
                     $stmtD->close();
                 }
             }
-            if ($modelId === 0 && isset($orderItemsById[$pi['indx']])) {
-                $modelId = (int)$orderItemsById[$pi['indx']]['model_id'];
+            if ($modelId === 0 && isset($orderItemsById[$pi['ids']])) {
+                $modelId = (int)$orderItemsById[$pi['ids']]['model_id'];
             }
             if ($modelId === 0) {
                 foreach ($oItems as $oi) {

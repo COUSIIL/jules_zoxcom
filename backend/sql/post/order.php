@@ -435,7 +435,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $model_promo = $model['promo'];
                     $id = $model['id'];
                     $indx = $model['indx'];
-                    $stmtProduct->bind_param("iisssiddii", $orderId, $product_id, $model_color, $model_color_name, $model_size, $model_qty, $model_total, $model_promo,  $id, $orderItemId);
+                    $stmtProduct->bind_param("iisssiddii", $orderId, $product_id, $model_color, $model_color_name, $model_size, $model_qty, $model_total, $model_promo,  $id, $indx);
                     $stmtProduct->execute();
                 }
             }
