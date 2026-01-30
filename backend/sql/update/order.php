@@ -250,17 +250,16 @@ if ($value === 'confirmed') {
                     $types = "i";
                     $params = [$prodId];
 
-                    if ($modId > 0) {
-                        $sqlFind .= " AND model_id = ?";
-                        $types .= "i";
-                        $params[] = $modId;
-                    }
-
                     if ($detailId > 0) {
                         $sqlFind .= " AND detail_id = ?";
                         $types .= "i";
                         $params[] = $detailId;
                     } else {
+                        if ($modId > 0) {
+                            $sqlFind .= " AND model_id = ?";
+                            $types .= "i";
+                            $params[] = $modId;
+                        }
                         $sqlFind .= " AND (detail_id IS NULL OR detail_id = 0)";
                     }
 
@@ -322,16 +321,6 @@ if ($value === 'confirmed') {
         assignUniqueCodes($mysqli, $id);
     }
 
-    // Always refetch assigned codes from DB to ensure response is accurate
-    $assignedCodes = [];
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
-    $stmtCodes->bind_param("i", $id);
-    $stmtCodes->execute();
-    $resCodes = $stmtCodes->get_result();
-    while ($row = $resCodes->fetch_assoc()) {
-        $assignedCodes[] = $row;
-    }
-    $stmtCodes->close();
 }
 
 /* =======================
