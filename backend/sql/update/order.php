@@ -54,6 +54,9 @@ if (!isset($data['id'], $data['status'], $data['value'])) {
 }
 
 $id     = (int)$data['id'];
+$product_id = (int)$data['product_id']  ?? 0;
+$model_id = (int)$data['model_id']  ?? 0;
+$detail_id = (int)$data['detail_id']  ?? 0;
 $status = $data['status'];
 $value  = $data['value'];
 
@@ -261,10 +264,10 @@ include_once __DIR__ . '/../../trigger_update.php';
 triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mysqli);
 
 $assignedCodes = [];
-if ($status === 'status' || $value === 'confirmed') {
+if ($product_id != 0 && ($status === 'status' || $value === 'confirmed')) {
     // Fetch assigned codes
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
-    $stmtCodes->bind_param("i", $id);
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE product_id = ?");
+    $stmtCodes->bind_param("i", $product_id);
     $stmtCodes->execute();
     $resCodes = $stmtCodes->get_result();
     while ($row = $resCodes->fetch_assoc()) {
@@ -276,7 +279,8 @@ if ($status === 'status' || $value === 'confirmed') {
 echo json_encode([
     'success' => true,
     'message' => 'Order updated successfully.',
-    'assigned_codes' => $assignedCodes
+    'assigned_codes' => $assignedCodes,
+    'resCodes' => $resCodes
 ]);
 
 $mysqli->close();
