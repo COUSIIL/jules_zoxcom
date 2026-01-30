@@ -261,7 +261,7 @@ include_once __DIR__ . '/../../trigger_update.php';
 triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mysqli);
 
 $assignedCodes = [];
-if ($status === 'status') {
+if ($status === 'status' || $value === 'confirmed') {
     // Fetch assigned codes
     $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
     $stmtCodes->bind_param("i", $id);

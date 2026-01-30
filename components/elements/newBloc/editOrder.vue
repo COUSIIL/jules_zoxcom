@@ -183,27 +183,17 @@ onMounted(() => {
 
 watch(() => props.commune, v => {
   if(v) {
-    console.log('v: ', v)
     localCommune.value = v
-    
-  } else {
-    emit('update:commune', props.commune)
   }
   calculerPrix()
-  
-  
 })
 
 watch(() => props.wilaya, v => {
+  // Only emit if needed, or just sync local
   if(v) {
-    
-    emit('update:wilaya', props.wilaya)
-  } else {
-    emit('update:wilaya', props.wilaya)
+    localWilaya.value = v
   }
   calculerPrix()
-  
-  
 })
 
 
@@ -347,13 +337,19 @@ async function updateOrder() {
     finalCommune = finalCommune.nom || finalCommune.name || ""
   }
 
+  // Ensure values are strings if undefined
+  const finalWilaya = localWilaya.value || "";
+  const finalName = localName.value || "";
+  const finalPhone = localPhone.value || "";
+  const finalAdresse = localAdresse.value || "";
+
   const payload = {
     orderId: props.id,
-    name: localName.value,
-    phone: localPhone.value,
-    wilaya: localWilaya.value,
-    commune: finalCommune,
-    adresse: localAdresse.value,
+    name: finalName,
+    phone: finalPhone,
+    wilaya: finalWilaya,
+    commune: finalCommune || "", // Ensure empty string if null
+    adresse: finalAdresse,
     deliveryMethod: props.deliveryMethod,
     deliveryType: localType.value,
     deliveryFees: localFees.value,
