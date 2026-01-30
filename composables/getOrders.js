@@ -565,14 +565,15 @@ export const useOrders = () => {
     }
 
 
-    const updateOrderValue = async (id, status, value, owner) => {
+    const updateOrderValue = async (id, status, value, owner, products = null) => {
 
         //loading.value = true;
         const updateOrder = JSON.stringify({
                 id: id,
                 status: status,
                 value: value,
-                owner: owner
+                owner: owner,
+                products: products
         });
 
         

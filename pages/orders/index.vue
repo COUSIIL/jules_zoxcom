@@ -1047,22 +1047,31 @@ const editStatus = async (vl, index, id) => {
     dt.value[statusIndex.value].status = vl
 
     var productMap = []
-    for(let i in dt.value[statusIndex.value].items) {
-      const productID = dt.value[statusIndex.value].items[i].id
-      const qty = dt.value[statusIndex.value].items[i].qty 
-      const modelID = dt.value[statusIndex.value].items[i].model_id
-      var varientID = dt.value[statusIndex.value].items[i].variant_id
-
-      for(let j in dt.value[statusIndex.value].items[i].items) {
-        varientID.push({id: dt.value[statusIndex.value].items[i].items[j].id, qty: dt.value[statusIndex.value].items[i].items[j].qty, colorName: dt.value[statusIndex.value].items[i].items[j].colorName, size: dt.value[statusIndex.value].items[i].items[j].size})
-      }
-
-      productMap.push({productID: productID, qty: qty, modelID: modelID, varientID: varientID})
-    
+    const items = dt.value[statusIndex.value].items
+    if (items) {
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i]
+            let variants = []
+            if (item.items && Array.isArray(item.items)) {
+                for (let j = 0; j < item.items.length; j++) {
+                    const sub = item.items[j]
+                    variants.push({
+                        id: sub.id,
+                        qty: sub.qty
+                    })
+                }
+            }
+            productMap.push({
+                product_id: item.product_id,
+                model_id: item.model_id,
+                qty: item.qty,
+                variants: variants
+            })
+        }
     }
     
     
-    const res = await updateOrderValue(statusID.value, 'status', vl, auth.value.username, );
+    const res = await updateOrderValue(statusID.value, 'status', vl, auth.value.username, productMap);
 
     if (res && res.assigned_codes) {
       dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
