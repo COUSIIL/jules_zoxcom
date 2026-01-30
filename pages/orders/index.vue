@@ -1655,25 +1655,19 @@ const updateSelectedFees = async (index, vl) => {
     limitedDt.value[index].has_desk = false
     isDesk.value = false
   }
-  var newMunic
-  if(municipalitys.value?.data) {
-    newMunic = municipalitys.value.data
-  } else {
-    newMunic = municipalitys.value
-  }
-  for (const i of newMunic) {
 
-    if ((i.nom == vl.name) || (i.name == vl.name)) {
-      await setCommune(i)
-      break
+  await setCommune(vl)
 
-    }
-    limitedDt.value[index].selectedCommune = vl.name
-  }
+  limitedDt.value[index].selectedCommune = vl.nom || vl.name || ''
   
 
   if(!limitedDt.value[index]?.deliveryType) {
     limitedDt.value[index].deliveryType = limitedDt.value[index].type
+  }
+
+  // If desk is selected but not available, force home
+  if (limitedDt.value[index].deliveryType === '1' && !limitedDt.value[index].has_desk) {
+     limitedDt.value[index].deliveryType = '0'
   }
 
   if (limitedDt.value[index].deliveryType === '1') {

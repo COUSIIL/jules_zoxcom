@@ -343,8 +343,8 @@ async function updateOrder() {
   }));
 
   let finalCommune = localCommune.value
-  if (typeof finalCommune === 'object' && finalCommune !== null && finalCommune.nom) {
-    finalCommune = finalCommune.nom
+  if (typeof finalCommune === 'object' && finalCommune !== null) {
+    finalCommune = finalCommune.nom || finalCommune.name || ""
   }
 
   const payload = {

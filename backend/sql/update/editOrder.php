@@ -128,7 +128,7 @@ try {
                 $model_total = floatval($model['total'] ?? 0);
                 $model_promo = floatval($model['promo'] ?? 0);
                 $id = intval($model['id'] ?? 0);
-                $indx = intval($model['indx'] ?? $orderItemId);
+                $indx = $orderItemId;
 
                 $stmtProduct->bind_param(
                     "iisssiddii",
