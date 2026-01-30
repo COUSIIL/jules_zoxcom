@@ -26,6 +26,12 @@ if (!$mysqli->query($createTable)) {
     exit;
 }
 
+// Add comment column if not exists
+$checkCol = $mysqli->query("SHOW COLUMNS FROM product_stock LIKE 'comment'");
+if ($checkCol && $checkCol->num_rows === 0) {
+    $mysqli->query("ALTER TABLE product_stock ADD COLUMN comment TEXT NULL AFTER unique_code");
+}
+
 $data = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($data['product_id'], $data['qty'])) {
@@ -37,6 +43,7 @@ $product_id = (int)$data['product_id'];
 $model_id = isset($data['model_id']) ? (int)$data['model_id'] : 0; // product_models.id
 $detail_id = isset($data['detail_id']) ? (int)$data['detail_id'] : null; // model_details.id
 $qty = (int)$data['qty'];
+$comment = isset($data['comment']) ? trim($data['comment']) : null;
 
 if ($qty <= 0) {
     echo json_encode(['success' => false, 'message' => 'Quantity must be positive']);
@@ -92,7 +99,7 @@ try {
     $currentCount = $stmt->get_result()->fetch_assoc()['cnt'];
     $stmt->close();
 
-    $stmtInsert = $mysqli->prepare("INSERT INTO product_stock (product_id, model_id, detail_id, unique_code, status) VALUES (?, ?, ?, ?, 'available')");
+    $stmtInsert = $mysqli->prepare("INSERT INTO product_stock (product_id, model_id, detail_id, unique_code, comment, status) VALUES (?, ?, ?, ?, ?, 'available')");
 
     for ($i = 1; $i <= $qty; $i++) {
         $index = $currentCount + $i;
@@ -105,7 +112,7 @@ try {
         $code = "{$cleanModel}{$cleanVariant}-{$index}-{$random}";
 
         $bindDetail = $detail_id; // can be null
-        $stmtInsert->bind_param("iiis", $product_id, $model_id, $bindDetail, $code);
+        $stmtInsert->bind_param("iiiss", $product_id, $model_id, $bindDetail, $code, $comment);
         $stmtInsert->execute();
         $generatedCodes[] = $code;
     }
