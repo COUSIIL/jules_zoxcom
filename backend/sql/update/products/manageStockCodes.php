@@ -1,39 +1,73 @@
 <?php
 
 function assignUniqueCodes($mysqli, $orderId) {
-    // Fetch detailed items to know exactly which variant (detail_id) was bought
-    $sql = "SELECT pi.product_id, pi.qty, pi.ids as detail_id, oi.model_id
-            FROM product_items pi
-            JOIN order_items oi ON pi.indx = oi.id
-            WHERE pi.order_id = ?";
+    // 1. Fetch product_items
+    $sqlPI = "SELECT product_id, qty, ids as detail_id, indx FROM product_items WHERE order_id = ?";
+    $stmtPI = $mysqli->prepare($sqlPI);
+    $stmtPI->bind_param("i", $orderId);
+    $stmtPI->execute();
+    $pItems = $stmtPI->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmtPI->close();
 
-    $stmt = $mysqli->prepare($sql);
-    $stmt->bind_param("i", $orderId);
-    $stmt->execute();
-    $items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
+    // 2. Fetch order_items (for model_id lookup)
+    $sqlOI = "SELECT id, model_id, product_id, qty FROM order_items WHERE order_id = ?";
+    $stmtOI = $mysqli->prepare($sqlOI);
+    $stmtOI->bind_param("i", $orderId);
+    $stmtOI->execute();
+    $oItems = $stmtOI->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmtOI->close();
 
-    if (empty($items)) {
-        // Fallback to order_items if product_items is empty (legacy support?)
-        $stmt2 = $mysqli->prepare("SELECT product_id, qty, model_id, 0 as detail_id FROM order_items WHERE order_id = ?");
-        $stmt2->bind_param("i", $orderId);
-        $stmt2->execute();
-        $items = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
-        $stmt2->close();
+    // Index order_items by ID for fast lookup
+    $orderItemsById = [];
+    foreach ($oItems as $oi) {
+        $orderItemsById[$oi['id']] = $oi;
     }
 
-    foreach ($items as $item) {
+    $itemsToProcess = [];
+
+    if (!empty($pItems)) {
+        // We have detailed items
+        foreach ($pItems as $pi) {
+            $modelId = 0;
+            // Try to find model_id via indx
+            if (isset($orderItemsById[$pi['indx']])) {
+                $modelId = $orderItemsById[$pi['indx']]['model_id'];
+            } else {
+                // indx might be broken or 0. Try to match by product_id?
+                foreach ($oItems as $oi) {
+                    if ($oi['product_id'] == $pi['product_id']) {
+                        $modelId = $oi['model_id'];
+                        break;
+                    }
+                }
+            }
+
+            $itemsToProcess[] = [
+                'product_id' => $pi['product_id'],
+                'detail_id' => $pi['detail_id'],
+                'model_id' => $modelId,
+                'qty' => $pi['qty']
+            ];
+        }
+    } else {
+        // Fallback: No product_items, use order_items directly (Legacy/Generic)
+        foreach ($oItems as $oi) {
+            $itemsToProcess[] = [
+                'product_id' => $oi['product_id'],
+                'detail_id' => 0,
+                'model_id' => $oi['model_id'],
+                'qty' => $oi['qty']
+            ];
+        }
+    }
+
+    foreach ($itemsToProcess as $item) {
         $productId = $item['product_id'];
-        $modelId = $item['model_id']; // This comes from order_items (product_models.id)
-        $detailId = $item['detail_id']; // This comes from product_items (model_details.id)
+        $modelId = $item['model_id'];
+        $detailId = $item['detail_id'];
         $qty = $item['qty'];
 
         // Find available codes
-        // Logic: specific detail matches detail_id.
-        // If detailId is 0 or null, we look for stock with detail_id IS NULL (simple model stock).
-        // Or should we fallback?
-        // If stock was generated for a model (no variant), detail_id is NULL in DB.
-
         $query = "SELECT id FROM product_stock
                   WHERE product_id = ?
                   AND status = 'available'";
@@ -48,9 +82,12 @@ function assignUniqueCodes($mysqli, $orderId) {
         } else {
              // If we bought a simple model (or product_items has 0), look for matching model_id
              // AND detail_id IS NULL (to ensure we don't pick a variant code for a generic order if mixed)
-             $query .= " AND model_id = ? AND (detail_id IS NULL OR detail_id = 0)";
-             $params[0] .= "i";
-             $params[] = $modelId;
+             if ($modelId > 0) {
+                $query .= " AND model_id = ?";
+                $params[0] .= "i";
+                $params[] = $modelId;
+             }
+             $query .= " AND (detail_id IS NULL OR detail_id = 0)";
         }
 
         $query .= " LIMIT ?";
