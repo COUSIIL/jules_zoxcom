@@ -189,7 +189,10 @@
                <img v-else-if="dts.ownerStateParsed.name === 'Bot' || dts.ownerStateParsed.type === 'bot'" src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="Bot" style="width: 32px; height: 32px; border-radius: 50%;">
 
                <h1>{{ dts.ownerStateParsed.name }} :</h1>
-               <p>{{ dts.ownerStateParsed.action }}</p>
+
+               <p v-if="dts.ownerStateParsed.action != 'note'">{{ dts.ownerStateParsed.value }}</p>
+               <p v-else>{{ dts.ownerStateParsed.action }}</p>
+               <p>{{ dts.ownerStateParsed.date }}</p>
             </div>
             <div v-else-if="dts.owner" class="owner_state" @click="openHistory(dts)" style="cursor: pointer">
                <img v-if="newMembers[dts.owner]?.profile_image" :src="webLink + newMembers[dts.owner].profile_image" :alt="dts.owner">
@@ -821,7 +824,6 @@ onMounted(() => {
       const batch = [...eventQueue];
       eventQueue.length = 0;
 
-      console.log('Processing SSE batch:', batch);
       await getOrders(lastQueryParams.value, true);
     }
 
@@ -1234,8 +1236,7 @@ const saveReminder = async (remind, order_id) => {
 const actualizeRemindRemouve = (id) => {
 
   const newIndex = limitedDt.value.findIndex(item => parseInt(item.id) === id);
-  console.log('id: ', id)
-  console.log('newIndex: ', newIndex)
+
   if (newIndex !== -1) {
 
     // 3️⃣ Met à jour localement la ligne courante sans perdre les autres champs
@@ -1266,6 +1267,7 @@ const reverseOrders = async (vl) => {
   if (Array.isArray(vl)) {
     // 1. Snapshot current state map
     const currentStateMap = new Map();
+    console.log('dt.value: ', dt.value)
     if (dt.value && dt.value.length > 0) {
       dt.value.forEach(order => {
         currentStateMap.set(order.id, {
@@ -1398,6 +1400,7 @@ const reverseOrders = async (vl) => {
       .reverse();
 
     limitedDt.value = dt.value.slice(0, limit.value);
+    
     
   }
 

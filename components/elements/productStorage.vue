@@ -237,6 +237,7 @@ const stockCounts = computed(() => {
             counts[key] = (counts[key] || 0) + 1;
         }
     });
+    
     return counts;
 });
 
@@ -248,6 +249,7 @@ const variantRows = computed(() => {
     props.modelValue.models.forEach(m => {
         if (m.details && m.details.length > 0) {
             m.details.forEach(d => {
+                
                 const key = getUniqueKey(m.id, d.id);
                 list.push({
                     uniqueKey: key,

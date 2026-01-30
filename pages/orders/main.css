@@ -758,12 +758,13 @@
 .owner_state h1 {
   font-size: 14px;
   font-weight: bold;
-  width: 100px;
+  min-width: 80px;
   text-align: left;
 }
 
 .owner_state p {
   font-size: 12px;
+  min-width: 50px;
 }
 
 .owner_state img {
