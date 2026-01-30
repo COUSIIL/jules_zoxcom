@@ -255,7 +255,6 @@ const updateWilaya = (vl) => {
   calculerPrix()
 }
 const updateCommune = (vl) => {
-  console.log('vl: ', vl)
   emit('update:commune', vl)
     calculerPrix()
 }

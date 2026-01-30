@@ -1662,9 +1662,11 @@ const updateSelectedFees = async (index, vl) => {
   if(vl?.has_stop_desk == 1) {
     limitedDt.value[index].has_desk = true
     isDesk.value = true
+    limitedDt.value[index].deliveryType = '0'
   } else {
     limitedDt.value[index].has_desk = false
     isDesk.value = false
+    limitedDt.value[index].deliveryType = '1'
   }
 
   await setCommune(vl)
@@ -1674,11 +1676,6 @@ const updateSelectedFees = async (index, vl) => {
 
   if(!limitedDt.value[index]?.deliveryType) {
     limitedDt.value[index].deliveryType = limitedDt.value[index].type
-  }
-
-  // If desk is selected but not available, force home
-  if (limitedDt.value[index].deliveryType === '1' && !limitedDt.value[index].has_desk) {
-     limitedDt.value[index].deliveryType = '0'
   }
 
   if (limitedDt.value[index].deliveryType === '1') {

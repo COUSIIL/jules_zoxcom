@@ -587,7 +587,7 @@ export const useOrders = () => {
         }
 
         const textResponse = await response2.json();  // Récupérer la réponse en texte
-        
+        console.log('textResponse: ', textResponse)
         if (textResponse.success) {
             //this.orLog = textResponse.data;
 
