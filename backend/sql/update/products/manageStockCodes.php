@@ -2,7 +2,7 @@
 
 function assignAndDecrementStock($mysqli, $orderId) {
     // 1. Fetch product_items
-    $sqlPI = "SELECT product_id, qty, ids as detail_id, indx FROM product_items WHERE order_id = ?";
+    $sqlPI = "SELECT product_id, qty, ids, indx FROM product_items WHERE order_id = ?";
     $stmtPI = $mysqli->prepare($sqlPI);
     $stmtPI->bind_param("i", $orderId);
     $stmtPI->execute();
@@ -26,9 +26,10 @@ function assignAndDecrementStock($mysqli, $orderId) {
 
     if (!empty($pItems)) {
         foreach ($pItems as $pi) {
-            $modelId = 0;
+            $modelId = (int)$pi['ids'];
             $detailId = (int)$pi['indx'];
-            if ($detailId > 0) {
+
+            if ($modelId === 0 && $detailId > 0) {
                 $stmtD = $mysqli->prepare("SELECT model_id FROM model_details WHERE id = ?");
                 if ($stmtD) {
                     $stmtD->bind_param("i", $detailId);
@@ -38,9 +39,7 @@ function assignAndDecrementStock($mysqli, $orderId) {
                     $stmtD->close();
                 }
             }
-            if ($modelId === 0 && isset($orderItemsById[$pi['ids']])) {
-                $modelId = (int)$orderItemsById[$pi['ids']]['model_id'];
-            }
+
             if ($modelId === 0) {
                 foreach ($oItems as $oi) {
                     if ($oi['product_id'] == $pi['product_id']) {
