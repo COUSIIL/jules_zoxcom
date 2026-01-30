@@ -246,14 +246,29 @@ if ($value === 'confirmed') {
 
                     // Find codes
                     // Query: product_id + detail_id (status=available)
-                    $stmtFind = $mysqli->prepare("SELECT id, unique_code, model_id, detail_id FROM product_stock WHERE product_id = ? AND detail_id = ? AND status = 'available' LIMIT ?");
-                    $stmtFind->bind_param("iii", $prodId, $detailId, $qty);
+                    $sqlFind = "SELECT id, unique_code, model_id, detail_id FROM product_stock WHERE product_id = ? AND status = 'available'";
+                    $types = "i";
+                    $params = [$prodId];
+
+                    if ($detailId > 0) {
+                        $sqlFind .= " AND detail_id = ?";
+                        $types .= "i";
+                        $params[] = $detailId;
+                    } else {
+                        $sqlFind .= " AND (detail_id IS NULL OR detail_id = 0)";
+                    }
+
+                    $sqlFind .= " LIMIT ?";
+                    $types .= "i";
+                    $params[] = $qty;
+
+                    $stmtFind = $mysqli->prepare($sqlFind);
+                    $stmtFind->bind_param($types, ...$params);
                     $stmtFind->execute();
                     $resFind = $stmtFind->get_result();
                     $foundIds = [];
                     while ($row = $resFind->fetch_assoc()) {
                          $foundIds[] = $row['id'];
-                         $assignedCodes[] = $row; // Add to response
                     }
                     $stmtFind->close();
 
@@ -299,6 +314,17 @@ if ($value === 'confirmed') {
         // Fallback to existing logic if no products sent
         assignUniqueCodes($mysqli, $id);
     }
+
+    // Always refetch assigned codes from DB to ensure response is accurate
+    $assignedCodes = [];
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
+    $stmtCodes->bind_param("i", $id);
+    $stmtCodes->execute();
+    $resCodes = $stmtCodes->get_result();
+    while ($row = $resCodes->fetch_assoc()) {
+        $assignedCodes[] = $row;
+    }
+    $stmtCodes->close();
 }
 
 /* =======================
