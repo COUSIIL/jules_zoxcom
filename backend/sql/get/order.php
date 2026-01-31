@@ -169,9 +169,8 @@ if (!empty($idsString)) {
 
 // Fetch Product Items
 $productItemsData = [];
-if (!empty($orderItemIds)) {
-    $itemIdsString = implode(',', array_map('intval', $orderItemIds));
-    $sqlProducts = "SELECT * FROM product_items WHERE indx IN ($itemIdsString)";
+if (!empty($idsString)) {
+    $sqlProducts = "SELECT * FROM product_items WHERE order_id IN ($idsString)";
     $resultProducts = $mysqli->query($sqlProducts);
     $productItemsData = $resultProducts->fetch_all(MYSQLI_ASSOC);
 }
@@ -179,8 +178,9 @@ if (!empty($orderItemIds)) {
 // Assemble Data
 $productItemsMap = [];
 foreach ($productItemsData as $item) {
-    if (!isset($item['indx']) || !$item['indx']) continue;
-    $productItemsMap[$item['indx']][] = [
+    // Group by order_id, product_id, and model_id (ids column)
+    $key = $item['order_id'] . '_' . $item['product_id'] . '_' . $item['ids'];
+    $productItemsMap[$key][] = [
         'color' => $item['color'],
         'color_name' => $item['color_name'],
         'size' => $item['size'],
@@ -195,6 +195,9 @@ foreach ($productItemsData as $item) {
 $groupedModels = [];
 foreach ($itemsData as $model) {
     $orderItemId = $model['id'];
+    // Construct key to find matching items
+    $key = $model['order_id'] . '_' . $model['product_id'] . '_' . $model['model_id'];
+
     $groupedModels[$model['order_id']][] = [
         'id' => $model['product_id'],
         'model_id' => $model['model_id'], // Add model_id to help matching
@@ -203,7 +206,7 @@ foreach ($itemsData as $model) {
         'price' => $model['price'],
         'qty' => $model['qty'],
         'ref' => $model['ref'],
-        'items' => $productItemsMap[$orderItemId] ?? [],
+        'items' => $productItemsMap[$key] ?? [],
     ];
 }
 
