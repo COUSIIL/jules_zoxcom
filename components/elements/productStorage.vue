@@ -134,7 +134,7 @@
               <td>
                  <span class="status-badge" :class="stock.status">{{ stock.status }}</span>
               </td>
-              <td>{{ stock.order_ref || '-' }}</td>
+              <td>{{ stock.order_id || '-' }}</td>
               <td>
                  <gBtn
                     v-if="stock.status === 'available'"
