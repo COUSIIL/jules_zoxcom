@@ -149,6 +149,52 @@ export const useExporter = () => {
 
 
 
+    const exportListToPDF = async (orders) => {
+        const doc = new jsPDF({
+            orientation: "l",
+            unit: "mm",
+            format: "a4"
+        });
+
+        // FONT
+        doc.addFileToVFS("IBMPlexSansArabic-Regular.ttf", arabicFont);
+        doc.addFont("IBMPlexSansArabic-Regular.ttf", "IBMPlex", "normal");
+        doc.setFont("IBMPlex");
+
+        const columns = [
+             { header: 'ID', dataKey: 'id' },
+             { header: 'Date', dataKey: 'create' },
+             { header: 'Client', dataKey: 'name' },
+             { header: 'Phone', dataKey: 'phone' },
+             { header: 'Wilaya', dataKey: 'deliveryZone' },
+             { header: 'Commune', dataKey: 'sZone' },
+             { header: 'Status', dataKey: 'status' },
+             { header: 'Total', dataKey: 'total' },
+             { header: 'Produits', dataKey: 'products' },
+        ];
+
+        const data = orders.map(o => ({
+            id: o.id,
+            create: o.create,
+            name: o.name,
+            phone: o.phone,
+            deliveryZone: o.deliveryZone,
+            sZone: o.sZone,
+            status: o.status,
+            total: o.total + ' DA',
+            products: o.items.map(i => `${i.productName} (x${i.qty})`).join(', ')
+        }));
+
+        autoTable(doc, {
+            columns: columns,
+            body: data,
+            styles: { font: "IBMPlex", fontSize: 10 },
+            headStyles: { fillColor: [40, 40, 40] }
+        });
+
+        doc.save(`orders_list_${new Date().toISOString().slice(0,10)}.pdf`);
+    }
+
     const exportToThermalPDF = async (order) => {
         const JsBarcode = (await import("jsbarcode")).default;
 
@@ -387,6 +433,7 @@ export const useExporter = () => {
 
     return {
         exportToCSV,
-        exportToThermalPDF
+        exportToThermalPDF,
+        exportListToPDF
     }
 }

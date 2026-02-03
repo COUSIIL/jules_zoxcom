@@ -158,7 +158,7 @@ $orderItemIds = array_column($itemsData, 'id');
 // Fetch Assigned Unique Codes
 $assignedCodes = [];
 if (!empty($idsString)) {
-    $sqlCodes = "SELECT unique_code, order_id, model_id, detail_id FROM product_stock WHERE order_id IN ($idsString)";
+    $sqlCodes = "SELECT unique_code, order_id, model_id, detail_id, status FROM product_stock WHERE order_id IN ($idsString)";
     $resultCodes = $mysqli->query($sqlCodes);
     $codesData = $resultCodes->fetch_all(MYSQLI_ASSOC);
 
