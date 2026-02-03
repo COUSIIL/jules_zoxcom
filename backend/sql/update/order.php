@@ -220,7 +220,7 @@ if ($value === 'confirmed') {
 
     // Always refetch assigned codes from DB to ensure response is accurate
     $assignedCodes = [];
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, status FROM product_stock WHERE order_id = ?");
     $stmtCodes->bind_param("i", $id);
     $stmtCodes->execute();
     $resCodes = $stmtCodes->get_result();
@@ -267,7 +267,7 @@ triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mys
 // If assignedCodes is empty (either not confirmed just now, or used fallback), retrieve them from DB
 if (empty($assignedCodes) && ($status === 'status' || $value === 'confirmed')) {
     // Fetch assigned codes for this order
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id FROM product_stock WHERE order_id = ?");
+    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, status FROM product_stock WHERE order_id = ?");
     $stmtCodes->bind_param("i", $id);
     $stmtCodes->execute();
     $resCodes = $stmtCodes->get_result();

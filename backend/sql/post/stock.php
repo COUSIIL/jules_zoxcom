@@ -16,7 +16,8 @@ $createTable = "CREATE TABLE IF NOT EXISTS product_stock (
     detail_id INT NULL,
     unique_code VARCHAR(255) NOT NULL UNIQUE,
     order_id INT NULL,
-    status ENUM('available', 'sold', 'returned', 'removed') DEFAULT 'available',
+    status ENUM('available', 'sold', 'returned', 'removed', 'reserved') DEFAULT 'available',
+    comment TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 )";
@@ -26,11 +27,15 @@ if (!$mysqli->query($createTable)) {
     exit;
 }
 
-// Add comment column if not exists
+// Add comment column if not exists (redundant with create table but safe for updates)
 $checkCol = $mysqli->query("SHOW COLUMNS FROM product_stock LIKE 'comment'");
 if ($checkCol && $checkCol->num_rows === 0) {
     $mysqli->query("ALTER TABLE product_stock ADD COLUMN comment TEXT NULL AFTER unique_code");
 }
+// Add status 'reserved' if not exists in enum
+// (Note: Altering ENUM is tricky in pure SQL without checking current definition, but usually it works if we just redefine it)
+$mysqli->query("ALTER TABLE product_stock MODIFY COLUMN status ENUM('available', 'sold', 'returned', 'removed', 'reserved') DEFAULT 'available'");
+
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -65,14 +70,22 @@ if ($model_id > 0) {
 
 $variantSuffix = '';
 if ($detail_id) {
-    $stmt = $mysqli->prepare("SELECT color, size FROM model_details WHERE id = ?");
+    // Modified to fetch color_name
+    $stmt = $mysqli->prepare("SELECT color, size, color_name FROM model_details WHERE id = ?");
     $stmt->bind_param("i", $detail_id);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
     if ($res) {
         $parts = [];
-        if (!empty($res['colorName'])) $parts[] = $res['colorName'];
+        // Use color_name if available, else color
+        if (!empty($res['color_name'])) {
+            $parts[] = $res['color_name'];
+        } elseif (!empty($res['color'])) {
+            $parts[] = $res['color'];
+        }
+
         if (!empty($res['size'])) $parts[] = $res['size'];
+
         if (!empty($parts)) {
             $variantSuffix = '-' . implode('-', $parts);
         }
@@ -109,6 +122,8 @@ try {
         $cleanModel = preg_replace('/[^A-Za-z0-9]/', '', $modelName);
         $cleanVariant = preg_replace('/[^A-Za-z0-9\-]/', '', $variantSuffix);
 
+        // Format: nomDuModel-colorName-size-id-"variable a 5 caractere"
+        // variantSuffix contains "-colorName-size"
         $code = "{$cleanModel}{$cleanVariant}-{$index}-{$random}";
 
         $bindDetail = $detail_id; // can be null

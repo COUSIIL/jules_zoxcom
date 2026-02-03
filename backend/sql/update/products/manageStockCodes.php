@@ -1,6 +1,6 @@
 <?php
 
-function assignAndDecrementStock($mysqli, $orderId) {
+function assignAndDecrementStock($mysqli, $orderId, $targetStatus = 'reserved') {
     // 1. Fetch product_items
     $sqlPI = "SELECT product_id, qty, ids, indx FROM product_items WHERE order_id = ?";
     $stmtPI = $mysqli->prepare($sqlPI);
@@ -149,7 +149,8 @@ function assignAndDecrementStock($mysqli, $orderId) {
         // Assign Found Codes
         if (!empty($foundIds)) {
             $idList = implode(',', $foundIds);
-            $mysqli->query("UPDATE product_stock SET order_id = $orderId, status = 'sold' WHERE id IN ($idList)");
+            // Use targetStatus (default 'reserved')
+            $mysqli->query("UPDATE product_stock SET order_id = $orderId, status = '$targetStatus' WHERE id IN ($idList)");
         }
 
         // Decrement Counters (Product & Model & Detail)
@@ -187,8 +188,8 @@ function assignUniqueCodes($mysqli, $orderId) {
 }
 
 function releaseUniqueCodes($mysqli, $orderId) {
-    // Find sold codes for this order
-    $stmt = $mysqli->prepare("SELECT id, model_id, detail_id, product_id FROM product_stock WHERE order_id = ? AND status = 'sold'");
+    // Find sold OR reserved codes for this order
+    $stmt = $mysqli->prepare("SELECT id, model_id, detail_id, product_id FROM product_stock WHERE order_id = ? AND (status = 'sold' OR status = 'reserved')");
     $stmt->bind_param("i", $orderId);
     $stmt->execute();
     $codes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

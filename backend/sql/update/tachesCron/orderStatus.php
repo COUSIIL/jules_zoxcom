@@ -25,6 +25,7 @@ if (empty($dataAnderson) || empty($dataAnderson[0]['key'])) {
 $api_key = trim($dataAnderson[0]['key']);
 
 require $configPath; // charge et ouvre la connexion MySQL
+require_once __DIR__ . '/../products/manageStockCodes.php';
 
 // ✅ Vérification connexion MySQL
 if (!isset($mysqli) || !$mysqli instanceof mysqli) {
@@ -130,12 +131,36 @@ while ($row = $result->fetch_assoc()) {
         $stmt2->fetch();
         $stmt2->close();
 
+        // --- PREPARE OWNER STATE (BOT) ---
+        $ownerState = json_encode([
+            'name' => 'Bot',
+            'image' => '',
+            'type' => 'bot',
+            'action' => 'status',
+            'value' => $newStatus,
+            'date' => date('Y-m-d H:i:s')
+        ]);
+
         // --- MISE À JOUR STATUT COMMANDE ---
-        $stmt = $mysqli->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt = $mysqli->prepare("UPDATE orders SET status = ?, owner_state = ? WHERE id = ?");
         if ($stmt) {
-            $stmt->bind_param("si", $newStatus, $orderId);
+            $stmt->bind_param("ssi", $newStatus, $ownerState, $orderId);
             $stmt->execute();
             $stmt->close();
+        }
+
+        // --- LOG HISTORY ---
+        $stmtH = $mysqli->prepare("INSERT INTO order_history (order_id, user, action, value) VALUES (?, 'Bot', 'status', ?)");
+        if ($stmtH) {
+            $stmtH->bind_param("is", $orderId, $newStatus);
+            $stmtH->execute();
+            $stmtH->close();
+        }
+
+        // --- STOCK MANAGEMENT ---
+        // If status is returned, release stock
+        if ($newStatus === 'returned' || $newStatus === 'canceled') {
+            releaseUniqueCodes($mysqli, $orderId);
         }
 
         // --- ENVOI EMAIL DE NOTIFICATION ---

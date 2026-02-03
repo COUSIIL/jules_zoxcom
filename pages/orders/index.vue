@@ -3,7 +3,7 @@
   <Confirm :isVisible="showConfirm" @confirm="deleteOrder(idToEdit, indexToEdit), showConfirm = false"
     @cancel="cancelConfirmDelete" />
 
-  <Confirm :isVisible="isUpdatingTrcking" @confirm="updateOrderValue(orderTracking.id, 'tracking_code', orderTracking.tracking), isUpdatingTrcking = false"
+  <Confirm :isVisible="isUpdatingTrcking" @confirm="updateOrderValue(orderTracking.id, 'tracking_code', orderTracking.tracking, auth?.username), isUpdatingTrcking = false"
     @cancel="cancelConfirmDelete" />
 
   <Message :isVisible="showOrLog" :message="orLog" @ok="orLog = '', showOrLog = false" />
@@ -52,6 +52,7 @@
   <Action :options="selectedOrder" :showIt="showAction" @close="showAction = false" @editStat="editStats"/>
 
   <HistoryModal :isVisible="showHistoryModal" :orderId="historyOrderId" @close="showHistoryModal = false" />
+  <ScanModal :isVisible="showScanModal" :order="scanOrder" @close="showScanModal = false" @validated="onScanValidated" />
 
   <Confirm :isVisible="showConfirmArchive" :message="t('Archive selected orders?')" @confirm="archiveOrders" @cancel="showConfirmArchive = false" />
   <Confirm :isVisible="showConfirmReset" :message="t('All orders archived. Reset Order IDs to 1?')" @confirm="resetIds" @cancel="showConfirmReset = false" />
@@ -498,6 +499,7 @@ import EditOrder from '../../components/elements/newBloc/editOrder.vue'
 import Bubble from '../../components/elements/newBloc/bubble.vue'
 import Action from '../../components/elements/newBloc/action.vue'
 import HistoryModal from '../../components/elements/newBloc/historyModal.vue'
+import ScanModal from '../../components/elements/newBloc/scanModal.vue'
 import { useAuth } from '../../composables/useAuth';
 
 import { useReminder } from '../../composables/reminder';
@@ -510,7 +512,7 @@ const webLink = 'https://management.hoggari.com/uploads/profile/'
 
 const { getRemind, dataRemind } = useReminder();
 const { delegateOrder, isWorkingDelegate, isDelegated } = useOrderDz();
-const { exportToCSV, exportToThermalPDF } = useExporter();
+const { exportToCSV, exportToThermalPDF, exportListToPDF } = useExporter();
 
 const { auth, getauth } = useAuth();
 
@@ -565,11 +567,18 @@ const orderTrcking = ref()
 
 const showHistoryModal = ref(false)
 const historyOrderId = ref(0)
+const showScanModal = ref(false)
+const scanOrder = ref(null)
 
 
 const isArchiving = ref(false)
 const showConfirmArchive = ref(false)
 const showConfirmReset = ref(false)
+
+const exportSelectedList = () => {
+  if (selectedOrder.value.length === 0) return
+  exportListToPDF(selectedOrder.value)
+}
 
 const confirmArchive = () => {
   if (selectedOrder.value.length === 0) return
@@ -1024,6 +1033,23 @@ const onSearch = (val) => {
   search(val)
 }
 
+const onScanValidated = async () => {
+    await shipping(statusIndex.value);
+
+    const mainStatus = dt.value[statusIndex.value].status;
+    dt.value[statusIndex.value].status = 'shipping';
+
+    const res = await updateOrderValue(statusID.value, 'status', 'shipping', auth.value.username);
+    if (res && res.assigned_codes) {
+      dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+    }
+
+    if(updated.value === -1) {
+      dt.value[statusIndex.value].status = mainStatus;
+      showOrLog.value = true;
+    }
+}
+
 const editStatus = async (vl, index, id) => {
   if(index || index == 0) {
     statusIndex.value = index
@@ -1034,6 +1060,15 @@ const editStatus = async (vl, index, id) => {
 
   if (vl === 'shipping') {
     const order = dt.value[statusIndex.value];
+
+    // Check if scan is required
+    const hasReserved = order.assigned_codes && order.assigned_codes.some(c => c.status === 'reserved');
+    if (hasReserved) {
+        scanOrder.value = order;
+        showScanModal.value = true;
+        return;
+    }
+
     nameDeliver.value = [order.name];
     phoneDeliver.value = [order.phone];
     totalDeliver.value = [order.total];
