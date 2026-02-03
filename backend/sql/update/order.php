@@ -107,7 +107,7 @@ if (!$currentOrder) {
 ======================= */
 
 $actorName = 'Bot';
-$actorImage = ''; // Frontend should handle empty image as default bot or we provide a URL
+$actorImage = '';
 $actorType = 'bot';
 
 if (!empty($owner)) {
@@ -166,11 +166,9 @@ $stmt->close();
 /* =======================
    History logic
 ======================= */
-// Always insert history, even for Bot
+// Always insert history
 $historyUser = !empty($owner) ? $owner : 'Bot';
-
 $historyValue = is_array($value) ? json_encode($value) : $value;
-// Shorten value if too long
 if (strlen($historyValue) > 65000) {
     $historyValue = substr($historyValue, 0, 65000) . '...';
 }
@@ -183,78 +181,60 @@ if ($stmtH) {
 }
 
 /* =======================
-   Confirmed logic
+   Status Transition Logic (Stock)
 ======================= */
 
-$assignedCodes = [];
+// If we are updating the 'status' column
+if ($status === 'status') {
 
-if ($value === 'confirmed') {
-
-    $sql2 = "
-        UPDATE orders
-        SET owner = ?,
-            owner_conf_state = 'confirmed',
-            owner_conf_date = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ";
-
-    $stmt2 = $mysqli->prepare($sql2);
-    $stmt2->bind_param("si", $owner, $id);
-    $stmt2->execute();
-    $stmt2->close();
-
-    // Assign unique codes to this order (and consume stock)
-    releaseUniqueCodes($mysqli, $id); // Safety: Release any previously assigned codes (and restore stock) to avoid duplicates/double-counting
-
-    // Unified function to Assign Codes + Decrement Stock Counters
-    $stockResult = assignAndDecrementStock($mysqli, $id);
-    if (!$stockResult['success']) {
-        // Rollback confirmation if stock failed?
-        // Since we are not in a global transaction here (mysqli->begin_transaction was not called at top level),
-        // we might leave the order as 'confirmed' but without stock.
-        // Ideally we should revert the status update.
-        $mysqli->query("UPDATE orders SET owner_conf_state = NULL WHERE id = $id");
-        echo json_encode($stockResult);
-        exit;
+    if ($value === 'shipping') {
+        // Shipping -> Ensure stock is assigned (Reserved)
+        // If already assigned, this function inside checks and skips logic, just ensuring status is updated if needed.
+        assignAndDecrementStock($mysqli, $id, 'reserved');
     }
+    elseif ($value === 'completed') {
+        // Completed -> Mark stock as Sold
+        updateStockStatus($mysqli, $id, 'sold');
 
-    // Always refetch assigned codes from DB to ensure response is accurate
-    $assignedCodes = [];
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, status FROM product_stock WHERE order_id = ?");
-    $stmtCodes->bind_param("i", $id);
-    $stmtCodes->execute();
-    $resCodes = $stmtCodes->get_result();
-    while ($row = $resCodes->fetch_assoc()) {
-        $assignedCodes[] = $row;
+        // Power logic
+        if ($currentOrder['status'] !== 'completed') {
+             $phone = $currentOrder['phone'];
+             $stmtPow = $mysqli->prepare("UPDATE customers SET power = power + 1 WHERE phone = ?");
+             $stmtPow->bind_param("s", $phone);
+             $stmtPow->execute();
+             $stmtPow->close();
+        }
     }
-    $stmtCodes->close();
+    elseif ($value === 'returned') {
+        // Returned -> Mark stock as Returned (release from order, no qty increment)
+        handleReturnStock($mysqli, $id);
+    }
+    elseif (in_array($value, ['canceled', 'unreaching'])) {
+        // Canceled/Unreaching -> Release stock to Available (qty increment)
+        releaseUniqueCodes($mysqli, $id);
+    }
+    elseif ($value === 'confirmed') {
+        // Confirmed -> Assign stock (Reserved) - Legacy/Standard behavior
+        assignAndDecrementStock($mysqli, $id, 'reserved');
+
+        // Also update confirmation fields
+        $sql2 = "UPDATE orders SET owner = ?, owner_conf_state = 'confirmed', owner_conf_date = CURRENT_TIMESTAMP WHERE id = ?";
+        $stmt2 = $mysqli->prepare($sql2);
+        $stmt2->bind_param("si", $owner, $id);
+        $stmt2->execute();
+        $stmt2->close();
+    }
 }
 
-/* =======================
-   Returned/Canceled logic (Stock Release)
-======================= */
+// Also handle if 'value' is confirmed but via a different property?
+// No, frontend sends status='status' value='confirmed' or status='owner_conf_state' ...
+// The original code handled $value === 'confirmed' broadly.
+// If status is NOT 'status' but value IS 'confirmed' (e.g. owner_conf_state update), we should assign stock too.
 
-// Statuses that hold stock
-$stockHoldingStatuses = ['confirmed', 'shipping', 'completed'];
-
-// If changing status AND new status is NOT in holding list, release stock.
-if ($status === 'status' && !in_array($value, $stockHoldingStatuses)) {
-    releaseUniqueCodes($mysqli, $id);
+if ($status !== 'status' && $value === 'confirmed') {
+     assignAndDecrementStock($mysqli, $id, 'reserved');
 }
 
-/* =======================
-   Completed logic (Power)
-======================= */
-
-if ($status === 'status' && $value === 'completed' && $currentOrder['status'] !== 'completed') {
-    $phone = $currentOrder['phone'];
-
-    // Increment power for customer with this phone
-    $stmtPow = $mysqli->prepare("UPDATE customers SET power = power + 1 WHERE phone = ?");
-    $stmtPow->bind_param("s", $phone);
-    $stmtPow->execute();
-    $stmtPow->close();
-}
 
 /* =======================
    Response
@@ -264,18 +244,16 @@ if ($status === 'status' && $value === 'completed' && $currentOrder['status'] !=
 include_once __DIR__ . '/../../trigger_update.php';
 triggerOrderUpdate(['id' => $id, 'action' => 'update', 'field' => $status], $mysqli);
 
-// If assignedCodes is empty (either not confirmed just now, or used fallback), retrieve them from DB
-if (empty($assignedCodes) && ($status === 'status' || $value === 'confirmed')) {
-    // Fetch assigned codes for this order
-    $stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, status FROM product_stock WHERE order_id = ?");
-    $stmtCodes->bind_param("i", $id);
-    $stmtCodes->execute();
-    $resCodes = $stmtCodes->get_result();
-    while ($row = $resCodes->fetch_assoc()) {
-        $assignedCodes[] = $row;
-    }
-    $stmtCodes->close();
+// Fetch assigned codes to return to frontend
+$assignedCodes = [];
+$stmtCodes = $mysqli->prepare("SELECT unique_code, model_id, detail_id, status FROM product_stock WHERE order_id = ?");
+$stmtCodes->bind_param("i", $id);
+$stmtCodes->execute();
+$resCodes = $stmtCodes->get_result();
+while ($row = $resCodes->fetch_assoc()) {
+    $assignedCodes[] = $row;
 }
+$stmtCodes->close();
 
 echo json_encode([
     'success' => true,
