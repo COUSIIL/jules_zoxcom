@@ -140,6 +140,7 @@ var resizeSvg = (svg, width, height) => {
 
 onMounted(async () => {
     // Detect dark mode
+
     if (typeof window !== 'undefined') {
         const checkDark = () => document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')
         isDark.value = checkDark()

@@ -312,7 +312,7 @@ async function updateOrder() {
 
   formattedProducts = listSrc.map(p => ({
     idP: parseInt(p.id),
-    idM: parseInt(p.idM || p.id),
+    idM: parseInt(p.model_id ?? p.idM ?? p.id),
     name: p.productName || p.name,
     image: p.image,
     price: parseFloat(p.price) || 0,

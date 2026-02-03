@@ -9,21 +9,16 @@ if (!file_exists($configPath)) {
     exit;
 }
 
-
-
-
 // --- CONFIGURATION ANDERSON ---
 $anderson = __DIR__ . '/../../../../backend/config/andersonConfig.php';
 if (!file_exists($anderson)) {
     echo json_encode(['success' => false, 'message' => 'Anderson config file not found.']);
-    $mysqli->close();
     exit;
 }
 
 $dataAnderson = include $anderson;
 if (empty($dataAnderson) || empty($dataAnderson[0]['key'])) {
     echo json_encode(['success' => false, 'message' => 'No Anderson API key found.']);
-    $mysqli->close();
     exit;
 }
 
@@ -45,15 +40,12 @@ if (!$mysqli->ping()) {
     exit;
 }
 
-
 // --- RÉCUPÉRATION COMMANDES EN COURS ---
 $sql = "SELECT id, tracking_code, status 
         FROM orders 
         WHERE status = 'shipping' 
         AND tracking_code IS NOT NULL 
         AND tracking_code != ''";
-        
-        
 
 $result = $mysqli->query($sql);
 
@@ -85,9 +77,10 @@ while ($row = $result->fetch_assoc()) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    
-    
-    
+
+    // ✅ Anti-surcharge API : pause 1.5s entre chaque requête
+    usleep(1500000);
+
     if ($httpCode !== 200 || !$response) {
         continue; // ignorer cette commande si la requête échoue
     }
@@ -105,20 +98,22 @@ while ($row = $result->fetch_assoc()) {
         case 'payed':
         case 'encaissed':
         case 'livre_non_encaisse':
-        case 'encaisse_non_paye': 
-        case 'paiements_prets': 
-        case 'paye_et_archive': 
+        case 'encaisse_non_paye':
+        case 'paiements_prets':
+        case 'paye_et_archive':
             $newStatus = 'completed';
             break;
+
         case 'retour_chez_livreur':
         case 'retour_transit_entrepot':
         case 'retour_en_traitement':
         case 'retour_recu':
         case 'retour_archive':
-        case 'returned' :
+        case 'returned':
         case 'annule':
             $newStatus = 'returned';
             break;
+
         default:
             $newStatus = 'shipping';
             break;
@@ -169,9 +164,6 @@ while ($row = $result->fetch_assoc()) {
     }
 }
 
-
-
 $result->free();
 $mysqli->close();
-
 ?>

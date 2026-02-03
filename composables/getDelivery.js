@@ -151,11 +151,13 @@ export const useDelivery = () => {
             });
             result = await response.json();
         } else if (wilaya.home_method === 'anderson') {
+
             response = await fetch("https://management.hoggari.com/backend/api.php?action=getAndersonCommune", {
                 method: "POST",
                 body: JSON.stringify(id)
             });
             result = await response.json();
+
         } else if (wilaya.home_method === 'yalidine') {
             console.log('yalidine')
             response = await fetch("https://management.hoggari.com/backend/api.php?action=getYalidineCommune", {
@@ -284,7 +286,7 @@ export const useDelivery = () => {
     }
 
     async function setCommune(com) {
-        
+
         if (com?.nom) {
             selectedMunicipality.value = com.nom
         } else {

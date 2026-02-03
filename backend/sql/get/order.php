@@ -167,6 +167,8 @@ if (!empty($idsString)) {
     }
 }
 
+
+
 // Fetch Product Items
 $productItemsData = [];
 if (!empty($idsString)) {
@@ -175,8 +177,51 @@ if (!empty($idsString)) {
     $productItemsData = $resultProducts->fetch_all(MYSQLI_ASSOC);
 }
 
-// Assemble Data
+$productItemsData2 = [];
+if (!empty($orderItemIds)) {
+    $itemIdsString = implode(',', array_map('intval', $orderItemIds));
+    $sqlProducts = "SELECT * FROM product_items WHERE indx IN ($itemIdsString)";
+    $resultProducts = $mysqli->query($sqlProducts);
+    $productItemsData2 = $resultProducts->fetch_all(MYSQLI_ASSOC);
+}
+
 $productItemsMap = [];
+$productItemsMap2 = [];
+$groupedModels = [];
+$groupedModels2 = [];
+if(empty($productItemsData)) {
+
+foreach ($productItemsData2 as $item) {
+    if (!isset($item['indx']) || !$item['indx']) continue;
+    $productItemsMap2[$item['indx']][] = [
+        'color' => $item['color'],
+        'color_name' => $item['color_name'],
+        'size' => $item['size'],
+        'qty' => $item['qty'],
+        'total' => $item['total'],
+        'promo' => $item['promo'],
+        'id' => $item['ids'],
+        'indx' => $item['indx'],
+    ];
+}
+
+
+foreach ($itemsData as $model) {
+    $orderItemId = $model['id'];
+    $groupedModels2[$model['order_id']][] = [
+        'id' => $model['product_id'],
+        'model_id' => $model['model_id'], // Add model_id to help matching
+        'productName' => !empty($model['product_name']) ? $model['product_name'] : $model['current_product_name'],
+        'image' => $model['image'],
+        'price' => $model['price'],
+        'qty' => $model['qty'],
+        'ref' => $model['ref'],
+        'items' => $productItemsMap2[$orderItemId] ?? [],
+    ];
+}
+} else {
+    // Assemble Data
+
 foreach ($productItemsData as $item) {
     // Group by order_id, product_id, and model_id (ids column)
     $key = $item['order_id'] . '_' . $item['product_id'] . '_' . $item['ids'];
@@ -192,7 +237,7 @@ foreach ($productItemsData as $item) {
     ];
 }
 
-$groupedModels = [];
+
 foreach ($itemsData as $model) {
     $orderItemId = $model['id'];
     // Construct key to find matching items
@@ -209,6 +254,9 @@ foreach ($itemsData as $model) {
         'items' => $productItemsMap[$key] ?? [],
     ];
 }
+}
+
+
 
 $finalOrders = [];
 foreach ($ordersData as $orderData) {

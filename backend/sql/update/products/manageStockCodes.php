@@ -141,10 +141,10 @@ function assignAndDecrementStock($mysqli, $orderId) {
         // If X < Qty and NOT Infinite, we fail.
         // If X < Qty and Infinite, we mark X sold, and we decrement counters by Qty?
         // Yes, counters track "Available". If infinite, counters might go negative.
-
+        /*
         if ($infinitStock == "0" && $foundCount < $qty) {
-            return ['success' => false, 'message' => "Stock insuffisant (Requis: $qty, Dispo: $foundCount)"];
-        }
+            return ['success' => false, 'message' => "Stock insuffisant (Requis: $qty, Dispo: $foundCount)", 'foundIds' => $foundIds ];
+        }*/
 
         // Assign Found Codes
         if (!empty($foundIds)) {

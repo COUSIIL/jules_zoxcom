@@ -373,7 +373,7 @@
                                   <span v-if="sub.size" class="tag size">Taille: {{ sub.size }}</span>
                                   <span class="tag qty">x{{ sub.qty }}</span>
 
-                                  <span v-for="code in getCodes(dts.assigned_codes, item.model_id, sub.id)" :key="code.unique_code" class="tag code">
+                                  <span v-for="code in getCodes(dts.assigned_codes, item.model_id, item.items[0].indx)" :key="code.unique_code" class="tag code">
                                     {{ code.unique_code }}
                                   </span>
                                 </div>
@@ -1303,7 +1303,7 @@ const reverseOrders = async (vl) => {
   if (Array.isArray(vl)) {
     // 1. Snapshot current state map
     const currentStateMap = new Map();
-    console.log('dt.value: ', dt.value)
+
     if (dt.value && dt.value.length > 0) {
       dt.value.forEach(order => {
         currentStateMap.set(order.id, {

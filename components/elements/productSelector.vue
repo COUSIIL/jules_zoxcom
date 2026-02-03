@@ -243,6 +243,7 @@ const save = () => {
 
   const item = {
     id: String(selectorProduct.value.id),
+    model_id: String(selectorModel.value.id),
     productName: selectorProduct.value.name,
     image: selectorProduct.value.image,
     price:
@@ -266,7 +267,8 @@ const save = () => {
       prix = selectorModel.value.sell
     }
     item.items = [{
-      id: String(selectorVariant.value.id),
+      id: String(selectorModel.value.id),
+      indx: String(selectorVariant.value.id),
       color_name: selectorVariant.value.colorName,
       color: selectorVariant.value.color,
       size: selectorVariant.value.size,
