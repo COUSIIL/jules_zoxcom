@@ -105,20 +105,47 @@ if ($stockItem['status'] === 'available') {
         }
     } else {
         // No matching reserved item found.
-        // This means the order might not have a reservation for this specific variant?
-        // Or maybe it was already sold?
-        // Or maybe logic error in assignment.
+        // Check if the order needs this item but hasn't had a physical code assigned yet (New logic).
 
-        // Strictly speaking, we should only allow if there was a reservation.
-        // But maybe the order didn't have stock assigned yet? (e.g. Infinite stock but "Available" code scanned?)
-        // If we assign an available code to an order without a prior reservation, we are consuming NEW stock.
-        // We must decrement counters.
+        require_once __DIR__ . '/products/manageStockCodes.php';
+        $items = getItemsForOrder($mysqli, $orderId);
 
-        // Check if the order actually needs this item?
-        // Too complex to check `order_items` here easily without re-fetching everything.
-        // For now, return error to be safe.
-        echo json_encode(['success' => false, 'message' => 'No matching reservation found in this order for this item.']);
-        exit;
+        $strictNeeded = 0;
+        $d0 = $stockItem['detail_id'] ?? 0;
+
+        foreach ($items as $itm) {
+            if ($itm['product_id'] == $stockItem['product_id'] &&
+                $itm['model_id'] == $stockItem['model_id'] &&
+                $itm['detail_id'] == $d0) {
+                $strictNeeded += $itm['qty'];
+            }
+        }
+
+        if ($strictNeeded > 0) {
+            // Check how many are already assigned
+            $strictAssigned = 0;
+            $stmtSA = $mysqli->prepare("SELECT COUNT(*) as cnt FROM product_stock WHERE order_id = ? AND product_id = ? AND model_id = ? AND detail_id = ?");
+            $stmtSA->bind_param("iiii", $orderId, $stockItem['product_id'], $stockItem['model_id'], $d0);
+            $stmtSA->execute();
+            $resSA = $stmtSA->get_result()->fetch_assoc();
+            $strictAssigned = $resSA['cnt'];
+            $stmtSA->close();
+
+            if ($strictNeeded > $strictAssigned) {
+                // Assign!
+                $stmtUpd = $mysqli->prepare("UPDATE product_stock SET status = 'sold', order_id = ? WHERE id = ?");
+                $stmtUpd->bind_param("ii", $orderId, $stockItem['id']);
+                $stmtUpd->execute();
+                echo json_encode(['success' => true, 'message' => 'Code assigned and validated.']);
+                exit;
+            } else {
+                echo json_encode(['success' => false, 'message' => "Order fully assigned for this item (Need $strictNeeded, Have $strictAssigned)."]);
+                exit;
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No matching reservation found and item not required by order.']);
+            exit;
+        }
     }
 }
 
