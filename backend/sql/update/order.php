@@ -184,20 +184,36 @@ if ($stmtH) {
    Status Transition Logic (Stock)
 ======================= */
 
+// Determine if the order previously had stock reserved (decremented)
+// Note: $currentOrder['status'] holds the OLD status (before this update).
+$oldStatus = $currentOrder['status'];
+$wasReserved = in_array($oldStatus, ['confirmed', 'shipping', 'completed']);
+
 // If we are updating the 'status' column
 if ($status === 'status') {
 
     if ($value === 'shipping') {
-        // Shipping -> Ensure stock is assigned (Reserved)
-        // If already assigned, this function inside checks and skips logic, just ensuring status is updated if needed.
-        assignAndDecrementStock($mysqli, $id, 'reserved');
+        // -> Shipping
+        // 1. Ensure Stock Quantity is Reserved (if not already)
+        if (!$wasReserved) {
+            reserveStockQuantity($mysqli, $id);
+        }
+        // 2. Assign Physical Stock Codes (Required for Shipping)
+        assignPhysicalStock($mysqli, $id, 'reserved');
     }
     elseif ($value === 'completed') {
-        // Completed -> Mark stock as Sold
-        updateStockStatus($mysqli, $id, 'sold');
+        // -> Completed
+        // 1. Ensure Stock Quantity is Reserved
+        if (!$wasReserved) {
+            reserveStockQuantity($mysqli, $id);
+        }
+        // 2. Ensure Physical Stock is Assigned and Sold
+        // If coming from 'confirmed' (Reserved but no physical), we assign now.
+        // If coming from 'shipping' (Reserved + physical), assignPhysicalStock checks and skips redundant assignment, updates status to 'sold' if needed.
+        assignPhysicalStock($mysqli, $id, 'sold');
 
         // Power logic
-        if ($currentOrder['status'] !== 'completed') {
+        if ($oldStatus !== 'completed') {
              $phone = $currentOrder['phone'];
              $stmtPow = $mysqli->prepare("UPDATE customers SET power = power + 1 WHERE phone = ?");
              $stmtPow->bind_param("s", $phone);
@@ -206,16 +222,27 @@ if ($status === 'status') {
         }
     }
     elseif ($value === 'returned') {
-        // Returned -> Mark stock as Returned (release from order, no qty increment)
+        // -> Returned
+        // Mark assigned stock as Returned. Do not restore counts (item is used/damaged).
         handleReturnStock($mysqli, $id);
     }
     elseif (in_array($value, ['canceled', 'unreaching'])) {
-        // Canceled/Unreaching -> Release stock to Available (qty increment)
-        releaseUniqueCodes($mysqli, $id);
+        // -> Canceled / Unreaching
+        // 1. Release Physical Stock Codes to Available
+        releasePhysicalStock($mysqli, $id);
+
+        // 2. Restore Stock Counts (Increment) IF it was reserved previously
+        if ($wasReserved) {
+            restoreStockCounts($mysqli, $id);
+        }
     }
     elseif ($value === 'confirmed') {
-        // Confirmed -> Assign stock (Reserved) - Legacy/Standard behavior
-        assignAndDecrementStock($mysqli, $id, 'reserved');
+        // -> Confirmed
+        // 1. Reserve Stock Quantity (Decrement) Only
+        // Do NOT assign physical codes yet.
+        if (!$wasReserved) {
+            reserveStockQuantity($mysqli, $id);
+        }
 
         // Also update confirmation fields
         $sql2 = "UPDATE orders SET owner = ?, owner_conf_state = 'confirmed', owner_conf_date = CURRENT_TIMESTAMP WHERE id = ?";
@@ -226,13 +253,11 @@ if ($status === 'status') {
     }
 }
 
-// Also handle if 'value' is confirmed but via a different property?
-// No, frontend sends status='status' value='confirmed' or status='owner_conf_state' ...
-// The original code handled $value === 'confirmed' broadly.
-// If status is NOT 'status' but value IS 'confirmed' (e.g. owner_conf_state update), we should assign stock too.
-
+// Handle other updates triggering confirmation (e.g. owner_conf_state)
 if ($status !== 'status' && $value === 'confirmed') {
-     assignAndDecrementStock($mysqli, $id, 'reserved');
+     if (!$wasReserved) {
+         reserveStockQuantity($mysqli, $id);
+     }
 }
 
 
