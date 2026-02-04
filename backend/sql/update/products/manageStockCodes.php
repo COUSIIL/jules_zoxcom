@@ -60,21 +60,6 @@ function getItemsForOrder($mysqli, $orderId) {
 }
 
 /**
- * Log Stock History
- */
-function logStockHistory($mysqli, $stockId, $uniqueCode, $action, $oldStatus, $newStatus, $orderId, $user = 'System') {
-    // Create table if not exists (fail-safe)
-    /* $mysqli->query("CREATE TABLE IF NOT EXISTS stock_history (...)"); */ // Assumed created by script
-
-    $stmt = $mysqli->prepare("INSERT INTO stock_history (stock_id, unique_code, action, old_status, new_status, order_id, user) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt) {
-        $stmt->bind_param("issssis", $stockId, $uniqueCode, $action, $oldStatus, $newStatus, $orderId, $user);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-/**
  * 1. Decrement Quantity Counters (Reservation)
  * WITHOUT assigning physical stock.
  */
@@ -103,9 +88,6 @@ function reserveStockQuantity($mysqli, $orderId) {
             $stmtUpdD->execute();
             $stmtUpdD->close();
         }
-
-        // Note: Logical quantity change doesn't map to a specific stock ID history log easily unless we track logical changes separately.
-        // We will focus logging on PHYSICAL stock code changes.
     }
     return true;
 }
@@ -114,7 +96,7 @@ function reserveStockQuantity($mysqli, $orderId) {
  * 2. Assign Physical Stock Codes
  * Finds available codes and assigns them. Does NOT decrement counters.
  */
-function assignPhysicalStock($mysqli, $orderId, $targetStatus = 'reserved', $user = 'System') {
+function assignPhysicalStock($mysqli, $orderId, $targetStatus = 'reserved') {
     // Check if already assigned enough?
     $stmtCheck = $mysqli->prepare("SELECT COUNT(*) as cnt FROM product_stock WHERE order_id = ?");
     $stmtCheck->bind_param("i", $orderId);
@@ -128,8 +110,7 @@ function assignPhysicalStock($mysqli, $orderId, $targetStatus = 'reserved', $use
     foreach ($items as $itm) $totalRequired += $itm['qty'];
 
     if ($assignedCount >= $totalRequired && $totalRequired > 0) {
-         // Already assigned. Update status if needed (e.g. reserved -> sold)
-         updateStockStatus($mysqli, $orderId, $targetStatus, $user);
+         updateStockStatus($mysqli, $orderId, $targetStatus);
          return ['success' => true, 'message' => 'Stock already assigned'];
     }
 
@@ -141,66 +122,53 @@ function assignPhysicalStock($mysqli, $orderId, $targetStatus = 'reserved', $use
         $modelId   = $item['model_id'];
         $detailId  = $item['detail_id'];
 
-        $remainingQty = $qty;
-
-        // Count already assigned for this specific variant
-        $assignedVar = 0; // Simplified: Assumes order items are distinct. If dupes exist, logic gets complex.
-        // We will proceed with simplistic "Need X, Find X".
-
         $foundIds = [];
+        $remainingQty = $qty;
 
         // Search steps (Detail -> Model -> Product)
         // Step 1: Specific Detail ID
         if ($remainingQty > 0 && $detailId && $detailId > 0) {
-            $query = "SELECT id, unique_code, status FROM product_stock WHERE product_id = ? AND status = 'available' AND detail_id = ? LIMIT ?";
+            $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND detail_id = ? LIMIT ?";
             $stmtSearch = $mysqli->prepare($query);
             $stmtSearch->bind_param("iii", $productId, $detailId, $remainingQty);
             $stmtSearch->execute();
             $res = $stmtSearch->get_result();
             while ($row = $res->fetch_assoc()) {
-                $foundIds[] = $row;
+                $foundIds[] = $row['id'];
                 $remainingQty--;
             }
             $stmtSearch->close();
         }
         // Step 2: Generic Model ID
         if ($remainingQty > 0 && $modelId > 0) {
-             $query = "SELECT id, unique_code, status FROM product_stock WHERE product_id = ? AND status = 'available' AND model_id = ? AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
+             $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND model_id = ? AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
              $stmtSearch = $mysqli->prepare($query);
              $stmtSearch->bind_param("iii", $productId, $modelId, $remainingQty);
              $stmtSearch->execute();
              $res = $stmtSearch->get_result();
              while ($row = $res->fetch_assoc()) {
-                 $foundIds[] = $row;
+                 $foundIds[] = $row['id'];
                  $remainingQty--;
              }
              $stmtSearch->close();
         }
         // Step 3: Generic Product
         if ($remainingQty > 0 && $modelId == 0 && ($detailId == 0 || $detailId == null)) {
-             $query = "SELECT id, unique_code, status FROM product_stock WHERE product_id = ? AND status = 'available' AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
+             $query = "SELECT id FROM product_stock WHERE product_id = ? AND status = 'available' AND (detail_id IS NULL OR detail_id = 0) LIMIT ?";
              $stmtSearch = $mysqli->prepare($query);
              $stmtSearch->bind_param("ii", $productId, $remainingQty);
              $stmtSearch->execute();
              $res = $stmtSearch->get_result();
              while ($row = $res->fetch_assoc()) {
-                 $foundIds[] = $row;
+                 $foundIds[] = $row['id'];
                  $remainingQty--;
              }
              $stmtSearch->close();
         }
 
         if (!empty($foundIds)) {
-            foreach($foundIds as $fItem) {
-                // Update
-                $uStmt = $mysqli->prepare("UPDATE product_stock SET order_id = ?, status = ? WHERE id = ?");
-                $uStmt->bind_param("isi", $orderId, $targetStatus, $fItem['id']);
-                $uStmt->execute();
-                $uStmt->close();
-
-                // Log
-                logStockHistory($mysqli, $fItem['id'], $fItem['unique_code'], 'assign_'.$targetStatus, $fItem['status'], $targetStatus, $orderId, $user);
-            }
+            $idList = implode(',', $foundIds);
+            $mysqli->query("UPDATE product_stock SET order_id = $orderId, status = '$targetStatus' WHERE id IN ($idList)");
         }
     }
     return ['success' => true];
@@ -237,57 +205,31 @@ function restoreStockCounts($mysqli, $orderId) {
 }
 
 /**
- * 4. Release Physical Stock (Set to Available OR Returned)
+ * 4. Release Physical Stock (Set to Available)
  */
-function releasePhysicalStock($mysqli, $orderId, $targetStatus = 'available', $user = 'System') {
-    // Select first to log
-    $stmtSel = $mysqli->prepare("SELECT id, unique_code, status FROM product_stock WHERE order_id = ?");
-    $stmtSel->bind_param("i", $orderId);
-    $stmtSel->execute();
-    $res = $stmtSel->get_result();
-    $items = $res->fetch_all(MYSQLI_ASSOC);
-    $stmtSel->close();
-
-    foreach($items as $item) {
-        // If already returned, don't change
-        if ($item['status'] === 'returned') continue;
-
-        $newStatus = $targetStatus;
-
-        $stmtUpd = $mysqli->prepare("UPDATE product_stock SET order_id = NULL, status = ? WHERE id = ?");
-        $stmtUpd->bind_param("si", $newStatus, $item['id']);
-        $stmtUpd->execute();
-        $stmtUpd->close();
-
-        logStockHistory($mysqli, $item['id'], $item['unique_code'], 'release_'.$newStatus, $item['status'], $newStatus, $orderId, $user);
-    }
+function releasePhysicalStock($mysqli, $orderId) {
+    // Release codes to 'available'
+    $stmtRel = $mysqli->prepare("UPDATE product_stock SET order_id = NULL, status = 'available' WHERE order_id = ? AND status != 'returned'");
+    // Note: If status was 'returned', we don't release to 'available'.
+    // If status was 'sold' or 'reserved' or 'shipping', we release.
+    $stmtRel->bind_param("i", $orderId);
+    $stmtRel->execute();
+    $stmtRel->close();
 }
 
 // Helpers
-function updateStockStatus($mysqli, $orderId, $status, $user = 'System') {
-    // Select first to log
-    $stmtSel = $mysqli->prepare("SELECT id, unique_code, status FROM product_stock WHERE order_id = ?");
-    $stmtSel->bind_param("i", $orderId);
-    $stmtSel->execute();
-    $res = $stmtSel->get_result();
-    $items = $res->fetch_all(MYSQLI_ASSOC);
-    $stmtSel->close();
-
-    foreach($items as $item) {
-        if ($item['status'] === $status) continue;
-
-        $stmtUpd = $mysqli->prepare("UPDATE product_stock SET status = ? WHERE id = ?");
-        $stmtUpd->bind_param("si", $status, $item['id']);
-        $stmtUpd->execute();
-        $stmtUpd->close();
-
-        logStockHistory($mysqli, $item['id'], $item['unique_code'], 'update_status', $item['status'], $status, $orderId, $user);
-    }
+function updateStockStatus($mysqli, $orderId, $status) {
+    $stmt = $mysqli->prepare("UPDATE product_stock SET status = ? WHERE order_id = ?");
+    $stmt->bind_param("si", $status, $orderId);
+    $stmt->execute();
+    $stmt->close();
 }
 
-function handleReturnStock($mysqli, $orderId, $user = 'System') {
-    // Helper to mark as returned (same as releasePhysicalStock with 'returned')
-    releasePhysicalStock($mysqli, $orderId, 'returned', $user);
+function handleReturnStock($mysqli, $orderId) {
+    $stmt = $mysqli->prepare("UPDATE product_stock SET status = 'returned', order_id = NULL WHERE order_id = ?");
+    $stmt->bind_param("i", $orderId);
+    $stmt->execute();
+    $stmt->close();
 }
 
 // Legacy / Compatibility
@@ -312,7 +254,7 @@ function releaseUniqueCodes($mysqli, $orderId) {
         restoreStockCounts($mysqli, $orderId);
     }
 
-    releasePhysicalStock($mysqli, $orderId, 'available');
+    releasePhysicalStock($mysqli, $orderId);
 }
 
 function assignUniqueCodes($mysqli, $orderId) {
