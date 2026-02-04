@@ -6,10 +6,12 @@ error_reporting(E_ALL);
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+if (file_exists(__DIR__ . '/../.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+}
 
-$host = $_ENV['DB_HOST'];
+$host = $_ENV['DB_HOST'] ?? 'localhost';
 $port = $_ENV['DB_PORT'];
 $user = $_ENV['DB_USER'];
 $password = $_ENV['DB_PASS'];

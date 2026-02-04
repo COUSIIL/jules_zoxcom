@@ -223,8 +223,10 @@ if ($status === 'status') {
     }
     elseif ($value === 'returned') {
         // -> Returned
-        // Mark assigned stock as Returned. Do not restore counts (item is used/damaged).
+        // Mark assigned stock as Returned.
         handleReturnStock($mysqli, $id);
+        // Restore stock counts as per requirement
+        restoreStockCounts($mysqli, $id);
     }
     elseif (in_array($value, ['canceled', 'unreaching'])) {
         // -> Canceled / Unreaching
