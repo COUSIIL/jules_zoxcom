@@ -499,7 +499,7 @@ import EditOrder from '../../components/elements/newBloc/editOrder.vue'
 import Bubble from '../../components/elements/newBloc/bubble.vue'
 import Action from '../../components/elements/newBloc/action.vue'
 import HistoryModal from '../../components/elements/newBloc/historyModal.vue'
-import ScanModal from '../../components/elements/newBloc/scanModal.vue'
+import StockAssignment from '../../components/elements/newBloc/StockAssignment.vue'
 import { useAuth } from '../../composables/useAuth';
 
 import { useReminder } from '../../composables/reminder';
@@ -567,7 +567,8 @@ const orderTrcking = ref()
 
 const showHistoryModal = ref(false)
 const historyOrderId = ref(0)
-const showScanModal = ref(false)
+const showStockAssignment = ref(false)
+const targetStatus = ref('reserved')
 const scanOrder = ref(null)
 
 
@@ -1033,20 +1034,37 @@ const onSearch = (val) => {
   search(val)
 }
 
-const onScanValidated = async () => {
-    await shipping(statusIndex.value);
+const onStockAssigned = async () => {
+    if (targetStatus.value === 'reserved') {
+         // Shipping flow
+         await shipping(statusIndex.value);
 
-    const mainStatus = dt.value[statusIndex.value].status;
-    dt.value[statusIndex.value].status = 'shipping';
+         const mainStatus = dt.value[statusIndex.value].status;
+         dt.value[statusIndex.value].status = 'shipping';
 
-    const res = await updateOrderValue(statusID.value, 'status', 'shipping', auth.value.username);
-    if (res && res.assigned_codes) {
-      dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
-    }
+         const res = await updateOrderValue(statusID.value, 'status', 'shipping', auth.value.username);
+         if (res && res.assigned_codes) {
+             dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+         }
 
-    if(updated.value === -1) {
-      dt.value[statusIndex.value].status = mainStatus;
-      showOrLog.value = true;
+         if(updated.value === -1) {
+             dt.value[statusIndex.value].status = mainStatus;
+             showOrLog.value = true;
+         }
+    } else if (targetStatus.value === 'sold') {
+         // Completed flow
+         const mainStatus = dt.value[statusIndex.value].status;
+         dt.value[statusIndex.value].status = 'completed';
+
+         const res = await updateOrderValue(statusID.value, 'status', 'completed', auth.value.username);
+         if (res && res.assigned_codes) {
+             dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+         }
+
+         if(updated.value === -1) {
+             dt.value[statusIndex.value].status = mainStatus;
+             showOrLog.value = true;
+         }
     }
 }
 
@@ -1061,23 +1079,28 @@ const editStatus = async (vl, index, id) => {
   if (vl === 'shipping') {
     const order = dt.value[statusIndex.value];
 
-    // Check if scan is required
-    const hasReserved = order.assigned_codes && order.assigned_codes.some(c => c.status === 'reserved');
-    if (hasReserved) {
-        scanOrder.value = order;
-        showScanModal.value = true;
-        return;
-    }
-
     nameDeliver.value = [order.name];
     phoneDeliver.value = [order.phone];
     totalDeliver.value = [order.total];
     indexDeliver.value = [statusIndex.value];
-    await shipping(statusIndex.value)
-    dt.value[statusIndex.value].status = vl
     
+    targetStatus.value = 'reserved';
+    scanOrder.value = order;
+    showStockAssignment.value = true;
+    return;
 
-  } else if (vl === 'confirmed') {
+  } else if (vl === 'completed') {
+    const order = dt.value[statusIndex.value];
+    // If coming from Confirmed (not Shipping), we need to assign codes (Sold)
+    if (order.status === 'confirmed') {
+        targetStatus.value = 'sold';
+        scanOrder.value = order;
+        showStockAssignment.value = true;
+        return;
+    }
+  }
+
+  if (vl === 'confirmed') {
     const mainStatus = dt.value[statusIndex.value].status
     dt.value[statusIndex.value].status = vl
 

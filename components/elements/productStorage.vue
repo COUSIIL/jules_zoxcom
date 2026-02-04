@@ -2,6 +2,7 @@
   <div class="product-storage">
     <Confirm :isVisible="isConfirm" :message="confirmMessage" @confirm="executeConfirm" @cancel="isConfirm = false" />
     <Message :isVisible="isMessage" :message="messageText" @ok="isMessage = false" />
+    <StockHistoryModal :isVisible="showHistory" :stockId="selectedStockId" :code="selectedCode" @close="showHistory = false" />
 
     <div class="header-section">
       <h2 class="title">Gestion du Stock</h2>
@@ -136,13 +137,21 @@
               </td>
               <td>{{ stock.order_id || '-' }}</td>
               <td>
-                 <gBtn
-                    v-if="stock.status === 'available'"
-                    :svg="icons.x"
-                    color="var(--color-rady)"
-                    @click="deleteSingleItem(stock.id)"
-                    style="width: 32px; height: 32px; padding: 0;"
-                 />
+                 <div style="display: flex; gap: 5px;">
+                     <gBtn
+                        :svg="icons.history"
+                        color="var(--color-zioly2)"
+                        @click="openHistory(stock)"
+                        style="width: 32px; height: 32px; padding: 0;"
+                     />
+                     <gBtn
+                        v-if="stock.status === 'available'"
+                        :svg="icons.x"
+                        color="var(--color-rady)"
+                        @click="deleteSingleItem(stock.id)"
+                        style="width: 32px; height: 32px; padding: 0;"
+                     />
+                 </div>
               </td>
             </tr>
              <tr v-if="stockList.length === 0">
@@ -179,6 +188,7 @@ import InputText from './bloc/inputText.vue';
 import Confirm from './bloc/confirm.vue';
 import icons from '~/public/icons.json';
 import Message from './bloc/message.vue';
+import StockHistoryModal from './newBloc/stockHistoryModal.vue';
 
 const props = defineProps({
   modelValue: {
@@ -202,6 +212,16 @@ const confirmMessage = ref('');
 const isMessage = ref(false);
 const messageText = ref('');
 const confirmCallback = ref(null);
+
+const showHistory = ref(false);
+const selectedStockId = ref(0);
+const selectedCode = ref('');
+
+const openHistory = (stock) => {
+    selectedStockId.value = parseInt(stock.id);
+    selectedCode.value = stock.unique_code;
+    showHistory.value = true;
+};
 
 const executeConfirm = () => {
   if (confirmCallback.value) confirmCallback.value();
