@@ -20,11 +20,7 @@ $sql = "CREATE TABLE IF NOT EXISTS stock_history (
     INDEX (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
-if ($mysqli->query($sql) === TRUE) {
-    echo "Table stock_history created successfully or already exists.\n";
-} else {
+if ($mysqli->query($sql) === FALSE) {
     echo "Error creating table: " . $mysqli->error . "\n";
 }
-
-$mysqli->close();
 ?>

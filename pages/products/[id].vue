@@ -54,11 +54,9 @@
       <CancelBtn style="width: 20%; min-width: 100px;" :text="t('cancel')" @clicked="navigateTo('/products')" :svg="icons['x']" />
       <CallToAction style="width: 80%" :text="t('save')" @clicked="saveProduct" :svg="icons['check']" />
     </div>
-    <LoaderBlack v-else width="100px" style="position: fixed; bottom: 20px;" />
+    <LoaderBlack v-else width="80px" />
 
   </div>
-
-  <LoaderBlack v-else width="100px" />
 </template>
 
 <script setup>

@@ -139,7 +139,7 @@
               <td>
                  <div style="display: flex; gap: 5px;">
                      <gBtn
-                        :svg="icons.history"
+                        :svg="icons.archives"
                         color="var(--color-zioly2)"
                         @click="openHistory(stock)"
                         style="width: 32px; height: 32px; padding: 0;"

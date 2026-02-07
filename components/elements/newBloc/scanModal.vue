@@ -140,7 +140,7 @@ const processScan = async () => {
     message.value = '';
 
     try {
-        const res = await fetch('https://management.hoggari.com/backend/sql/update/validateScan.php', {
+        const res = await fetch('https://management.hoggari.com/backend/api.php?action=validateStock', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -148,7 +148,9 @@ const processScan = async () => {
                 code: code
             })
         });
+
         const result = await res.json();
+
 
         if (result.success) {
             message.value = "Code validé !";
@@ -164,7 +166,7 @@ const processScan = async () => {
             const existing = localItems.value.find(i => i.unique_code === code);
             if (existing) {
                 existing.scanned = true;
-                existing.status = 'sold';
+                existing.status = 'reserved';
             } else {
                 // Backend swapped!
                 // We need to find the item that WAS reserved (and now released) and replace it?
@@ -197,7 +199,7 @@ const processScan = async () => {
                 if (candidate) {
                     candidate.scanned = true;
                     candidate.unique_code = code; // Update display
-                    candidate.status = 'sold';
+                    candidate.status = 'reserved';
                 }
             }
 

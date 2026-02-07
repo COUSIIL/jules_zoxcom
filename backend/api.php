@@ -122,6 +122,7 @@ $routes = [
     "postStock"                    => "../backend/sql/post/stock.php",
     "getStock"                     => "../backend/sql/get/stock.php",
     "deleteStock"                  => "../backend/sql/delete/stock.php",
+    "validateStock"                => "../backend/sql/update/validateScan.php",
 
     // --- Customers & Users ---
     "getCustomers"                 => "../backend/sql/get/customers.php",

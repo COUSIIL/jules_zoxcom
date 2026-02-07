@@ -3,13 +3,17 @@ header("Content-Type: application/json; charset=UTF-8");
 
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
 $managePath = __DIR__ . '/products/manageStockCodes.php';
+$stockHistory = __DIR__ . '/../../../backend/sql/create_stock_history_table.php';
 
-if (!file_exists($configPath) || !file_exists($managePath)) {
+if (!file_exists($configPath) || !file_exists($managePath) || !file_exists($stockHistory)) {
     echo json_encode(['success' => false, 'message' => 'Config or Helper not found.']);
     exit;
 }
+
 require_once $configPath;
 require_once $managePath;
+require_once $stockHistory;
+
 
 $data = json_decode(file_get_contents('php://input'), true);
 
@@ -23,7 +27,7 @@ if (!isset($data['code']) && !isset($data['stock_id'])) {
 }
 
 $orderId = (int)$data['order_id'];
-$targetStatus = $data['target_status'] ?? 'sold'; // Default to sold for compatibility, but frontend should specify
+$targetStatus = $data['target_status'] ?? 'reserved'; // Default to sold for compatibility, but frontend should specify
 $user = $data['user'] ?? 'System';
 
 if (!in_array($targetStatus, ['reserved', 'sold'])) {
@@ -89,7 +93,7 @@ if ($stockItem['status'] === 'available') {
     // Find a reserved item for this order matching the product/model/detail of the scanned item
     $search = "SELECT id, unique_code, status FROM product_stock
                WHERE order_id = ?
-               AND status = 'reserved'
+               AND status = 'available'
                AND product_id = ?
                AND model_id = ?
                AND (detail_id = ? OR (detail_id IS NULL AND ? = 0) OR (detail_id = 0 AND ? = 0))
@@ -97,7 +101,7 @@ if ($stockItem['status'] === 'available') {
 
     $stmtS = $mysqli->prepare($search);
     $dId = $stockItem['detail_id'] ?? 0;
-    $stmtS->bind_param("iiiii", $orderId, $stockItem['product_id'], $stockItem['model_id'], $dId, $dId, $dId);
+    $stmtS->bind_param("iiiiii", $orderId, $stockItem['product_id'], $stockItem['model_id'], $dId, $dId, $dId);
     $stmtS->execute();
     $reservedItem = $stmtS->get_result()->fetch_assoc();
     $stmtS->close();

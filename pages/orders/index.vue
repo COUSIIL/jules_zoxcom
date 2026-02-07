@@ -491,6 +491,7 @@ import Confirm from '../../components/elements/bloc/confirm.vue';
 import Message from '../../components/elements/bloc/message.vue';
 import Deliver from '../../components/deliver.vue';
 import Search from '../../components/search.vue';
+import ScanModal from '../../components/elements/newBloc/scanModal.vue'
 import CallToAction from '../../components/elements/bloc/callToActionBtn.vue'
 import Reminder from '../../components/reminder.vue'
 import Filter from '../../components/filter.vue'
@@ -501,6 +502,7 @@ import Action from '../../components/elements/newBloc/action.vue'
 import HistoryModal from '../../components/elements/newBloc/historyModal.vue'
 import StockAssignment from '../../components/elements/newBloc/StockAssignment.vue'
 import { useAuth } from '../../composables/useAuth';
+
 
 import { useReminder } from '../../composables/reminder';
 import { useOrderDz } from '../../composables/useOrderDz';
@@ -564,10 +566,12 @@ const showOrLog = ref(false)
 const showAction = ref(false)
 const isUpdatingTrcking = ref(false)
 const orderTrcking = ref()
+const showScanModal = ref(false)
+
 
 const showHistoryModal = ref(false)
 const historyOrderId = ref(0)
-const showStockAssignment = ref(false)
+
 const targetStatus = ref('reserved')
 const scanOrder = ref(null)
 
@@ -575,11 +579,6 @@ const scanOrder = ref(null)
 const isArchiving = ref(false)
 const showConfirmArchive = ref(false)
 const showConfirmReset = ref(false)
-
-const exportSelectedList = () => {
-  if (selectedOrder.value.length === 0) return
-  exportListToPDF(selectedOrder.value)
-}
 
 const confirmArchive = () => {
   if (selectedOrder.value.length === 0) return
@@ -676,7 +675,9 @@ const statusOptions = ref([{ value: 'test', label: 'image', img: '' }])
 const multyOption = ref([
   { value: 'all', label: 'Select all orders', img: '' },
   { value: 'visible', label: 'Select visible orders', img: '' },
-  { value: 'cancel', label: 'Cancel selected orders', img: '' }
+  { value: 'cancel', label: 'Cancel selected orders', img: '' },
+  { value: 'CSV', label: 'Export selected orders as CSV', img: '' },
+  { value: 'PDF', label: 'Export selected orders as PDF', img: '' }
 ])
 const delegateOption = ref([{ value: 'delegate', label: 'Delegate to OrderDz', img: 'orderDz.png' }])
 const moreOptions = ref([
@@ -1001,6 +1002,26 @@ const selectingAllOrders = (type) => {
 
     }
 
+  } else if(type == 'CSV') {
+
+    
+    
+    if(selectedOrder.value.length > 0) {
+
+      exportToCSV(selectedOrder.value)
+
+      
+
+    }
+
+  } else if(type == 'PDF') {
+    if(selectedOrder.value.length > 0) {
+
+      exportToThermalPDF(selectedOrder.value)
+
+
+    }
+
   }
 }
 
@@ -1027,6 +1048,23 @@ const filterSelected = (vl) => {
     lastQueryParams.value = { status: vl }
     filterBy('status', vl)
   }
+}
+
+const onScanValidated = async () => {
+    await shipping(statusIndex.value);
+    
+    const mainStatus = dt.value[statusIndex.value].status;
+    dt.value[statusIndex.value].status = 'shipping';
+
+    const res = await updateOrderValue(statusID.value, 'status', 'shipping', auth.value.username);
+    if (res && res.assigned_codes) {
+      dt.value[statusIndex.value].assigned_codes = res.assigned_codes;
+    }
+    
+    if(updated.value === -1) {
+      dt.value[statusIndex.value].status = mainStatus;
+      showOrLog.value = true;
+    }
 }
 
 const onSearch = (val) => {
@@ -1086,7 +1124,7 @@ const editStatus = async (vl, index, id) => {
     
     targetStatus.value = 'reserved';
     scanOrder.value = order;
-    showStockAssignment.value = true;
+    showScanModal.value = true
     return;
 
   } else if (vl === 'completed') {
@@ -1579,6 +1617,7 @@ const exportation = (vl) => {
   if(!order) return
 
   if(vl == 'CSV') {
+    console.log('CSV: ', order)
     exportToCSV(order)
   } else if(vl == 'PDF') {
     exportToThermalPDF(order)
@@ -1588,7 +1627,7 @@ const exportation = (vl) => {
 
 
 
-const delegate = async (vl) => {
+const delegate = async () => {
 
   var newProd = []
   if(dt.value) {

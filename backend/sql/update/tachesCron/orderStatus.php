@@ -80,7 +80,7 @@ while ($row = $result->fetch_assoc()) {
     curl_close($ch);
 
     // ✅ Anti-surcharge API : pause 1.5s entre chaque requête
-    usleep(1500000);
+    usleep(2500000);
 
     if ($httpCode !== 200 || !$response) {
         continue; // ignorer cette commande si la requête échoue

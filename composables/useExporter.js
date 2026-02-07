@@ -14,19 +14,37 @@ import arabicFont from '../public/fonts/IBM_Plex_Sans_Arabic/IBMPlexSansArabic-R
 export const useExporter = () => {
 
     const exportToCSV = (order) => {
-    const csv = orderToCSV(order)
+        const date = new Date()
+        var csv = []
+        var str = ``
+        if(order.length > 0) {
+            for(let i in order) {
+                
+                if(i == 0) {
+                    csv.push(orderToCSV(order[i]))
+                } else {
+                    csv.push(orderToCSV(order[i], true))
+                }
+            }
+            str = `${order.length}-commandes ${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.csv`
+        } else {
+            csv.push(orderToCSV(order))
+            str = `commande ${order.id}.csv`
+        }
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob(csv, { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
+    
+    
     link.href = URL.createObjectURL(blob)
-    link.setAttribute('download', `commande_${order.id}.csv`)
+    link.setAttribute('download', str)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
     }
 
 
-    function orderToCSV(order) {
+    function orderToCSV(order, isMore = false) {
 
     let headers = [
         "id","create","name","phone","country","ip","status","tracking","type","method",
@@ -59,7 +77,11 @@ export const useExporter = () => {
     });
 
     // ---- Create HEADER line ----
-    let csv = headers.join(",") + "\n";
+    let csv;
+    if(!isMore) {
+        csv = headers.join(",") + "\n";
+    }
+    
 
     var type
     if(order.type == 1) {
@@ -69,7 +91,7 @@ export const useExporter = () => {
     }
 
     let values = [
-        order.id,
+        parseInt(order.id),
         order.create,
         order.name,
         order.phone,
@@ -115,7 +137,12 @@ export const useExporter = () => {
     });
 
     // ---- Create the SINGLE DATA LINE ----
-    csv += values.join(",") + "\n";
+    if(csv === undefined) {
+        csv = values.join(",") + "\n";
+    } else {
+        csv += values.join(",") + "\n";
+    }
+
 
     return csv;
     }
@@ -172,7 +199,7 @@ export const useExporter = () => {
              { header: 'Total', dataKey: 'total' },
              { header: 'Produits', dataKey: 'products' },
         ];
-
+        
         const data = orders.map(o => ({
             id: o.id,
             create: o.create,
@@ -195,13 +222,16 @@ export const useExporter = () => {
         doc.save(`orders_list_${new Date().toISOString().slice(0,10)}.pdf`);
     }
 
-    const exportToThermalPDF = async (order) => {
-        const JsBarcode = (await import("jsbarcode")).default;
+    const exportToThermalPDF = async (input) => {
+        //const JsBarcode = (await import("jsbarcode")).default;
+        
+        // Si input n'est pas un tableau, on le transforme en tableau pour unifier le traitement
+        const orders = Array.isArray(input) ? input : [input];
 
         const doc = new jsPDF({
             orientation: "p",
             unit: "mm",
-            format: [80, 400]
+            format: "a6"
         });
 
         // FONT
@@ -209,13 +239,20 @@ export const useExporter = () => {
         doc.addFont("IBMPlexSansArabic-Regular.ttf", "IBMPlex", "normal");
         doc.setFont("IBMPlex");
 
-        // LOGO centré
-        const scale = 3;
-        const logoPng = await svgToPng(logoZox, 150 * scale, 40 * scale);
-        doc.addImage(logoPng, "PNG", 15, 5, 50, 15);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            
+            if (i > 0) {
+                doc.addPage("a6", "p");
+            }
 
-        doc.setFontSize(14);
-        doc.text("Bordereau de livraison", 40, 24, { align: "center" });
+        // LOGO centré
+        const scale = 4;
+        const logoPng = await svgToPng(logoZox, 100 * scale, 30 * scale);
+        doc.addImage(logoPng, "PNG", 27.5, 5, 50, 15);
+
+        doc.setFontSize(10);
+        doc.text("Bordereau de livraison", 52.5, 24, { align: "center" });
 
         let y = 30;
 
@@ -232,53 +269,54 @@ export const useExporter = () => {
         }
 
         // ========= TITRES AU-DESSUS DES QR =========
-        doc.setFontSize(8);
+        doc.setFontSize(5);
         doc.setTextColor(40);
 
         // ID LABEL
         if (order.id) {
-            doc.text(`ID`, 20, y - 2, { align: "center" });
+            doc.text(`ID`, 30, y - 2, { align: "center" });
         }
 
         // TRACKING LABEL
         if (order.tracking) {
-            doc.text(`Tracking`, 60, y - 2, { align: "center" });
+            doc.text(`Tracking`, 75, y - 2, { align: "center" });
         }
 
         // ========= QR CODES =========
-        if (idCanvas) doc.addImage(idCanvas, "PNG", 5, y, 30, 30);
-        if (qrCanvas) doc.addImage(qrCanvas, "PNG", 45, y, 30, 30);
+        if (idCanvas) doc.addImage(idCanvas, "PNG", 23, y, 15, 15);
+        if (qrCanvas) doc.addImage(qrCanvas, "PNG", 68, y, 15, 15);
 
-        y += 35;
+        y += 20;
 
         // ID LABEL
         if (order.id) {
-            doc.text(`${order.id}`, 20, y, { align: "center" });
+            doc.text(`${order.id}`, 30, y, { align: "center" });
         }
 
         // TRACKING LABEL
         if (order.tracking) {
-            doc.text(`${order.tracking}`, 60, y, { align: "center" });
+            doc.text(`${order.tracking}`, 75, y, { align: "center" });
         }
 
-        y += 10;
+        y += 5;
 
         // Ligne fine
         // ===== SEPARATOR LÉGER =====
         doc.setDrawColor(200);
-        doc.line(5, y, 75, y);
-        y += 4;
+        doc.line(10, y, 95, y);
+        y += 2;
 
         // ===================================================
         // =============   CONTAINER : INFO CLIENT   ==========
         // ===================================================
         doc.setFillColor(245);               // léger gris
-        doc.roundedRect(5, y, 70, 6, 1, 1, "F");
-        doc.setFontSize(11);
-        doc.text("Détails Client", 40, y + 4, { align: "center" });
+        doc.roundedRect(10, y, 85, 6, 1, 1, "F");
+        doc.setFontSize(6);
+        doc.text("Détails Commande", 52.5, y + 4, { align: "center" });
 
         y += 10;
-        doc.setFontSize(10);
+        doc.setFontSize(5);
+        var cY = y;
 
         // Organisation des infos par section
         const info = [
@@ -292,25 +330,11 @@ export const useExporter = () => {
 
         // Contenu
         info.forEach(([k, v]) => {
-            doc.text(`${k}`, 6, y);
-            doc.text(String(v ?? ""), 30, y);
-            y += 5;
+            doc.text(`${k}`, 12, y);
+            doc.text(String(v ?? ""), 25, y);
+            y += 2;
         });
-
-        // Petit espace
-        y += 2;
-
-
-        // ===================================================
-        // =============   CONTAINER : LIVRAISON   ============
-        // ===================================================
-        doc.setFillColor(245);
-        doc.roundedRect(5, y, 70, 6, 1, 1, "F");
-        doc.setFontSize(11);
-        doc.text("Adresse & Livraison", 40, y + 4, { align: "center" });
-
-        y += 10;
-        doc.setFontSize(10);
+        
 
         const type = order.type == 1 ? "stop desk" : "home";
 
@@ -325,44 +349,13 @@ export const useExporter = () => {
         ];
 
         delivery.forEach(([k, v]) => {
-            doc.text(`${k}`, 6, y);
-            doc.text(String(v ?? ""), 30, y);
-            y += 5;
+            doc.text('', 50, cY);
+            doc.text(`${k}`, 50, cY);
+            doc.text(String(v ?? ""), 65, cY);
+            cY += 2;
         });
 
-        y += 2;
-
-
-        // ===================================================
-        // =============   CONTAINER : STATUT + EXTRA   ========
-        // ===================================================
-        doc.setFillColor(245);
-        doc.roundedRect(5, y, 70, 6, 1, 1, "F");
-        doc.setFontSize(11);
-        doc.text("Infos Supplémentaires", 40, y + 4, { align: "center" });
-
-        y += 10;
-        doc.setFontSize(10);
-
-        const extra = [
-            ["Délégué :", order.delegated == "1" ? "Oui" : "Non"],
-            ["Activité :", order.activity || "Aucune"],
-            ["ID Rappel :", order.reminder_id || "—"],
-            ["Discount :", order.discount || "0"],
-            ["Total :", order.total + " DA"],
-            ["Quantité totale :", order.totalQty],
-        ];
-
-        extra.forEach(([k, v]) => {
-            doc.text(`${k}`, 6, y);
-            doc.text(String(v ?? ""), 40, y);
-            y += 5;
-        });
-
-        y += 6;
-        doc.setDrawColor(200);
-        doc.line(5, y, 75, y);
-        y += 8;
+        y += 1;
 
 
         // ===================================================
@@ -371,41 +364,44 @@ export const useExporter = () => {
         if (order.note?.length > 0) {
 
             doc.setFillColor(245);
-            doc.roundedRect(5, y, 70, 6, 1, 1, "F");
-            doc.setFontSize(11);
-            doc.text("Notes", 40, y + 4, { align: "center" });
+
+            doc.roundedRect(10, y, 85, 6, 1, 1, "F");
+            doc.setFontSize(6);
+            doc.text("Notes", 52.5, y + 4, { align: "center" });
 
             y += 10;
 
             order.note.forEach(n => {
-                doc.setFontSize(10);
-                doc.setTextColor(80);
+                if(n.text) {
+                    doc.setFontSize(5);
+                    doc.setTextColor(80);
 
-                doc.text(`• ${n.text || "(vide)"}`, 8, y); y += 4;
-                doc.text(`Couleur: ${n.color}`, 8, y); y += 4;
-                doc.text(`Client: ${n.isClientNote ? "Oui" : "Non"}`, 8, y); y += 4;
+                    if (n.user) {
+                        doc.text(`Client: ${n.isClientNote ? "Oui" : "Non"}`, 13, y); y += 4;
+                        y += 2;
+                        doc.text(`User: ${n.user}`, 13, y); 
+                        y += 2;
+                        doc.text(`User: ${n.text}`, 13, y); 
+                    }
 
-                if (n.user) {
-                    doc.text(`User: ${n.user}`, 8, y); 
-                    y += 4;
+                    y += 1;
                 }
-
-                y += 2;
+                
             });
 
             doc.setTextColor(0);
+            y += 2;
+            doc.line(10, y, 95, y);
             y += 4;
-            doc.line(5, y, 75, y);
-            y += 8;
         }
 
         // ========= TABLE PRODUITS =========
         autoTable(doc, {
             startY: y,
-            margin: { left: 5, right: 5 },
-            tableWidth: 70,
+            margin: { left: 10, right: 10 },
+            tableWidth: 85,
             head: [["Produit", "Qté", "Prix"]],
-            styles: { font: "IBMPlex", fontSize: 10, cellPadding: 1 },
+            styles: { font: "IBMPlex", fontSize: 5, cellPadding: 1 },
             headStyles: { fillColor: [0, 0, 0], textColor: 255 },
             body: order.items.map(it => [
                 it.productName,
@@ -414,20 +410,22 @@ export const useExporter = () => {
             ])
         });
 
-        y = doc.lastAutoTable.finalY + 8;
+        y = doc.lastAutoTable.finalY + 2;
 
         // ========= TOTAL =========
-        doc.setFontSize(13);
-        doc.text(`TOTAL : ${order.total} DA`, 5, y);
-        y += 10;
+        doc.setFontSize(7);
+        doc.text(`TOTAL : ${order.total} DA`, 10, y);
+        y += 5;
 
         // FOOTER
-        doc.setFontSize(10);
-        doc.text("Merci pour votre confiance.", 40, y, { align: "center" });
-        y += 5;
-        doc.text("Zoxcom", 40, y, { align: "center" });
+        doc.setFontSize(5);
+        doc.text("Merci pour votre confiance.", 52.5, y, { align: "center" });
+        y += 2;
+        doc.text("Zoxcom", 52.5, y, { align: "center" });
+        }
 
-        doc.save(`receipt_${order.id}.pdf`);
+        const fileName = orders.length === 1 ? `receipt_${orders[0].id}.pdf` : `receipts_batch_${new Date().getTime()}.pdf`;
+        doc.save(fileName);
     };
 
 
