@@ -195,7 +195,7 @@ const processScan = async (codeOverride = null) => {
     message.value = '';
 
     try {
-        const res = await fetch('https://management.hoggari.com/backend/validateScan.php', {
+        const res = await fetch('https://management.hoggari.com/backend/sql/update/validateScan.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
