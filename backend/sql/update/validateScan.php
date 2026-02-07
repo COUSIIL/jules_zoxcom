@@ -1,163 +1,209 @@
 <?php
+
 header("Content-Type: application/json; charset=UTF-8");
 
 $configPath = __DIR__ . '/../../../backend/config/dbConfig.php';
-$managePath = __DIR__ . '/products/manageStockCodes.php';
-$stockHistory = __DIR__ . '/../../../backend/sql/create_stock_history_table.php';
 
-if (!file_exists($configPath) || !file_exists($managePath) || !file_exists($stockHistory)) {
-    echo json_encode(['success' => false, 'message' => 'Config or Helper not found.']);
+if (!file_exists($configPath)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Required config not found.'
+    ]);
     exit;
 }
 
 require_once $configPath;
-require_once $managePath;
-require_once $stockHistory;
-
 
 $data = json_decode(file_get_contents('php://input'), true);
 
-if (!isset($data['order_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Missing order_id.']);
-    exit;
-}
-if (!isset($data['code']) && !isset($data['stock_id'])) {
-    echo json_encode(['success' => false, 'message' => 'Missing code or stock_id.']);
+if (!isset($data['order_id'], $data['code'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Missing order_id or code.'
+    ]);
     exit;
 }
 
 $orderId = (int)$data['order_id'];
-$targetStatus = $data['target_status'] ?? 'reserved'; // Default to sold for compatibility, but frontend should specify
-$user = $data['user'] ?? 'System';
+$code = $mysqli->real_escape_string($data['code']);
 
-if (!in_array($targetStatus, ['reserved', 'sold'])) {
-    echo json_encode(['success' => false, 'message' => 'Invalid target status.']);
-    exit;
-}
-
-// 1. Fetch the stock item
-if (isset($data['stock_id'])) {
-    $stmt = $mysqli->prepare("SELECT id, product_id, model_id, detail_id, status, order_id, unique_code FROM product_stock WHERE id = ?");
-    $stmt->bind_param("i", $data['stock_id']);
-} else {
-    $code = trim($data['code']);
-    $stmt = $mysqli->prepare("SELECT id, product_id, model_id, detail_id, status, order_id, unique_code FROM product_stock WHERE unique_code = ?");
-    $stmt->bind_param("s", $code);
-}
+// 1. Fetch the Code
+$stmt = $mysqli->prepare("SELECT id, product_id, model_id, detail_id, status, order_id, unique_code FROM product_stock WHERE unique_code = ?");
+$stmt->bind_param("s", $code);
 $stmt->execute();
-$stockItem = $stmt->get_result()->fetch_assoc();
+$res = $stmt->get_result();
+$stockItem = $res->fetch_assoc();
 $stmt->close();
 
 if (!$stockItem) {
-    echo json_encode(['success' => false, 'message' => 'Item not found.']);
+    echo json_encode(['success' => false, 'message' => 'Code introuvable.']);
     exit;
 }
 
-// 2. Logic based on status
+// 2. Check Availability
+if ($stockItem['status'] === 'sold') {
+    echo json_encode(['success' => false, 'message' => 'Ce code est déjà vendu.']);
+    exit;
+}
 
-// A. Already assigned to this order
+if ($stockItem['status'] !== 'available' && $stockItem['order_id'] != $orderId) {
+    // Reserved for someone else?
+    echo json_encode(['success' => false, 'message' => 'Ce code est réservé pour une autre commande.']);
+    exit;
+}
+
 if ($stockItem['order_id'] == $orderId) {
-    if ($stockItem['status'] === $targetStatus) {
-        echo json_encode(['success' => true, 'message' => 'Already assigned and status matches.']);
-        exit;
-    }
-    // Update status (e.g. reserved -> sold)
-    $upd = $mysqli->prepare("UPDATE product_stock SET status = ? WHERE id = ?");
-    $upd->bind_param("si", $targetStatus, $stockItem['id']);
-    $upd->execute();
-    $upd->close();
-
-    logStockHistory($mysqli, $stockItem['id'], $stockItem['unique_code'], 'update_status', $stockItem['status'], $targetStatus, $orderId, $user);
-
-    echo json_encode(['success' => true, 'message' => 'Status updated.']);
+    // Already assigned to this order
+    echo json_encode(['success' => true, 'message' => 'Déjà scanné pour cette commande.', 'already_scanned' => true]);
     exit;
 }
 
-// B. Assigned to another order
-if ($stockItem['order_id'] && $stockItem['order_id'] != $orderId) {
-    // If it's sold, we can't take it.
-    if ($stockItem['status'] === 'sold') {
-        echo json_encode(['success' => false, 'message' => 'Item sold to another order.']);
-        exit;
+// 3. Check Order Requirements
+// We need to see if the order needs this specific product/variant.
+
+// Fetch required items
+$itemsToProcess = [];
+
+// Try product_items first (preferred source of truth for variants)
+$sqlPI = "SELECT product_id, qty, ids, indx FROM product_items WHERE order_id = ?";
+$stmtPI = $mysqli->prepare($sqlPI);
+$stmtPI->bind_param("i", $orderId);
+$stmtPI->execute();
+$pItems = $stmtPI->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmtPI->close();
+
+if (empty($pItems)) {
+    // Fallback to order_items
+    $sqlOI = "SELECT product_id, qty, model_id FROM order_items WHERE order_id = ?";
+    $stmtOI = $mysqli->prepare($sqlOI);
+    $stmtOI->bind_param("i", $orderId);
+    $stmtOI->execute();
+    $oItems = $stmtOI->get_result()->fetch_all(MYSQLI_ASSOC);
+    $stmtOI->close();
+
+    foreach ($oItems as $oi) {
+        $itemsToProcess[] = [
+            'product_id' => $oi['product_id'],
+            'detail_id'  => 0,
+            'model_id'   => $oi['model_id'], // fallback
+            'qty'        => $oi['qty']
+        ];
     }
-    // If reserved, we technically could steal it, but usually not.
-    echo json_encode(['success' => false, 'message' => 'Item reserved for another order.']);
-    exit;
-}
+} else {
+    foreach ($pItems as $pi) {
+        $modelId = (int)$pi['ids'];
+        $detailId = (int)$pi['indx'];
 
-// C. Available (or Reserved/Sold but NULL order_id which shouldn't happen, or Returned)
-if ($stockItem['status'] === 'available') {
-    // Check if we need to SWAP with an existing reserved item for this order
-    // (e.g. Order reserved generic code A, user scans code B)
-
-    // Find a reserved item for this order matching the product/model/detail of the scanned item
-    $search = "SELECT id, unique_code, status FROM product_stock
-               WHERE order_id = ?
-               AND status = 'available'
-               AND product_id = ?
-               AND model_id = ?
-               AND (detail_id = ? OR (detail_id IS NULL AND ? = 0) OR (detail_id = 0 AND ? = 0))
-               LIMIT 1";
-
-    $stmtS = $mysqli->prepare($search);
-    $dId = $stockItem['detail_id'] ?? 0;
-    $stmtS->bind_param("iiiiii", $orderId, $stockItem['product_id'], $stockItem['model_id'], $dId, $dId, $dId);
-    $stmtS->execute();
-    $reservedItem = $stmtS->get_result()->fetch_assoc();
-    $stmtS->close();
-
-    $mysqli->begin_transaction();
-    try {
-        if ($reservedItem) {
-            // Swap: Release reserved item
-            $mysqli->query("UPDATE product_stock SET status = 'available', order_id = NULL WHERE id = " . $reservedItem['id']);
-            logStockHistory($mysqli, $reservedItem['id'], $reservedItem['unique_code'], 'swap_release', $reservedItem['status'], 'available', $orderId, $user);
-        } else {
-             // If no reserved item to swap, verify we strictly need this item
-             // (Logic from before: check requirements)
-             $items = getItemsForOrder($mysqli, $orderId);
-             $strictNeeded = 0;
-             $d0 = $stockItem['detail_id'] ?? 0;
-
-             foreach ($items as $itm) {
-                 if ($itm['product_id'] == $stockItem['product_id'] &&
-                     $itm['model_id'] == $stockItem['model_id'] &&
-                     $itm['detail_id'] == $d0) {
-                     $strictNeeded += $itm['qty'];
-                 }
-             }
-             
-             // Count currently assigned (reserved or sold)
-             $strictAssigned = 0;
-             $stmtSA = $mysqli->prepare("SELECT COUNT(*) as cnt FROM product_stock WHERE order_id = ? AND product_id = ? AND model_id = ? AND detail_id = ?");
-             $stmtSA->bind_param("iiii", $orderId, $stockItem['product_id'], $stockItem['model_id'], $d0);
-             $stmtSA->execute();
-             $resSA = $stmtSA->get_result()->fetch_assoc();
-             $strictAssigned = $resSA['cnt'];
-             $stmtSA->close();
-
-             if ($strictNeeded <= $strictAssigned) {
-                 throw new Exception("Order fully assigned for this item. Release an item first or increase quantity.");
-             }
+        // Resolve 0 IDs if needed (e.g. if indx points to model_details but ids is 0)
+        if ($modelId === 0 && $detailId > 0) {
+            $stmtD = $mysqli->prepare("SELECT model_id FROM model_details WHERE id = ?");
+            if ($stmtD) {
+                $stmtD->bind_param("i", $detailId);
+                $stmtD->execute();
+                $resD = $stmtD->get_result();
+                if ($rowD = $resD->fetch_assoc()) $modelId = (int)$rowD['model_id'];
+                $stmtD->close();
+            }
         }
 
-        // Assign new item
-        $stmtUpd = $mysqli->prepare("UPDATE product_stock SET status = ?, order_id = ? WHERE id = ?");
-        $stmtUpd->bind_param("sii", $targetStatus, $orderId, $stockItem['id']);
-        $stmtUpd->execute();
-        
-        logStockHistory($mysqli, $stockItem['id'], $stockItem['unique_code'], 'assign_'.$targetStatus, $stockItem['status'], $targetStatus, $orderId, $user);
-
-        $mysqli->commit();
-        echo json_encode(['success' => true, 'message' => 'Item assigned.']);
-        exit;
-
-    } catch (Exception $e) {
-        $mysqli->rollback();
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        exit;
+        $itemsToProcess[] = [
+            'product_id' => $pi['product_id'],
+            'detail_id'  => $detailId,
+            'model_id'   => $modelId,
+            'qty'        => $pi['qty']
+        ];
     }
 }
 
-echo json_encode(['success' => false, 'message' => 'Item status is ' . $stockItem['status']]);
-?>
+// Check matching requirement
+$matchedRequirement = null;
+$totalRequired = 0;
+$totalAssigned = 0;
+
+// Helper to check match
+function isMatch($req, $stock) {
+    if ($req['product_id'] != $stock['product_id']) return false;
+
+    // Strict check for variants
+    // If requirement specifies detail_id > 0, stock must match exactly
+    if ($req['detail_id'] > 0) {
+        if ($req['detail_id'] != $stock['detail_id']) return false;
+    }
+
+    // If requirement specifies model_id > 0 (and no detail or detail match passed)
+    if ($req['model_id'] > 0) {
+        if ($req['model_id'] != $stock['model_id']) return false;
+    }
+
+    // Note: If req has model_id=0, detail_id=0 (generic product), any stock of that product matches?
+    // Usually yes.
+    return true;
+}
+
+// Find if this stock item matches ANY requirement
+foreach ($itemsToProcess as $req) {
+    if (isMatch($req, $stockItem)) {
+        // Found a potential match. Now check if we still need one.
+        // Count how many assigned for this specific requirement?
+        // This is tricky because assigned stock might match multiple generic requirements.
+        // We need to count assigned stock that *matches this requirement* and see if < qty.
+
+        // Count assigned stock for this variant
+        $assignedCount = 0;
+        $sqlCount = "SELECT COUNT(*) as cnt FROM product_stock WHERE order_id = ? AND product_id = ? AND status IN ('reserved', 'shipping')";
+        
+        $types = "ii";
+        $params = [$orderId, $req['product_id']];
+
+        if ($req['detail_id'] > 0) {
+            $sqlCount .= " AND detail_id = ?";
+            $types .= "i";
+            $params[] = $req['detail_id'];
+        } elseif ($req['model_id'] > 0) {
+            $sqlCount .= " AND model_id = ?";
+            $types .= "i";
+            $params[] = $req['model_id'];
+        }
+
+        $stmtC = $mysqli->prepare($sqlCount);
+        $stmtC->bind_param($types, ...$params);
+        $stmtC->execute();
+        $resC = $stmtC->get_result()->fetch_assoc();
+        $assignedCount = $resC['cnt'];
+        $stmtC->close();
+
+        if ($assignedCount < $req['qty']) {
+            $matchedRequirement = $req;
+            break;
+        }
+    }
+}
+
+if (!$matchedRequirement) {
+    echo json_encode(['success' => false, 'message' => 'Ce produit/variante n\'est pas requis ou la quantité est déjà atteinte.']);
+    exit;
+}
+
+// 4. Update Stock
+$updateSql = "UPDATE product_stock SET order_id = ?, status = 'reserved' WHERE id = ?";
+$stmtU = $mysqli->prepare($updateSql);
+$stmtU->bind_param("ii", $orderId, $stockItem['id']);
+
+if ($stmtU->execute()) {
+    echo json_encode([
+        'success' => true,
+        'message' => 'Code validé et assigné.',
+        'stock' => [
+            'id' => $stockItem['id'],
+            'unique_code' => $stockItem['unique_code'],
+            'product_id' => $stockItem['product_id'],
+            'model_id' => $stockItem['model_id'],
+            'detail_id' => $stockItem['detail_id']
+        ]
+    ]);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Erreur lors de la mise à jour: ' . $stmtU->error]);
+}
+
+$stmtU->close();
+$mysqli->close();

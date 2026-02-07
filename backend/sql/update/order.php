@@ -228,8 +228,8 @@ if ($status === 'status') {
         // Restore stock counts as per requirement
         restoreStockCounts($mysqli, $id);
     }
-    elseif (in_array($value, ['canceled', 'unreaching'])) {
-        // -> Canceled / Unreaching
+    elseif (in_array($value, ['canceled', 'unreaching', 'waiting', 'pending'])) {
+        // -> Canceled / Unreaching / Waiting / Pending
         // 1. Release Physical Stock Codes to Available
         releasePhysicalStock($mysqli, $id);
 
