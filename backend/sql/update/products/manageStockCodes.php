@@ -141,11 +141,28 @@ function assignPhysicalStock($mysqli, $orderId, $targetStatus = 'reserved', $use
         $modelId   = $item['model_id'];
         $detailId  = $item['detail_id'];
 
-        $remainingQty = $qty;
-        
         // Count already assigned for this specific variant
-        $assignedVar = 0; // Simplified: Assumes order items are distinct. If dupes exist, logic gets complex. 
-        // We will proceed with simplistic "Need X, Find X".
+        $sqlCountVar = "SELECT COUNT(*) as cnt FROM product_stock WHERE order_id = ? AND product_id = ?";
+
+        if ($detailId > 0) {
+            $sqlCountVar .= " AND detail_id = ?";
+            $stmtVar = $mysqli->prepare($sqlCountVar);
+            $stmtVar->bind_param("iii", $orderId, $productId, $detailId);
+        } elseif ($modelId > 0) {
+            $sqlCountVar .= " AND model_id = ?";
+            $stmtVar = $mysqli->prepare($sqlCountVar);
+            $stmtVar->bind_param("iii", $orderId, $productId, $modelId);
+        } else {
+            $stmtVar = $mysqli->prepare($sqlCountVar);
+            $stmtVar->bind_param("ii", $orderId, $productId);
+        }
+
+        $stmtVar->execute();
+        $resVar = $stmtVar->get_result()->fetch_assoc();
+        $assignedVar = $resVar['cnt'];
+        $stmtVar->close();
+
+        $remainingQty = $qty - $assignedVar;
         
         $foundIds = [];
 
